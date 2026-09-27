@@ -32,3 +32,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+node_modules/
+artifacts/
+static-worker/public/manifest.json
+static-worker/public/bundles/
+static-worker/public/jackets/

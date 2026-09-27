@@ -1,0 +1,49 @@
+name: Build CHUNITHMD static bundle
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"
+
+concurrency:
+  group: chunithmd-static-bundle
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build and validate
+        env:
+          CHUNITHMD_STATIC_BASE_URL: https://chunithmd-assets.rhythmeta.org
+        run: pnpm run build:static-bundle
+      - name: Upload build report
+        uses: actions/upload-artifact@v4
+        with:
+          name: chunithmd-static-bundle-report
+          path: artifacts/static-bundle-report.json
+      - name: Deploy static assets
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: static-worker
+          command: deploy
+      - name: Verify public static assets
+        env:
+          CHUNITHMD_STATIC_BASE_URL: https://chunithmd-assets.rhythmeta.org
+        run: pnpm run verify:static-bundle
