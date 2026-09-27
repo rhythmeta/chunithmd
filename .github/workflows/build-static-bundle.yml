@@ -37,12 +37,10 @@ jobs:
           name: chunithmd-static-bundle-report
           path: artifacts/static-bundle-report.json
       - name: Deploy static assets
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: static-worker
-          command: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler deploy --config static-worker/wrangler.jsonc
       - name: Verify public static assets
         env:
           CHUNITHMD_STATIC_BASE_URL: https://chunithmd-assets.rhythmeta.org
