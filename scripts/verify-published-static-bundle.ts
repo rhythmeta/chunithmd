@@ -21,7 +21,15 @@ const bundleHash = createHash("sha256").update(bundleBytes).digest("hex");
 if (bundleHash !== manifest.sha256) throw new Error(`Published bundle hash mismatch: ${bundleHash} != ${manifest.sha256}`);
 const bundle = JSON.parse(new TextDecoder().decode(bundleBytes)) as { schemaVersion: number; catalog?: { songs?: Array<{ imageName?: string }> } };
 if (bundle.schemaVersion !== 1 || !bundle.catalog?.songs?.length) throw new Error("Published bundle has an invalid catalog.");
-const imageName = bundle.catalog.songs[0]?.imageName;
-if (!imageName) throw new Error("Published bundle has no jacket image name.");
-await fetchRequired(`${baseUrl}/jackets/${encodeURIComponent(imageName)}`, "image/*");
-console.log(`[static-bundle] public manifest and bundle verified (${manifest.sha256})`);
+const imageNames = Array.from(new Set(bundle.catalog.songs.map((song) => song.imageName).filter((name): name is string => Boolean(name))));
+if (imageNames.length === 0) throw new Error("Published bundle has no jacket image names.");
+let cursor = 0;
+const verifyWorker = async () => {
+	while (cursor < imageNames.length) {
+		const imageName = imageNames[cursor++];
+		if (!imageName) continue;
+		await fetchRequired(`${baseUrl}/jackets/${encodeURIComponent(imageName)}`, "image/*");
+	}
+};
+await Promise.all(Array.from({ length: Math.min(16, imageNames.length) }, verifyWorker));
+console.log(`[static-bundle] public manifest, bundle, and ${imageNames.length} jackets verified (${manifest.sha256})`);

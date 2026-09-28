@@ -16,7 +16,11 @@ struct ContentView: View {
                     ContentUnavailableView("没有符合条件的歌曲", systemImage: "music.note.list")
                 } else {
                     List(store.songs) { song in
-                        SongRow(song: song, jacketBaseURL: store.manifest?.assets.jacketBaseUrl ?? "", dark: colorScheme == .dark)
+                        SongRow(
+                            song: song,
+                            jacketURL: store.jacketURL(for: song.imageName),
+                            dark: colorScheme == .dark,
+                        )
                             .listRowSeparator(.visible)
                     }
                     .listStyle(.plain)
@@ -99,8 +103,19 @@ struct ContentView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             if store.isSyncing {
-                ProgressView()
-                    .controlSize(.regular)
+                if let progress = store.syncProgress, progress.stage == "Downloading" {
+                    VStack(spacing: 8) {
+                        ProgressView(value: progress.progress ?? 0)
+                            .progressViewStyle(.linear)
+                        Text(downloadProgressText(progress))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: 300)
+                } else {
+                    ProgressView()
+                        .controlSize(.regular)
+                }
             } else {
                 Button("重试", systemImage: "arrow.clockwise") { store.refresh() }
                     .buttonStyle(.borderedProminent)
@@ -124,7 +139,7 @@ private struct SortOption: Identifiable {
 
 private struct SongRow: View {
     let song: CatalogSongViewData
-    let jacketBaseURL: String
+    let jacketURL: URL?
     let dark: Bool
 
     var body: some View {
@@ -176,10 +191,6 @@ private struct SongRow: View {
         .contentShape(Rectangle())
     }
 
-    private var jacketURL: URL? {
-        guard !song.imageName.isEmpty else { return nil }
-        return URL(string: jacketBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/" + song.imageName.trimmingCharacters(in: CharacterSet(charactersIn: "/")))
-    }
 }
 
 private struct VersionBadge: View {
@@ -270,10 +281,19 @@ private struct StaticResourcesView: View {
                     if let error = store.errorMessage {
                         Text(error).foregroundStyle(.red)
                     }
+                    if let progress = store.syncProgress, progress.stage == "Downloading" {
+                        ProgressView(value: progress.progress ?? 0)
+                            .progressViewStyle(.linear)
+                        Text(downloadProgressText(progress))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else if store.isSyncing {
+                        ProgressView()
+                    }
                     Button("检查更新", systemImage: "arrow.clockwise") { store.checkForUpdate() }
+                        .disabled(store.isSyncing)
                     Button(store.updateAvailable ? "下载更新" : (store.manifest == nil ? "下载资源" : "重新安装当前资源"), systemImage: "arrow.down.circle") { store.refresh() }
                         .disabled(store.isSyncing)
-                    if store.isSyncing { ProgressView("正在同步") }
                 }
             }
             .navigationTitle("静态资源")
@@ -285,6 +305,30 @@ private struct StaticResourcesView: View {
 }
 
 private let difficultyNames = ["basic", "advanced", "expert", "master", "ultima", "world's end"]
+
+private func downloadProgressText(_ progress: CatalogSyncProgressViewData) -> String {
+    let bytes = progress.totalBytes.map {
+        "\(formatByteCount(progress.downloadedBytes)) / \(formatByteCount($0))"
+    } ?? formatByteCount(progress.downloadedBytes)
+    let speed = progress.bytesPerSecond > 0
+        ? " · \(formatByteCount(progress.bytesPerSecond))/s"
+        : ""
+    let items = progress.totalItems > 0
+        ? " · \(progress.completedItems)/\(progress.totalItems)"
+        : ""
+    return "\(bytes)\(speed)\(items)"
+}
+
+private func formatByteCount(_ bytes: Int64) -> String {
+    let units = ["B", "KB", "MB", "GB"]
+    var value = Double(max(bytes, 0))
+    var unit = 0
+    while value >= 1024 && unit < units.count - 1 {
+        value /= 1024
+        unit += 1
+    }
+    return unit == 0 ? "\(Int(value)) \(units[unit])" : String(format: "%.1f %@", value, units[unit])
+}
 
 private func difficultyColor(_ difficulty: String) -> Color {
     switch difficulty {

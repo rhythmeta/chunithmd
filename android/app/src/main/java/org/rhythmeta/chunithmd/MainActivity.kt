@@ -10,7 +10,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.animation.AnimatedContent
@@ -52,7 +51,6 @@ import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -90,11 +88,11 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import coil.compose.AsyncImage
+import java.io.File
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.withFrameNanos
@@ -132,6 +130,7 @@ import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InputField
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.NavigationBar
@@ -151,7 +150,6 @@ import top.yukonga.miuix.kmp.blur.textureBlur
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.theme.ThemeController
 import top.yukonga.miuix.kmp.window.WindowListPopup
 
 import top.yukonga.miuix.kmp.nav.core.NavDisplay
@@ -345,15 +343,7 @@ private fun CatalogApp(
             bundle = withContext(Dispatchers.Default) {
                 CatalogJson.decodeBundle(snapshot.bundleJson)
             }
-            scope.launch {
-                runCatching {
-                    withContext(Dispatchers.IO) { repository.checkForUpdate() }
-                }.onSuccess { check ->
-                    if (check.updateAvailable) sync = CatalogSyncState(CatalogSyncStage.Idle, "发现可用更新")
-                }
-            }
         }
-        if (bundle == null) refresh()
     }
 
     val isDark = isSystemInDarkTheme()
@@ -481,14 +471,15 @@ private fun CatalogApp(
                 2 -> if (bundle == null) {
                     InitialLoad(sync, error, ::refresh, Modifier.padding(padding))
                 } else {
-                    SongList(
-                        Modifier.padding(padding).fillMaxSize()
-                            .background(MiuixTheme.colorScheme.surface)
-                            .kyantLayerBackdrop(navigationBackdrop)
-                            .nestedScroll(searchScrollConnection)
-                            .nestedScroll(topBarScrollConnection),
+                        SongList(
+                            Modifier.padding(padding).fillMaxSize()
+                                .background(MiuixTheme.colorScheme.surface)
+                                .kyantLayerBackdrop(navigationBackdrop)
+                                .nestedScroll(searchScrollConnection)
+                                .nestedScroll(topBarScrollConnection),
                         songs,
                         manifest?.assets?.jacketBaseUrl.orEmpty(),
+                        repository::localJacketPath,
                         isDark,
                     )
                 }
@@ -561,22 +552,29 @@ private fun CatalogApp(
                         sync = sync,
                         error = error,
                         onCheck = {
-                            scope.launch {
-                                error = null
-                                sync = CatalogSyncState(CatalogSyncStage.Checking)
-                                runCatching {
-                                    withContext(Dispatchers.IO) { repository.checkForUpdate() }
+                            if (sync.stage !in setOf(
+                                    CatalogSyncStage.Checking,
+                                    CatalogSyncStage.Downloading,
+                                    CatalogSyncStage.Validating,
+                                    CatalogSyncStage.Applying,
+                                )) {
+                                scope.launch {
+                                    error = null
+                                    sync = CatalogSyncState(CatalogSyncStage.Checking)
+                                    runCatching {
+                                        withContext(Dispatchers.IO) { repository.checkForUpdate() }
+                                    }
+                                        .onSuccess { check ->
+                                            sync = CatalogSyncState(
+                                                CatalogSyncStage.Idle,
+                                                if (check.updateAvailable) "发现可用更新" else "已是最新静态数据",
+                                            )
+                                        }
+                                        .onFailure {
+                                            error = it.message
+                                            sync = CatalogSyncState(CatalogSyncStage.Failed, error)
+                                        }
                                 }
-                                    .onSuccess { check ->
-                                        sync = CatalogSyncState(
-                                            CatalogSyncStage.Idle,
-                                            if (check.updateAvailable) "发现可用更新" else "已是最新静态数据",
-                                        )
-                                    }
-                                    .onFailure {
-                                        error = it.message
-                                        sync = CatalogSyncState(CatalogSyncStage.Failed, error)
-                                    }
                             }
                         },
                         onDownload = ::refresh,
@@ -711,20 +709,31 @@ private fun SortAction(
 }
 
 @Composable
-private fun SongList(modifier: Modifier, songs: List<CatalogSong>, jacketBaseUrl: String, isDark: Boolean) {
+private fun SongList(
+    modifier: Modifier,
+    songs: List<CatalogSong>,
+    jacketBaseUrl: String,
+    localJacketPath: (String) -> String?,
+    isDark: Boolean,
+) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, top = 6.dp, end = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(songs, key = CatalogSong::songId) { song ->
-            SongCard(song, jacketBaseUrl, isDark)
+            SongCard(song, jacketBaseUrl, localJacketPath, isDark)
         }
     }
 }
 
 @Composable
-private fun SongCard(song: CatalogSong, jacketBaseUrl: String, isDark: Boolean) {
+private fun SongCard(
+    song: CatalogSong,
+    jacketBaseUrl: String,
+    localJacketPath: (String) -> String?,
+    isDark: Boolean,
+) {
     val accentColor = song.sheets.maxByOrNull { difficultyOrder(it.difficulty) }?.let { difficultyColor(it.difficulty) }
         ?: difficultyColor("world's end")
     val palette = VersionPalette.forVersion(song.version, isDark)
@@ -754,7 +763,8 @@ private fun SongCard(song: CatalogSong, jacketBaseUrl: String, isDark: Boolean) 
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AsyncImage(
-                model = jacketBaseUrl.trimEnd('/') + "/" + song.imageName.trimStart('/'),
+                model = localJacketPath(song.imageName)?.let(::File)
+                    ?: jacketBaseUrl.trimEnd('/') + "/" + song.imageName.trimStart('/'),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(MiuixTheme.colorScheme.surfaceVariant),
@@ -864,8 +874,19 @@ private fun InitialLoad(sync: CatalogSyncState, error: String?, onRetry: () -> U
         Spacer(Modifier.height(12.dp))
         MiuixText(error ?: sync.message ?: "正在下载歌曲目录", style = MiuixTheme.textStyles.body1)
         Spacer(Modifier.height(18.dp))
-        if (sync.stage in setOf(CatalogSyncStage.Checking, CatalogSyncStage.Downloading, CatalogSyncStage.Validating, CatalogSyncStage.Applying)) CircularProgressIndicator()
-        else MiuixButton(onClick = onRetry) { MiuixText("重试") }
+        if (sync.stage in setOf(CatalogSyncStage.Checking, CatalogSyncStage.Downloading, CatalogSyncStage.Validating, CatalogSyncStage.Applying)) {
+            val downloadProgress = sync.progress
+            if (sync.stage == CatalogSyncStage.Downloading && downloadProgress != null) {
+                LinearProgressIndicator(
+                    progress = downloadProgress.coerceIn(0f, 1f),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                )
+            } else {
+                CircularProgressIndicator()
+            }
+        } else {
+            MiuixButton(onClick = onRetry) { MiuixText("重试") }
+        }
     }
 }
 

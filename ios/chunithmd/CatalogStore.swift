@@ -38,6 +38,17 @@ private struct UpdateCheckViewData: Decodable {
     let updateAvailable: Bool
 }
 
+struct CatalogSyncProgressViewData: Decodable {
+    let stage: String
+    let message: String?
+    let progress: Double?
+    let completedItems: Int
+    let totalItems: Int
+    let downloadedBytes: Int64
+    let totalBytes: Int64?
+    let bytesPerSecond: Int64
+}
+
 @MainActor
 @Observable
 final class CatalogStore {
@@ -62,6 +73,7 @@ final class CatalogStore {
     var errorMessage: String?
     var isSyncing = false
     var updateAvailable = false
+    private(set) var syncProgress: CatalogSyncProgressViewData?
 
     init() {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -75,15 +87,20 @@ final class CatalogStore {
             install(json)
             checkForUpdate()
         } else {
-            refresh()
+            syncMessage = "准备下载歌曲目录"
         }
     }
 
     func checkForUpdate() {
+        isSyncing = true
+        errorMessage = nil
+        syncProgress = nil
+        updateAvailable = false
         syncMessage = "正在检查更新"
         bridge.checkForUpdate { [weak self] json, error in
             Task { @MainActor [weak self] in
                 guard let self else { return }
+                self.isSyncing = false
                 if let error {
                     self.errorMessage = error
                     self.syncMessage = "检查更新失败"
@@ -95,14 +112,35 @@ final class CatalogStore {
         }
     }
 
+    func jacketURL(for imageName: String) -> URL? {
+        guard !imageName.isEmpty else { return nil }
+        if let localPath = bridge.localJacketPath(imageName: imageName) {
+            return URL(fileURLWithPath: localPath)
+        }
+        guard let baseURL = manifest?.assets.jacketBaseUrl else { return nil }
+        return URL(string: baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/" + imageName.trimmingCharacters(in: CharacterSet(charactersIn: "/")))
+    }
+
     func refresh() {
         isSyncing = true
         errorMessage = nil
+        syncProgress = nil
         syncMessage = "正在下载歌曲目录"
-        bridge.refresh { [weak self] json, error in
+        bridge.refreshWithProgress(onProgress: { [weak self] progressJson in
+            guard let progress = try? JSONDecoder().decode(
+                CatalogSyncProgressViewData.self,
+                from: Data(progressJson.utf8),
+            ) else { return }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.syncProgress = progress
+                self.syncMessage = progress.message ?? self.syncMessage
+            }
+        }, completion: { [weak self] json, error in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.isSyncing = false
+                self.syncProgress = nil
                 if let error {
                     self.errorMessage = error
                     self.syncMessage = "资源更新失败"
@@ -112,7 +150,7 @@ final class CatalogStore {
                     self.syncMessage = "资源已更新"
                 }
             }
-        }
+        })
     }
 
     private func install(_ json: String) {

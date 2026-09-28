@@ -71,6 +71,7 @@ private val keyColors = listOf(
 
 @Composable
 fun ThemeSettingsScreen(
+    modifier: Modifier = Modifier,
     settings: AppThemeSettings,
     contentTopPadding: Dp = 0.dp,
     onColorModeChange: (ColorMode) -> Unit,
@@ -82,7 +83,6 @@ fun ThemeSettingsScreen(
     onEnableFloatingBottomBarBlurChange: (Boolean) -> Unit,
     onEnablePredictiveBackChange: (Boolean) -> Unit,
     onPageScaleChange: (Float) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),

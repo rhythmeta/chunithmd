@@ -56,6 +56,7 @@ fun StaticResourcesScreen(
         CatalogSyncStage.Validating,
         CatalogSyncStage.Applying,
     )
+    val isDownloading = sync.stage == CatalogSyncStage.Downloading
     val hasError = error != null || sync.stage == CatalogSyncStage.Failed
     val updateAvailable = sync.message == "发现可用更新"
     val upToDate = manifest != null && !isSyncing && !hasError && !updateAvailable
@@ -80,14 +81,20 @@ fun StaticResourcesScreen(
     }
     val statusTitle = when {
         hasError -> "检查失败：${error.orEmpty()}"
-        isSyncing -> "正在检查更新…"
+        sync.stage == CatalogSyncStage.Checking -> "正在检查更新…"
+        sync.stage == CatalogSyncStage.Downloading -> "正在下载静态数据…"
+        sync.stage == CatalogSyncStage.Validating -> "正在校验静态数据…"
+        sync.stage == CatalogSyncStage.Applying -> "正在应用静态数据…"
         updateAvailable -> "发现可用更新"
         upToDate -> "已是最新静态数据"
         else -> "准备检查更新"
     }
     val statusDescription = when {
         hasError -> "请检查网络或后端状态后重试。"
-        isSyncing -> "正在从后端获取最新清单。"
+        sync.stage == CatalogSyncStage.Checking -> "正在从后端获取最新清单。"
+        sync.stage == CatalogSyncStage.Downloading -> "正在下载目录和封面资源。"
+        sync.stage == CatalogSyncStage.Validating -> "正在校验下载内容。"
+        sync.stage == CatalogSyncStage.Applying -> "正在保存本地静态数据。"
         updateAvailable -> "点击下方按钮下载并应用完整更新。"
         upToDate -> "当前本地数据与服务端最新版本一致。"
         else -> "进入页面后会自动检查静态数据更新。"
@@ -165,9 +172,17 @@ fun StaticResourcesScreen(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    val downloadProgress = sync.progress
+                    if (isDownloading && downloadProgress != null) {
+                        LinearProgressIndicator(
+                            progress = downloadProgress.coerceIn(0f, 1f),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
                     Text(
-                        text = "正在检查更新…",
+                        text = sync.message ?: "正在检查更新…",
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )

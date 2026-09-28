@@ -135,5 +135,13 @@ export const verifyOutput = async (outputDirectory: string) => {
 	const imageBasePath = path.join(outputDirectory, "jackets");
 	const imageDirectory = await stat(imageBasePath);
 	if (!imageDirectory.isDirectory()) throw new Error("Jacket asset directory is missing.");
+	const payload = JSON.parse(new TextDecoder().decode(bundle)) as { catalog?: { songs?: Array<{ imageName?: string }> } };
+	const imageNames = Array.from(new Set(
+		(payload.catalog?.songs?.map((song) => song.imageName) ?? []).filter((imageName): imageName is string => Boolean(imageName)),
+	));
+	for (const imageName of imageNames) {
+		const image = await stat(path.join(imageBasePath, imageName));
+		if (!image.isFile() || image.size === 0) throw new Error(`Jacket asset is missing or empty: ${imageName}`);
+	}
 	return manifest;
 };

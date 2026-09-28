@@ -31,11 +31,11 @@ fun SettingsHome(
         contentPadding = PaddingValues(top = 0.dp, bottom = 112.dp),
     ) {
         item {
-            SettingsSection(title = "外观") {
+            SettingsSection(title = "主题") {
                 SettingsRow(
                     icon = Icons.Rounded.ColorLens,
                     title = "主题",
-                    summary = "选择跟随系统、浅色或深色外观",
+                    summary = "自定义更多主题选项",
                     onClick = onAppearance,
                 )
             }
