@@ -9,8 +9,6 @@ import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -23,39 +21,19 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.DocumentScanner
-import androidx.compose.material.icons.rounded.FilterList
-import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -67,18 +45,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
@@ -87,8 +57,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import coil.compose.AsyncImage
-import java.io.File
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -105,11 +73,9 @@ import org.rhythmeta.chunithmd.shared.CatalogFilters
 import org.rhythmeta.chunithmd.shared.CatalogJson
 import org.rhythmeta.chunithmd.shared.CatalogQuery
 import org.rhythmeta.chunithmd.shared.CatalogRepository
-import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSort
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
-import org.rhythmeta.chunithmd.shared.VersionPalette
 import org.rhythmeta.chunithmd.ui.theme.ChunithmdTheme
 import org.rhythmeta.chunithmd.ui.theme.AppThemeSettings
 import org.rhythmeta.chunithmd.ui.theme.DefaultAppThemeSettings
@@ -118,6 +84,11 @@ import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBar
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBarBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
+import org.rhythmeta.chunithmd.ui.catalog.CatalogFilterDialog
+import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
+import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
+import org.rhythmeta.chunithmd.ui.catalog.CatalogToolbarActions
+import org.rhythmeta.chunithmd.ui.components.AppPageScaffold
 import org.rhythmeta.chunithmd.ui.components.LiquidGlassTab
 import org.rhythmeta.chunithmd.ui.components.LiquidGlassTabBar
 import org.rhythmeta.chunithmd.ui.settings.SettingsHome
@@ -125,32 +96,13 @@ import org.rhythmeta.chunithmd.ui.settings.ThemeSettingsScreen
 import org.rhythmeta.chunithmd.ui.settings.StaticResourcesScreen
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
-import top.yukonga.miuix.kmp.basic.Button as MiuixButton
-import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
-import top.yukonga.miuix.kmp.basic.InputField
-import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
-import top.yukonga.miuix.kmp.basic.PopupPositionProvider
-import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
-import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
-import top.yukonga.miuix.kmp.basic.Text as MiuixText
-import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
-import top.yukonga.miuix.kmp.blur.BlendColorEntry
-import top.yukonga.miuix.kmp.blur.BlurColors
-import top.yukonga.miuix.kmp.blur.LayerBackdrop
-import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
-import top.yukonga.miuix.kmp.blur.textureBlur
-import top.yukonga.miuix.kmp.squircle.squircleSurface
-import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.window.WindowListPopup
 
 import top.yukonga.miuix.kmp.nav.core.NavDisplay
 import top.yukonga.miuix.kmp.nav.core.NavKey
@@ -183,18 +135,6 @@ private val SettingsDetailTransition = object : NavTransition by NavTransitions.
         ),
     )
 }
-
-@Composable
-private fun rememberPageBackdrop(enabled: Boolean, surfaceColor: Color): LayerBackdrop? {
-    if (!enabled) return null
-    return rememberLayerBackdrop {
-        drawRect(surfaceColor)
-        drawContent()
-    }
-}
-
-private fun Modifier.pageBackdrop(backdrop: LayerBackdrop?): Modifier =
-    if (backdrop == null) this else layerBackdrop(backdrop)
 
 @Composable
 private fun NavigationEventGate(
@@ -280,8 +220,10 @@ private fun CatalogApp(
         drawRect(pageBackground)
         drawContent()
     }
-    val topBarBackdrop = rememberPageBackdrop(enableBlur, pageBackground)
-    val rootTopBarScrollBehavior = MiuixScrollBehavior()
+    val homeTopBarScrollBehavior = MiuixScrollBehavior()
+    val scanTopBarScrollBehavior = MiuixScrollBehavior()
+    val catalogTopBarScrollBehavior = MiuixScrollBehavior()
+    val settingsTopBarScrollBehavior = MiuixScrollBehavior()
     val themeTopBarScrollBehavior = MiuixScrollBehavior()
     val resourcesTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
@@ -403,86 +345,66 @@ private fun CatalogApp(
         topBarScrollBehavior: ScrollBehavior,
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
-        MiuixScaffold(
-            // Keep the scaffold's underlay identical to the page. The floating bar is
-            // positioned above it; a transparent scaffold would expose the window's default
-            // color as a full-width strip beneath the bar.
-            containerColor = MiuixTheme.colorScheme.surface,
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            topBar = {
-                MiuixTopAppBar(
-                    title = when (page) { 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
-                    largeTitle = when (page) { 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
-                    navigationIcon = {
-                        if (page == 4 || page == 5) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
-                            MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
-                        }
-                    },
-                    modifier = if (enableBlur && topBarBackdrop != null) {
-                        Modifier.textureBlur(
-                            backdrop = topBarBackdrop,
-                            shape = RoundedCornerShape(0.dp),
-                            blurRadius = 25f,
-                            colors = BlurColors(
-                                blendColors = listOf(
-                                    BlendColorEntry(pageBackground.copy(alpha = 0.72f)),
-                                ),
-                            ),
-                        )
-                    } else {
-                        Modifier
-                    },
-                    color = if (enableBlur && topBarBackdrop != null) Color.Transparent else pageBackground,
-                    actions = {
-                        if (page == 2 && bundle != null) {
-                            MiuixIconButton(onClick = {}) { MiuixIcon(Icons.Rounded.GridView, contentDescription = "网格视图") }
-                            SortAction(sortOpen, sort, ascending, { sortOpen = !sortOpen }, { sort = it; sortOpen = false }, { ascending = !ascending; sortOpen = false })
-                            MiuixIconButton(onClick = { filterOpen = true }) {
-                                MiuixIcon(Icons.Rounded.FilterList, contentDescription = "筛选", tint = if (filterActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurface)
-                            }
-                        }
-                    },
-                    bottomContent = {
-                        if (page == 2 && bundle != null) AnimatedVisibility(visible = searchVisible) {
-                            SearchField(search, onSearchChange = { search = it })
-                        }
-                    },
-                    scrollBehavior = topBarScrollBehavior,
-                )
+        AppPageScaffold(
+            title = when (page) { 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            pageBackground = pageBackground,
+            blurEnabled = enableBlur,
+            topBarScrollBehavior = topBarScrollBehavior,
+            navigationIcon = {
+                if (page == 4 || page == 5) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                    MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                }
             },
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pageBackdrop(topBarBackdrop),
-            ) {
-                content(padding, topBarScrollBehavior.nestedScrollConnection)
-            }
-        }
+            actions = {
+                if (page == 2 && bundle != null) {
+                    CatalogToolbarActions(
+                        sortOpen = sortOpen,
+                        sort = sort,
+                        ascending = ascending,
+                        filterActive = filterActive,
+                        onSortToggle = { sortOpen = !sortOpen },
+                        onSort = { sort = it; sortOpen = false },
+                        onAscending = { ascending = !ascending; sortOpen = false },
+                        onFilter = { filterOpen = true },
+                    )
+                }
+            },
+            bottomContent = {
+                if (page == 2 && bundle != null) AnimatedVisibility(visible = searchVisible) {
+                    CatalogSearchField(search, onSearchChange = { search = it })
+                }
+            },
+            content = content,
+        )
     }
 
     @Composable
     fun RootPage(page: Int, modifier: Modifier = Modifier) {
         Box(modifier) {
-            AppFrame(page, rootTopBarScrollBehavior) { padding, topBarScrollConnection ->
+            val topBarScrollBehavior = when (page) {
+                0 -> homeTopBarScrollBehavior
+                1 -> scanTopBarScrollBehavior
+                2 -> catalogTopBarScrollBehavior
+                else -> settingsTopBarScrollBehavior
+            }
+            AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
             when (page) {
                 0 -> BlankDestination(Modifier.padding(padding).fillMaxSize(), "主页")
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize(), "扫描")
-                2 -> if (bundle == null) {
-                    InitialLoad(sync, error, ::refresh, Modifier.padding(padding))
-                } else {
-                        SongList(
-                            Modifier.padding(padding).fillMaxSize()
-                                .background(MiuixTheme.colorScheme.surface)
-                                .kyantLayerBackdrop(navigationBackdrop)
-                                .nestedScroll(searchScrollConnection)
-                                .nestedScroll(topBarScrollConnection),
-                        songs,
-                        manifest?.assets?.jacketBaseUrl.orEmpty(),
-                        repository::localJacketPath,
-                        isDark,
-                    )
-                }
+                2 -> CatalogScreen(
+                    modifier = Modifier.padding(padding).fillMaxSize(),
+                    bundle = bundle,
+                    sync = sync,
+                    error = error,
+                    songs = songs,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    isDark = isDark,
+                    navigationBackdrop = navigationBackdrop,
+                    searchScrollConnection = searchScrollConnection,
+                    topBarScrollConnection = topBarScrollConnection,
+                    onRetry = ::refresh,
+                )
                 else -> SettingsHome(
                     Modifier.padding(padding).fillMaxSize()
                         .background(MiuixTheme.colorScheme.surface)
@@ -636,182 +558,9 @@ private fun CatalogApp(
     }
 
     if (filterOpen && bundle != null) {
-        FilterDialog(bundle!!, filters, onApply = { filters = it; filterOpen = false }, onDismiss = { filterOpen = false })
+        CatalogFilterDialog(bundle!!, filters, onApply = { filters = it; filterOpen = false }, onDismiss = { filterOpen = false })
     }
 
-}
-
-@Composable
-private fun SearchField(search: String, onSearchChange: (String) -> Unit) {
-    SearchBar(
-        inputField = {
-            InputField(
-                query = search,
-                onQueryChange = onSearchChange,
-                onSearch = {},
-                expanded = false,
-                onExpandedChange = {},
-                label = "歌曲、艺术家、别名...",
-                modifier = Modifier.fillMaxWidth(),
-                leadingIcon = { MiuixIcon(Icons.Rounded.Search, contentDescription = null) },
-            )
-        },
-        onExpandedChange = {},
-        insideMargin = DpSize(width = 16.dp, height = 10.dp),
-        expanded = false,
-        content = {},
-    )
-}
-
-@Composable
-private fun SortAction(
-    expanded: Boolean,
-    sort: CatalogSort,
-    ascending: Boolean,
-    onToggle: () -> Unit,
-    onSort: (CatalogSort) -> Unit,
-    onAscending: () -> Unit,
-) {
-    Box {
-        MiuixIconButton(onClick = onToggle) {
-            MiuixIcon(Icons.AutoMirrored.Rounded.Sort, contentDescription = "排序")
-        }
-        WindowListPopup(
-            show = expanded,
-            alignment = PopupPositionProvider.Align.End,
-            enableWindowDim = true,
-            onDismissRequest = onToggle,
-        ) {
-            ListPopupColumn {
-                CatalogSort.entries.forEachIndexed { index, option ->
-                    DropdownImpl(
-                        text = sortLabel(option),
-                        optionSize = CatalogSort.entries.size,
-                        isSelected = option == sort,
-                        index = index,
-                        onSelectedIndexChange = { onSort(option) },
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(role = Role.Button, onClick = onAscending)
-                        .padding(horizontal = 18.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    MiuixText(if (ascending) "↑" else "↓", style = MiuixTheme.textStyles.title3, color = MiuixTheme.colorScheme.primary)
-                    Spacer(Modifier.width(10.dp))
-                    MiuixText(if (ascending) "升序" else "降序", style = MiuixTheme.textStyles.body1)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SongList(
-    modifier: Modifier,
-    songs: List<CatalogSong>,
-    jacketBaseUrl: String,
-    localJacketPath: (String) -> String?,
-    isDark: Boolean,
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, top = 6.dp, end = 16.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(songs, key = CatalogSong::songId) { song ->
-            SongCard(song, jacketBaseUrl, localJacketPath, isDark)
-        }
-    }
-}
-
-@Composable
-private fun SongCard(
-    song: CatalogSong,
-    jacketBaseUrl: String,
-    localJacketPath: (String) -> String?,
-    isDark: Boolean,
-) {
-    val accentColor = song.sheets.maxByOrNull { difficultyOrder(it.difficulty) }?.let { difficultyColor(it.difficulty) }
-        ?: difficultyColor("world's end")
-    val palette = VersionPalette.forVersion(song.version, isDark)
-    val badgeBackground = if (isDark) palette.darkBackground else palette.lightBackground
-    val badgeForeground = if (isDark) palette.darkForeground else palette.lightForeground
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(76.dp)
-            .squircleSurface(
-                color = if (isDark) Color(0xFF111612) else Color(0xFFF8FBF9),
-                cornerRadius = 14.dp,
-            )
-            .squircleBorder(width = 1.dp, color = accentColor.copy(alpha = if (isDark) 0.16f else 0.12f), cornerRadius = 14.dp)
-            .padding(vertical = 12.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxHeight()
-                .width(4.dp)
-                .squircleSurface(color = accentColor, cornerRadius = 2.dp),
-        )
-        Row(
-            modifier = Modifier.weight(1f).fillMaxHeight().padding(start = 10.dp, end = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AsyncImage(
-                model = localJacketPath(song.imageName)?.let(::File)
-                    ?: jacketBaseUrl.trimEnd('/') + "/" + song.imageName.trimStart('/'),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(MiuixTheme.colorScheme.surfaceVariant),
-            )
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                MiuixText(
-                    text = song.title,
-                    style = MiuixTheme.textStyles.body1.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
-                    color = MiuixTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Clip,
-                    modifier = Modifier.fillMaxWidth().height(20.dp).basicMarquee(),
-                )
-                MiuixText(
-                    text = song.artist.ifBlank { "未知艺术家" },
-                    style = MiuixTheme.textStyles.footnote1.copy(fontSize = 12.sp),
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Clip,
-                    modifier = Modifier.fillMaxWidth().height(16.dp).basicMarquee(),
-                )
-            }
-            Spacer(Modifier.width(8.dp))
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                MiuixText(
-                    text = versionLabel(song.version),
-                    modifier = Modifier.squircleSurface(color = Color(badgeBackground.toInt()), cornerRadius = 4.dp).padding(horizontal = 7.dp, vertical = 3.dp),
-                    color = Color(badgeForeground.toInt()),
-                    style = MiuixTheme.textStyles.footnote1.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    DIFFICULTIES.forEachIndexed { index, difficulty ->
-                        val available = song.sheets.any { it.difficulty.equals(difficulty, true) && it.regions["jp"] == true }
-                        Box(
-                            Modifier
-                                .padding(start = if (index == 0) 0.dp else 3.dp)
-                                .size(7.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(if (available) difficultyColor(difficulty) else MiuixTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
-                        )
-                    }
-                }
-            }
-        }
-    }
 }
 
 @Composable
@@ -868,87 +617,6 @@ private fun RowScope.NavigationItem(
 }
 
 @Composable
-private fun InitialLoad(sync: CatalogSyncState, error: String?, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize().padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        MiuixText("CHUNITHM", style = MiuixTheme.textStyles.title1, color = MiuixTheme.colorScheme.onSurface)
-        Spacer(Modifier.height(12.dp))
-        MiuixText(error ?: sync.message ?: "正在下载歌曲目录", style = MiuixTheme.textStyles.body1)
-        Spacer(Modifier.height(18.dp))
-        if (sync.stage in setOf(CatalogSyncStage.Checking, CatalogSyncStage.Downloading, CatalogSyncStage.Validating, CatalogSyncStage.Applying)) {
-            val downloadProgress = sync.progress
-            if (sync.stage == CatalogSyncStage.Downloading && downloadProgress != null) {
-                LinearProgressIndicator(
-                    progress = downloadProgress.coerceIn(0f, 1f),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                )
-            } else {
-                CircularProgressIndicator()
-            }
-        } else {
-            MiuixButton(onClick = onRetry) { MiuixText("重试") }
-        }
-    }
-}
-
-@Composable
 private fun BlankDestination(modifier: Modifier, title: String) {
     Box(modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface))
-}
-
-@Composable
-private fun FilterDialog(bundle: CatalogBundle, current: CatalogFilters, onApply: (CatalogFilters) -> Unit, onDismiss: () -> Unit) {
-    var draft by remember(current) { mutableStateOf(current) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { androidx.compose.material3.Text("筛选歌曲") },
-        text = {
-            LazyColumn(Modifier.height(440.dp)) {
-                item { FilterToggle("仅显示 JP 可玩", draft.playableOnly) { draft = draft.copy(playableOnly = it) } }
-                item { FilterChoices("分类", CatalogQuery.availableCategories(bundle), draft.categories) { draft = draft.copy(categories = it) } }
-                item { FilterChoices("版本", CatalogQuery.availableVersions(bundle), draft.versions) { draft = draft.copy(versions = it) } }
-                item { FilterChoices("难度", DIFFICULTIES, draft.difficulties) { draft = draft.copy(difficulties = it) } }
-                item { FilterChoices("谱面类型", CatalogQuery.availableTypes(bundle), draft.types) { draft = draft.copy(types = it) } }
-            }
-        },
-        confirmButton = { TextButton(onClick = { onApply(draft) }) { androidx.compose.material3.Text("应用") } },
-        dismissButton = { TextButton(onClick = onDismiss) { androidx.compose.material3.Text("取消") } },
-    )
-}
-
-@Composable
-private fun FilterToggle(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth().clickable { onChange(!checked) }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(checked, onCheckedChange = onChange)
-        androidx.compose.material3.Text(label)
-    }
-}
-
-@Composable
-private fun FilterChoices(title: String, options: List<String>, selected: Set<String>, onChange: (Set<String>) -> Unit) {
-    Column(Modifier.padding(vertical = 8.dp)) {
-        androidx.compose.material3.Text(title, style = MaterialTheme.typography.titleSmall)
-        options.forEach { option -> FilterToggle(option, option in selected) { enabled -> onChange(if (enabled) selected + option else selected - option) } }
-    }
-}
-
-private val DIFFICULTIES = listOf("basic", "advanced", "expert", "master", "ultima", "world's end")
-
-private fun difficultyOrder(value: String): Int = DIFFICULTIES.indexOfFirst { it.equals(value, true) }
-
-private fun difficultyColor(value: String): Color = when (value.lowercase()) {
-    "basic" -> Color(0xFF65B94A)
-    "advanced" -> Color(0xFFE6BD31)
-    "expert" -> Color(0xFFE34A47)
-    "master" -> Color(0xFF9A50C9)
-    "ultima" -> Color(0xFF222222)
-    else -> Color(0xFF4AA8C2)
-}
-
-private fun versionLabel(version: String?): String = version.orEmpty().removePrefix("CHUNITHM ").removeSuffix(" PLUS").ifBlank { "CHUNITHM" }.take(12)
-
-private fun sortLabel(sort: CatalogSort) = when (sort) {
-    CatalogSort.Default -> "默认顺序"
-    CatalogSort.Title -> "标题"
-    CatalogSort.VersionDate -> "版本 / 发行日期"
-    CatalogSort.Difficulty -> "最高定数"
 }

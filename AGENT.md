@@ -126,3 +126,7 @@ The plan is coherent as a direction, but these points need an explicit decision 
 ## Android UI title behavior
 
 - Every Android page that uses a large title must also collapse it to the small title when the page content scrolls. Use Miuix `TopAppBar` with both `title` and `largeTitle`, create a `MiuixScrollBehavior`, pass it to the app bar, and attach the same `scrollBehavior.nestedScrollConnection` to the page's scrollable content (for example, `LazyColumn`). Follow the local `miuix-doc` `TopAppBar` and `Scaffold` examples.
+
+## Android top bar blur
+
+- Every Android top bar must apply the configured blur when the theme's blur setting is enabled and the platform supports it. Keep the top bar connected to that page's backdrop, and use the opaque page surface when blur is disabled or unavailable.
