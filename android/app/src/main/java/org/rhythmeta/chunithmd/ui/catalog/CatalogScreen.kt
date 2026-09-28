@@ -24,16 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.GridView
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -42,8 +34,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import org.rhythmeta.chunithmd.shared.CatalogBundle
-import org.rhythmeta.chunithmd.shared.CatalogFilters
-import org.rhythmeta.chunithmd.shared.CatalogQuery
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSort
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
@@ -163,31 +153,6 @@ fun CatalogToolbarActions(
 }
 
 @Composable
-fun CatalogFilterDialog(
-    bundle: CatalogBundle,
-    current: CatalogFilters,
-    onApply: (CatalogFilters) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var draft by remember(current) { mutableStateOf(current) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { androidx.compose.material3.Text("筛选歌曲") },
-        text = {
-            LazyColumn(Modifier.height(440.dp)) {
-                item { FilterToggle("仅显示 JP 可玩", draft.playableOnly) { draft = draft.copy(playableOnly = it) } }
-                item { FilterChoices("分类", CatalogQuery.availableCategories(bundle), draft.categories) { draft = draft.copy(categories = it) } }
-                item { FilterChoices("版本", CatalogQuery.availableVersions(bundle), draft.versions) { draft = draft.copy(versions = it) } }
-                item { FilterChoices("难度", DIFFICULTIES, draft.difficulties) { draft = draft.copy(difficulties = it) } }
-                item { FilterChoices("谱面类型", CatalogQuery.availableTypes(bundle), draft.types) { draft = draft.copy(types = it) } }
-            }
-        },
-        confirmButton = { TextButton(onClick = { onApply(draft) }) { androidx.compose.material3.Text("应用") } },
-        dismissButton = { TextButton(onClick = onDismiss) { androidx.compose.material3.Text("取消") } },
-    )
-}
-
-@Composable
 private fun SortAction(
     expanded: Boolean,
     sort: CatalogSort,
@@ -271,22 +236,6 @@ private fun InitialLoad(sync: CatalogSyncState, error: String?, onRetry: () -> U
         } else {
             MiuixButton(onClick = onRetry) { MiuixText("重试") }
         }
-    }
-}
-
-@Composable
-private fun FilterToggle(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth().clickable { onChange(!checked) }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(checked, onCheckedChange = onChange)
-        androidx.compose.material3.Text(label)
-    }
-}
-
-@Composable
-private fun FilterChoices(title: String, options: List<String>, selected: Set<String>, onChange: (Set<String>) -> Unit) {
-    Column(Modifier.padding(vertical = 8.dp)) {
-        androidx.compose.material3.Text(title, style = MaterialTheme.typography.titleSmall)
-        options.forEach { option -> FilterToggle(option, option in selected) { enabled -> onChange(if (enabled) selected + option else selected - option) } }
     }
 }
 

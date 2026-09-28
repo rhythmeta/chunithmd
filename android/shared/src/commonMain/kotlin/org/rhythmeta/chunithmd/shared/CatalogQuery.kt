@@ -16,7 +16,11 @@ data class CatalogFilters(
 )
 
 object CatalogQuery {
-    fun availableCategories(bundle: CatalogBundle): List<String> = bundle.catalog.songs.map { it.category }.distinct().sorted()
+    fun availableCategories(bundle: CatalogBundle): List<String> = bundle.catalog.songs
+        .map { it.category }
+        .filterNot(::isWorldsEndCategory)
+        .distinct()
+        .sorted()
     fun availableVersions(bundle: CatalogBundle): List<String> = bundle.catalog.versions.map { it.version }
     fun availableDifficulties(bundle: CatalogBundle): List<String> =
         bundle.catalog.songs.flatMap { song -> song.sheets.map { it.normalizedDifficulty() } }.distinct().sorted()
@@ -32,33 +36,91 @@ object CatalogQuery {
     ): List<CatalogSong> {
         val query = normalize(search)
         val versionOrder = bundle.catalog.versions.mapIndexed { index, version -> version.version to index }.toMap()
+        val selectedCategories = filters.categories.filterNot(::isWorldsEndCategory)
         val filtered = bundle.catalog.songs.filter { song ->
             val searchable = sequenceOf(song.title, song.artist, song.songId)
                 .plus(bundle.aliases[song.songId].orEmpty().asSequence())
             val matchesSearch = query.isEmpty() || searchable.any { normalize(it).contains(query) }
             matchesSearch &&
-                (filters.categories.isEmpty() || song.category in filters.categories) &&
+                (selectedCategories.isEmpty() || song.category in selectedCategories) &&
                 (filters.versions.isEmpty() || song.version in filters.versions) &&
-                (filters.difficulties.isEmpty() || song.sheets.any { it.normalizedDifficulty() in filters.difficulties }) &&
+                (filters.difficulties.isEmpty() || matchesDifficultyFilter(song, filters.difficulties)) &&
                 (filters.types.isEmpty() || song.sheets.any { it.normalizedType() in filters.types }) &&
                 (!filters.playableOnly || song.isPlayableInJp())
         }
-        val sorted = when (sort) {
+        return when (sort) {
             CatalogSort.Default -> filtered
-            CatalogSort.Title -> filtered.sortedWith(compareBy<CatalogSong>({ normalize(it.title) }, { it.songId }))
-            CatalogSort.VersionDate -> filtered.sortedWith(
-                compareBy<CatalogSong>(
-                    { versionOrder[it.version] ?: Int.MAX_VALUE },
-                    { it.releaseDate.orEmpty() },
-                    { normalize(it.title) },
-                ),
-            )
-            CatalogSort.Difficulty -> filtered.sortedWith(
-                compareBy<CatalogSong>({ it.highestJpLevel() }, { normalize(it.title) }),
-            )
+            CatalogSort.Title -> filtered.sortedWith(
+                compareBy<CatalogSong>({ normalize(it.title) }, { it.songId }),
+            ).directed(ascending)
+            CatalogSort.VersionDate -> sortByVersionDate(filtered, versionOrder, ascending)
+            CatalogSort.Difficulty -> sortByDifficulty(filtered, ascending)
         }
-        return if (ascending || sort == CatalogSort.Default) sorted else sorted.asReversed()
     }
+
+    private fun sortByVersionDate(
+        songs: List<CatalogSong>,
+        versionOrder: Map<String, Int>,
+        ascending: Boolean,
+    ): List<CatalogSong> {
+        val known = songs.filter { !it.isDeletedInJp() && versionOrder[it.version] != null }
+        val unknown = songs.filter { it.isDeletedInJp() || versionOrder[it.version] == null }
+        val comparator = compareBy<CatalogSong>(
+            { versionOrder[it.version] ?: 0 },
+            { it.releaseDate.orEmpty() },
+            { normalize(it.title) },
+        )
+        val orderedKnown = known.sortedWith(comparator).directed(ascending)
+
+        // Missing-version and deleted songs have no reliable release position.
+        // Keep that bucket on the old side regardless of the selected direction.
+        return if (ascending) unknown + orderedKnown else orderedKnown + unknown
+    }
+
+    private fun sortByDifficulty(songs: List<CatalogSong>, ascending: Boolean): List<CatalogSong> {
+        val result = songs.toMutableList()
+        val positionsByType = songs.indices
+            .filter { songs[it].difficultySortValue() != null }
+            .groupBy { songs[it].isWorldsEnd() }
+
+        positionsByType.forEach { (_, positions) ->
+            val ordered = positions
+                .map { index -> index to songs[index] }
+                .sortedWith { first, second ->
+                    val firstValue = first.second.difficultySortValue() ?: return@sortedWith 0
+                    val secondValue = second.second.difficultySortValue() ?: return@sortedWith 0
+                    val valueComparison = firstValue.compareTo(secondValue)
+                    if (valueComparison != 0) {
+                        if (ascending) valueComparison else -valueComparison
+                    } else {
+                        first.first.compareTo(second.first)
+                    }
+                }
+            positions.forEachIndexed { index, position -> result[position] = ordered[index].second }
+        }
+        return result
+    }
+
+    private fun CatalogSong.difficultySortValue(): Double? {
+        if (isDeletedInJp()) return null
+        return if (isWorldsEnd()) {
+            highestJpWorldsEndStars()?.toDouble()
+        } else {
+            highestJpStandardLevel()
+        }
+    }
+
+    private fun matchesDifficultyFilter(song: CatalogSong, selected: Set<String>): Boolean {
+        return selected.any { difficulty ->
+            if (difficulty.equals("world's end", ignoreCase = true)) {
+                song.isWorldsEnd()
+            } else {
+                song.sheets.any { it.normalizedDifficulty() == difficulty }
+            }
+        }
+    }
+
+    private fun <T> List<T>.directed(ascending: Boolean): List<T> = if (ascending) this else asReversed()
 
     fun searchAndFilterJson(
         bundleJson: String,
@@ -91,6 +153,11 @@ object CatalogQuery {
     }
 
     private fun normalize(value: String): String = value.trim().lowercase().replace(Regex("\\s+"), " ")
+}
+
+fun isWorldsEndCategory(value: String): Boolean = when (value.trim().lowercase()) {
+    "we", "world's end", "worlds end" -> true
+    else -> false
 }
 
 fun requireSupportedBundle(bundle: CatalogBundle) {

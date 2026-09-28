@@ -103,11 +103,32 @@ object CatalogJson {
 
 fun CatalogSong.isPlayableInJp(): Boolean = sheets.any { it.regions["jp"] == true }
 
+fun CatalogSong.isDeletedInJp(): Boolean = !isPlayableInJp()
+
+fun CatalogSong.isWorldsEnd(): Boolean = sheets.any { it.type.equals("we", ignoreCase = true) }
+
 fun CatalogSong.highestJpLevel(): Double = sheets
     .asSequence()
     .filter { it.regions["jp"] == true }
     .mapNotNull(CatalogSheet::levelValue)
     .maxOrNull() ?: 0.0
+
+fun CatalogSong.highestJpStandardLevel(): Double? = sheets
+    .asSequence()
+    .filter { it.regions["jp"] == true && !it.type.equals("we", ignoreCase = true) }
+    .mapNotNull(CatalogSheet::levelValue)
+    .maxOrNull()
+
+fun CatalogSong.highestJpWorldsEndStars(): Int? = sheets
+    .asSequence()
+    .filter { it.regions["jp"] == true && it.type.equals("we", ignoreCase = true) }
+    .mapNotNull(CatalogSheet::worldsEndStars)
+    .maxOrNull()
+
+fun CatalogSheet.worldsEndStars(): Int? {
+    val stars = level.count { it == '☆' }
+    return stars.takeIf { it > 0 }
+}
 
 fun CatalogSheet.normalizedDifficulty(): String = difficulty.lowercase()
 

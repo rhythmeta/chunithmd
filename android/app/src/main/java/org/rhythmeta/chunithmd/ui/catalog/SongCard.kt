@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import java.io.File
+import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.VersionPalette
@@ -42,8 +44,13 @@ internal fun SongCard(
     localJacketPath: (String) -> String?,
 ) {
     val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
-    val accentColor = song.sheets.maxByOrNull { difficultyOrder(it.difficulty) }?.let { difficultyColor(it.difficulty) }
-        ?: difficultyColor("world's end")
+    val hasWorldsEnd = song.sheets.any { it.type.equals("we", ignoreCase = true) }
+    val accentColor = if (hasWorldsEnd) {
+        difficultyColor("world's end")
+    } else {
+        song.sheets.maxByOrNull { difficultyOrder(it.difficulty) }?.let { difficultyColor(it.difficulty) }
+            ?: difficultyColor("world's end")
+    }
     val palette = VersionPalette.forVersion(song.version, isDark)
     val badgeBackground = if (isDark) palette.darkBackground else palette.lightBackground
     val badgeForeground = if (isDark) palette.darkForeground else palette.lightForeground
@@ -64,7 +71,14 @@ internal fun SongCard(
                 .padding(vertical = 8.dp)
                 .fillMaxHeight()
                 .width(4.dp)
-                .squircleSurface(color = accentColor, cornerRadius = 2.dp),
+                .clip(RoundedCornerShape(2.dp))
+                .let { barModifier ->
+                    if (hasWorldsEnd) {
+                        barModifier.background(Brush.verticalGradient(WORLDS_END_GRADIENT_COLORS))
+                    } else {
+                        barModifier.squircleSurface(color = accentColor, cornerRadius = 2.dp)
+                    }
+                },
         )
         Row(
             modifier = Modifier.weight(1f).fillMaxHeight().padding(start = 10.dp, end = 14.dp),
@@ -80,7 +94,7 @@ internal fun SongCard(
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 MiuixText(
-                    text = song.title,
+                    text = CatalogSongFormatter.displayTitle(song),
                     style = MiuixTheme.textStyles.body1.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
                     color = MiuixTheme.colorScheme.onSurface,
                     maxLines = 1,
@@ -107,7 +121,13 @@ internal fun SongCard(
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     DIFFICULTIES.forEachIndexed { index, difficulty ->
-                        val available = song.sheets.any { it.difficulty.equals(difficulty, true) && it.regions["jp"] == true }
+                        val available = song.sheets.any {
+                            it.regions["jp"] == true && if (difficulty.equals("world's end", true)) {
+                                it.type.equals("we", true)
+                            } else {
+                                it.difficulty.equals(difficulty, true)
+                            }
+                        }
                         Box(
                             Modifier
                                 .padding(start = if (index == 0) 0.dp else 3.dp)
@@ -135,3 +155,12 @@ private fun difficultyColor(value: String): Color = when (value.lowercase()) {
     "ultima" -> Color(0xFF222222)
     else -> Color(0xFF4AA8C2)
 }
+
+private val WORLDS_END_GRADIENT_COLORS = listOf(
+    Color(0xFF65B94A),
+    Color(0xFFE6BD31),
+    Color(0xFFE34A47),
+    Color(0xFF9A50C9),
+    Color(0xFF5D5D66),
+    Color(0xFF4AA8C2),
+)

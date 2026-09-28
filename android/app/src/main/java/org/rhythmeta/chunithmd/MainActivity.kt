@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.withFrameNanos
@@ -85,6 +86,7 @@ import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBarBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
 import org.rhythmeta.chunithmd.ui.catalog.CatalogFilterDialog
+import org.rhythmeta.chunithmd.ui.catalog.CatalogPreferencesRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
 import org.rhythmeta.chunithmd.ui.catalog.CatalogToolbarActions
@@ -176,6 +178,7 @@ class MainActivity : ComponentActivity() {
         )
         window.isNavigationBarContrastEnforced = false
         val repository = CatalogRepository(filesDir.absolutePath)
+        val catalogPreferencesRepository = CatalogPreferencesRepository(applicationContext)
         val themeRepository = ThemePreferencesRepository(applicationContext)
         setContent {
             val themeSettings by produceState(DefaultAppThemeSettings, themeRepository) {
@@ -186,7 +189,7 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
-                    CatalogApp(repository, themeRepository, themeSettings)
+                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings)
                 }
             }
         }
@@ -196,6 +199,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun CatalogApp(
     repository: CatalogRepository,
+    catalogPreferencesRepository: CatalogPreferencesRepository,
     themeRepository: ThemePreferencesRepository,
     themeSettings: AppThemeSettings,
 ) {
@@ -213,6 +217,13 @@ private fun CatalogApp(
     var filterOpen by remember { mutableStateOf(false) }
     var sortOpen by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(catalogPreferencesRepository) {
+        val saved = catalogPreferencesRepository.preferences.first()
+        sort = saved.sort
+        ascending = saved.ascending
+        filters = saved.filters
+    }
     // Miuix's surface is the page canvas used by the reference navigation shell.
     val pageBackground = MiuixTheme.colorScheme.surface
     val enableBlur = LocalEnableBlur.current
@@ -365,8 +376,16 @@ private fun CatalogApp(
                         ascending = ascending,
                         filterActive = filterActive,
                         onSortToggle = { sortOpen = !sortOpen },
-                        onSort = { sort = it; sortOpen = false },
-                        onAscending = { ascending = !ascending; sortOpen = false },
+                        onSort = {
+                            sort = it
+                            sortOpen = false
+                            scope.launch { catalogPreferencesRepository.setSort(it) }
+                        },
+                        onAscending = {
+                            ascending = !ascending
+                            sortOpen = false
+                            scope.launch { catalogPreferencesRepository.setAscending(ascending) }
+                        },
                         onFilter = { filterOpen = true },
                     )
                 }
@@ -567,8 +586,17 @@ private fun CatalogApp(
     }
     }
 
-    if (filterOpen && bundle != null) {
-        CatalogFilterDialog(bundle!!, filters, onApply = { filters = it; filterOpen = false }, onDismiss = { filterOpen = false })
+    if (bundle != null) {
+        CatalogFilterDialog(
+            show = filterOpen,
+            bundle = bundle!!,
+            settings = filters,
+            onSettingsChange = {
+                filters = it
+                scope.launch { catalogPreferencesRepository.setFilters(it) }
+            },
+            onDismiss = { filterOpen = false },
+        )
     }
 
 }
