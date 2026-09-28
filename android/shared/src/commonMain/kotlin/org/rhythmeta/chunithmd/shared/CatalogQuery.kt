@@ -38,7 +38,12 @@ object CatalogQuery {
         val versionOrder = bundle.catalog.versions.mapIndexed { index, version -> version.version to index }.toMap()
         val selectedCategories = filters.categories.filterNot(::isWorldsEndCategory)
         val filtered = bundle.catalog.songs.filter { song ->
-            val searchable = sequenceOf(song.title, song.artist, song.songId)
+            val searchable = sequenceOf(
+                song.title,
+                CatalogSongFormatter.displayTitle(song),
+                song.artist,
+                song.songId,
+            )
                 .plus(bundle.aliases[song.songId].orEmpty().asSequence())
             val matchesSearch = query.isEmpty() || searchable.any { normalize(it).contains(query) }
             matchesSearch &&

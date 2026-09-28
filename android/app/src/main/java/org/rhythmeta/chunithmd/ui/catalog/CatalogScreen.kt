@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
@@ -64,10 +65,12 @@ fun CatalogScreen(
     songs: List<CatalogSong>,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
+    listState: LazyListState,
     navigationBackdrop: LayerBackdrop,
     searchScrollConnection: NestedScrollConnection,
     topBarScrollConnection: NestedScrollConnection,
     onRetry: () -> Unit,
+    onSongClick: (CatalogSong) -> Unit,
 ) {
     if (bundle == null) {
         InitialLoad(sync, error, onRetry, modifier.padding(top = contentTopPadding))
@@ -81,6 +84,8 @@ fun CatalogScreen(
             songs = songs,
             jacketBaseUrl = jacketBaseUrl,
             localJacketPath = localJacketPath,
+            listState = listState,
+            onSongClick = onSongClick,
         )
     }
 }
@@ -204,14 +209,17 @@ private fun SongList(
     songs: List<CatalogSong>,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
+    listState: LazyListState,
+    onSongClick: (CatalogSong) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(start = 16.dp, top = contentTopPadding + 6.dp, end = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(songs, key = CatalogSong::songId) { song ->
-            SongCard(song, jacketBaseUrl, localJacketPath)
+            SongCard(song, jacketBaseUrl, localJacketPath, onClick = { onSongClick(song) })
         }
     }
 }

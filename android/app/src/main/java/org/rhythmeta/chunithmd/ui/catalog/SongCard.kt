@@ -2,6 +2,7 @@ package org.rhythmeta.chunithmd.ui.catalog
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.Role
 import coil.compose.AsyncImage
 import java.io.File
 import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
@@ -42,6 +44,7 @@ internal fun SongCard(
     song: CatalogSong,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
+    onClick: () -> Unit,
 ) {
     val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
     val hasWorldsEnd = song.sheets.any { it.type.equals("we", ignoreCase = true) }
@@ -59,6 +62,7 @@ internal fun SongCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(76.dp)
+            .clickable(role = Role.Button, onClick = onClick)
             .squircleSurface(
                 color = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = if (isDark) 0.82f else 0.88f),
                 cornerRadius = 14.dp,
@@ -145,9 +149,9 @@ internal fun SongCard(
 
 internal val DIFFICULTIES = listOf("basic", "advanced", "expert", "master", "ultima", "world's end")
 
-private fun difficultyOrder(value: String): Int = DIFFICULTIES.indexOfFirst { it.equals(value, true) }
+internal fun difficultyOrder(value: String): Int = DIFFICULTIES.indexOfFirst { it.equals(value, true) }
 
-private fun difficultyColor(value: String): Color = when (value.lowercase()) {
+internal fun difficultyColor(value: String): Color = when (value.lowercase()) {
     "basic" -> Color(0xFF65B94A)
     "advanced" -> Color(0xFFE6BD31)
     "expert" -> Color(0xFFE34A47)
@@ -156,7 +160,7 @@ private fun difficultyColor(value: String): Color = when (value.lowercase()) {
     else -> Color(0xFF4AA8C2)
 }
 
-private val WORLDS_END_GRADIENT_COLORS = listOf(
+internal val WORLDS_END_GRADIENT_COLORS = listOf(
     Color(0xFF65B94A),
     Color(0xFFE6BD31),
     Color(0xFFE34A47),

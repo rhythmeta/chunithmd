@@ -20,6 +20,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.rounded.DocumentScanner
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -41,12 +43,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
@@ -63,8 +67,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.cancel
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.serialization.Serializable
 import androidx.navigationevent.NavigationEventDispatcher
 import androidx.navigationevent.NavigationEventDispatcherOwner
@@ -75,6 +86,8 @@ import org.rhythmeta.chunithmd.shared.CatalogJson
 import org.rhythmeta.chunithmd.shared.CatalogQuery
 import org.rhythmeta.chunithmd.shared.CatalogRepository
 import org.rhythmeta.chunithmd.shared.CatalogSort
+import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
+import org.rhythmeta.chunithmd.shared.latestPlayableVersion
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
 import org.rhythmeta.chunithmd.ui.theme.ChunithmdTheme
@@ -90,12 +103,18 @@ import org.rhythmeta.chunithmd.ui.catalog.CatalogPreferencesRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
 import org.rhythmeta.chunithmd.ui.catalog.CatalogToolbarActions
+import org.rhythmeta.chunithmd.ui.catalog.SongDetailScreen
 import org.rhythmeta.chunithmd.ui.components.AppPageScaffold
 import org.rhythmeta.chunithmd.ui.components.LiquidGlassTab
 import org.rhythmeta.chunithmd.ui.components.LiquidGlassTabBar
 import org.rhythmeta.chunithmd.ui.settings.SettingsHome
 import org.rhythmeta.chunithmd.ui.settings.ThemeSettingsScreen
 import org.rhythmeta.chunithmd.ui.settings.StaticResourcesScreen
+import org.rhythmeta.chunithmd.ui.profile.CurrentProfileCard
+import org.rhythmeta.chunithmd.ui.profile.ProfileEditorSheet
+import org.rhythmeta.chunithmd.ui.profile.ProfileScreen
+import org.rhythmeta.chunithmd.profile.ProfileAvatarStore
+import org.rhythmeta.chunithmd.profile.ProfileRepository
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -120,11 +139,44 @@ import top.yukonga.miuix.kmp.nav.transition.NavTransitions
 @Serializable
 private sealed interface AppRoute : NavKey {
     @Serializable data object Home : AppRoute
-    @Serializable data object Scan : AppRoute
-    @Serializable data object Catalog : AppRoute
-    @Serializable data object Settings : AppRoute
+//    @Serializable data object Scan : AppRoute
+//    @Serializable data object Catalog : AppRoute
+//    @Serializable data object Settings : AppRoute
     @Serializable data object Theme : AppRoute
     @Serializable data object Resources : AppRoute
+    @Serializable data object Profiles : AppRoute
+    @Serializable data class SongDetail(val songId: String) : AppRoute
+}
+
+/** Keeps the decoded catalog across Activity recreation caused by rotation. */
+class CatalogStateViewModel : ViewModel() {
+    var bundle: CatalogBundle? by mutableStateOf(null)
+    var manifest: org.rhythmeta.chunithmd.shared.StaticManifest? by mutableStateOf(null)
+    var sync: CatalogSyncState by mutableStateOf(CatalogSyncState())
+    var error: String? by mutableStateOf(null)
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var localLoadJob: Job? = null
+
+    fun loadLocal(repository: CatalogRepository) {
+        if (bundle != null || localLoadJob?.isActive == true) return
+        localLoadJob = scope.launch {
+            val localSnapshot = withContext(Dispatchers.IO) {
+                runCatching { repository.loadLocal() }.getOrNull()
+            }
+            localSnapshot?.let { snapshot ->
+                manifest = snapshot.manifest
+                bundle = withContext(Dispatchers.Default) {
+                    CatalogJson.decodeBundle(snapshot.bundleJson)
+                }
+            }
+        }
+    }
+
+    override fun onCleared() {
+        scope.cancel()
+//        super.onCleared()
+    }
 }
 
 private val SettingsDetailTransition = object : NavTransition by NavTransitions.MiuixDefault {
@@ -178,8 +230,11 @@ class MainActivity : ComponentActivity() {
         )
         window.isNavigationBarContrastEnforced = false
         val repository = CatalogRepository(filesDir.absolutePath)
+        val profileRepository = ProfileRepository(applicationContext)
+        val profileAvatarStore = ProfileAvatarStore(applicationContext)
         val catalogPreferencesRepository = CatalogPreferencesRepository(applicationContext)
         val themeRepository = ThemePreferencesRepository(applicationContext)
+        val catalogState = ViewModelProvider(this)[CatalogStateViewModel::class.java]
         setContent {
             val themeSettings by produceState(DefaultAppThemeSettings, themeRepository) {
                 themeRepository.settings.collect { value = it }
@@ -189,7 +244,7 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
-                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings)
+                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, catalogState)
                 }
             }
         }
@@ -202,12 +257,15 @@ private fun CatalogApp(
     catalogPreferencesRepository: CatalogPreferencesRepository,
     themeRepository: ThemePreferencesRepository,
     themeSettings: AppThemeSettings,
+    profileRepository: ProfileRepository,
+    profileAvatarStore: ProfileAvatarStore,
+    catalogState: CatalogStateViewModel,
 ) {
-    var bundle by remember { mutableStateOf<CatalogBundle?>(null) }
-    var manifest by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.StaticManifest?>(null) }
-    var sync by remember { mutableStateOf(CatalogSyncState()) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var bundle by catalogState::bundle
+    var manifest by catalogState::manifest
+    var sync by catalogState::sync
+    var error by catalogState::error
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var animateRootTransition by remember { mutableStateOf(true) }
     val rootBackProgress = remember { Animatable(0f) }
     var search by remember { mutableStateOf("") }
@@ -216,6 +274,15 @@ private fun CatalogApp(
     var filters by remember { mutableStateOf(CatalogFilters()) }
     var filterOpen by remember { mutableStateOf(false) }
     var sortOpen by remember { mutableStateOf(false) }
+    var profileCreateRequested by remember { mutableStateOf(false) }
+    var quickEditProfile by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.UserProfile?>(null) }
+    val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
+    val profileVersions = remember(bundle) {
+        org.rhythmeta.chunithmd.shared.ProfileServer.entries.associateWith { server ->
+            bundle?.latestPlayableVersion(server)
+        }
+    }
+    val catalogListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(catalogPreferencesRepository) {
@@ -224,8 +291,10 @@ private fun CatalogApp(
         ascending = saved.ascending
         filters = saved.filters
     }
+    LaunchedEffect(profileRepository) { profileRepository.ensureDefaultProfile() }
     // Miuix's surface is the page canvas used by the reference navigation shell.
     val pageBackground = MiuixTheme.colorScheme.surface
+    var songDetailBackground by remember { mutableStateOf<Color?>(null) }
     val enableBlur = LocalEnableBlur.current
     val navigationBackdrop = rememberKyantLayerBackdrop {
         drawRect(pageBackground)
@@ -290,17 +359,7 @@ private fun CatalogApp(
         }
     }
 
-    LaunchedEffect(Unit) {
-        val localSnapshot = withContext(Dispatchers.IO) {
-            runCatching { repository.loadLocal() }.getOrNull()
-        }
-        localSnapshot?.let { snapshot ->
-            manifest = snapshot.manifest
-            bundle = withContext(Dispatchers.Default) {
-                CatalogJson.decodeBundle(snapshot.bundleJson)
-            }
-        }
-    }
+    LaunchedEffect(repository, catalogState) { catalogState.loadLocal(repository) }
 
     val songs = remember(bundle, search, sort, ascending, filters) {
         bundle?.let { CatalogQuery.filterAndSort(it, search, sort, ascending, filters) }.orEmpty()
@@ -359,12 +418,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = when (page) { 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = when (page) { 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page == 4 || page == 5) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page == 4 || page == 5 || page == 6) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
@@ -388,6 +447,11 @@ private fun CatalogApp(
                         },
                         onFilter = { filterOpen = true },
                     )
+                }
+                if (page == 6) {
+                    MiuixIconButton(onClick = { profileCreateRequested = true }) {
+                        MiuixIcon(Icons.Rounded.PersonAdd, contentDescription = "新建档案")
+                    }
                 }
             },
             bottomContent = {
@@ -418,8 +482,10 @@ private fun CatalogApp(
             }
             AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
             when (page) {
-                0 -> BlankDestination(Modifier.padding(padding).fillMaxSize(), "主页")
-                1 -> BlankDestination(Modifier.padding(padding).fillMaxSize(), "扫描")
+                0 -> Column(Modifier.padding(padding).fillMaxSize()) {
+                    CurrentProfileCard(activeProfile) { activeProfile?.let { quickEditProfile = it } }
+                }
+                1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
                 2 -> CatalogScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentTopPadding = padding.calculateTopPadding(),
@@ -429,10 +495,12 @@ private fun CatalogApp(
                     songs = songs,
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
                     localJacketPath = repository::localJacketPath,
+                    listState = catalogListState,
                     navigationBackdrop = navigationBackdrop,
                     searchScrollConnection = searchScrollConnection,
                     topBarScrollConnection = topBarScrollConnection,
                     onRetry = ::refresh,
+                    onSongClick = { song -> navBackStack.add(AppRoute.SongDetail(song.songId)) },
                 )
                 else -> SettingsHome(
                     Modifier.padding(padding).fillMaxSize()
@@ -441,6 +509,7 @@ private fun CatalogApp(
                         .nestedScroll(topBarScrollConnection),
                     { navBackStack.add(AppRoute.Theme) },
                     { navBackStack.add(AppRoute.Resources) },
+                    { navBackStack.add(AppRoute.Profiles) },
                 )
             }
         }
@@ -460,7 +529,9 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources) {
+            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles) {
+                navBackStack.removeLastOrNull()
+            } else if (navBackStack.lastOrNull() is AppRoute.SongDetail) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.size > 1) {
                 navBackStack.removeLastOrNull()
@@ -533,6 +604,50 @@ private fun CatalogApp(
                 }
             }
         }
+        entry<AppRoute.Profiles>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(6, resourcesTopBarScrollBehavior) { padding, topBarScrollConnection ->
+                ProfileScreen(
+                    modifier = Modifier.padding(padding).nestedScroll(topBarScrollConnection),
+                    repository = profileRepository,
+                    avatarStore = profileAvatarStore,
+                    currentVersionByServer = profileVersions,
+                    createRequested = profileCreateRequested,
+                    onCreateRequestHandled = { profileCreateRequested = false },
+                )
+            }
+        }
+        entry<AppRoute.SongDetail>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) { route ->
+            val song = bundle?.catalog?.songs?.firstOrNull { it.songId == route.songId }
+            AppPageScaffold(
+                title = song?.let(CatalogSongFormatter::displayTitle) ?: "歌曲详情",
+                pageBackground = songDetailBackground ?: pageBackground,
+                blurEnabled = enableBlur,
+                largeTitle = false,
+                topBarScrollBehavior = MiuixScrollBehavior(),
+                navigationIcon = {
+                    MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                        MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                    }
+                },
+            ) { padding, topBarScrollConnection ->
+                SongDetailScreen(
+                    song = song,
+                    loading = bundle == null,
+                    aliases = bundle?.aliases?.get(route.songId).orEmpty(),
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = topBarScrollConnection,
+                    onBackgroundChanged = { songDetailBackground = it },
+                )
+            }
+        }
         entry<AppRoute.Home> {
             Box(
                 Modifier.fillMaxSize()
@@ -599,6 +714,14 @@ private fun CatalogApp(
         )
     }
 
+    ProfileEditorSheet(
+        visible = quickEditProfile != null,
+        profile = quickEditProfile,
+        repository = profileRepository,
+        avatarStore = profileAvatarStore,
+        onDismiss = { quickEditProfile = null },
+    )
+
 }
 
 @Composable
@@ -655,6 +778,6 @@ private fun RowScope.NavigationItem(
 }
 
 @Composable
-private fun BlankDestination(modifier: Modifier, title: String) {
+private fun BlankDestination(modifier: Modifier) {
     Box(modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface))
 }

@@ -3,7 +3,9 @@
 ## Project direction
 
 - `chunithmd` is the CHUNITHM counterpart of `maimaid` under the Rhythmeta ecosystem.
-- The project is currently in the planning and data-source phase. Do not start a first-version implementation until the data-source and static-bundle design has been reviewed and confirmed.
+- The project is ready for UI and client implementation. The authoritative data sources are considered sufficiently settled for current feature work.
+- Do not prematurely lock in deferred backend, static-bundle, or synchronization decisions that are still explicitly marked as deferred below.
+- Agents may freely create new Android UI files, including screens, components, navigation shells, and supporting presentation code, when implementing or restructuring the Android app.
 - The immediate next planning topic is the `chunithmd` static bundle build and publication flow.
 
 ## Client architecture
@@ -104,12 +106,19 @@ The plan is coherent as a direction, but these points need an explicit decision 
 
 ## Deferred decisions
 
+- Deferred decisions listed below do not block Android UI implementation. They only constrain code that would depend on those decisions.
+
 - Authoritative CHUNITHM song/chart data sources and source precedence.
 - Static bundle format, manifest/versioning, compression, signatures/checksums, delta updates, and rollback.
 - Static asset hosting and whether the bundle is embedded, downloaded, or both.
 - Serverless provider/runtime and its database, object storage, queue/cron, and observability choices.
 - Shared Rhythmeta auth service topology and the exact `maimaid` migration procedure.
 - KMP dependency versions and minimum OS/SDK support.
+
+## UI file creation rule
+
+- When implementing an Android UI feature, create new files such as `Screen.kt`, `Components.kt`, or feature-specific component files when that produces a clearer structure. Do not avoid creating a new file merely because an existing file could technically contain the code.
+- Keep Android presentation code in the UI layer and reusable business logic in the appropriate shared/native layer according to the boundaries above.
 
 ## Validation workflow
 

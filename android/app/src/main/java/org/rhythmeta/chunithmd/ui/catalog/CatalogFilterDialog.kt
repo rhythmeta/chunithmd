@@ -74,7 +74,7 @@ internal fun CatalogFilterDialog(
                 Icon(Icons.Rounded.RestartAlt, contentDescription = "重置筛选")
             }
             Text(
-                text = "筛选歌曲",
+                text = "筛选",
                 style = MiuixTheme.textStyles.title3,
                 modifier = Modifier.align(Alignment.Center),
                 maxLines = 1,

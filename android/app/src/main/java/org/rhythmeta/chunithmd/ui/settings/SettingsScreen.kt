@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,18 +26,19 @@ fun SettingsHome(
     modifier: Modifier,
     onAppearance: () -> Unit,
     onResources: () -> Unit,
+    onProfiles: () -> Unit,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(top = 0.dp, bottom = 112.dp),
     ) {
         item {
-            SettingsSection(title = "主题") {
+            SettingsSection(title = "用户") {
                 SettingsRow(
-                    icon = Icons.Rounded.ColorLens,
-                    title = "主题",
-                    summary = "自定义更多主题选项",
-                    onClick = onAppearance,
+                    icon = Icons.Rounded.Person,
+                    title = "用户档案",
+                    summary = "管理本地档案、头像和地区",
+                    onClick = onProfiles,
                 )
             }
         }
@@ -47,6 +49,16 @@ fun SettingsHome(
                     title = "静态数据",
                     summary = "更新并管理本地歌曲数据",
                     onClick = onResources,
+                )
+            }
+        }
+        item {
+            SettingsSection(title = "主题") {
+                SettingsRow(
+                    icon = Icons.Rounded.ColorLens,
+                    title = "主题",
+                    summary = "自定义更多主题选项",
+                    onClick = onAppearance,
                 )
             }
         }

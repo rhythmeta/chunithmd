@@ -29,6 +29,39 @@ class CatalogQueryTest {
     }
 
     @Test
+    fun latestPlayableVersionUsesServerAvailability() {
+        val catalog = bundle.copy(
+            catalog = bundle.catalog.copy(
+                versions = listOf(CatalogVersion("CHUNITHM"), CatalogVersion("AIR"), CatalogVersion("X-VERSE"), CatalogVersion("MATE")),
+                songs = listOf(
+                    song("jp", "JP", "MATE", 10.0, "jp"),
+                    song("cn", "CN", "X-VERSE", 10.0, "cn").copy(
+                        regionOverrides = mapOf("cn" to RegionOverride(available = true)),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals("MATE", catalog.latestPlayableVersion(ProfileServer.Jp))
+        assertEquals("X-VERSE", catalog.latestPlayableVersion(ProfileServer.Cn))
+    }
+
+    @Test
+    fun searchesWorldsEndTitleMarkers() {
+        val catalog = bundle.copy(
+            catalog = bundle.catalog.copy(
+                songs = listOf(
+                    song("i-wanna", "I Wanna", "AIR", 12.0, "jp", type = "we", level = "☆")
+                        .copy(sheets = listOf(CatalogSheet("we", "【招】", "☆", 12.0, mapOf("jp" to true)))),
+                ),
+            ),
+        )
+
+        assertEquals("i-wanna", CatalogQuery.filterAndSort(catalog, search = "i wanna").single().songId)
+        assertEquals("i-wanna", CatalogQuery.filterAndSort(catalog, search = "招").single().songId)
+    }
+
+    @Test
     fun sortsAndFiltersByJpCatalogFields() {
         assertEquals(listOf("a", "offline", "z"), CatalogQuery.filterAndSort(bundle, sort = CatalogSort.Title).map { it.songId })
         assertEquals(listOf("z", "a", "offline"), CatalogQuery.filterAndSort(bundle).map { it.songId })

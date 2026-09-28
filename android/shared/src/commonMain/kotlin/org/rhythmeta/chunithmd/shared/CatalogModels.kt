@@ -66,6 +66,18 @@ data class CatalogSheet(
     val level: String = "",
     val levelValue: Double? = null,
     val regions: Map<String, Boolean> = emptyMap(),
+    val noteDesigner: String? = null,
+    val noteCounts: CatalogNoteCounts? = null,
+)
+
+@Serializable
+data class CatalogNoteCounts(
+    val tap: Int? = null,
+    val hold: Int? = null,
+    val slide: Int? = null,
+    val touch: Int? = null,
+    @SerialName("break") val breakCount: Int? = null,
+    val total: Int? = null,
 )
 
 @Serializable
@@ -102,6 +114,20 @@ object CatalogJson {
 }
 
 fun CatalogSong.isPlayableInJp(): Boolean = sheets.any { it.regions["jp"] == true }
+
+fun CatalogSong.isPlayableIn(region: String): Boolean = when {
+    region.equals("cn", ignoreCase = true) -> regionOverrides["cn"]?.available == true
+    else -> sheets.any { it.regions[region.lowercase()] == true }
+}
+
+fun CatalogBundle.latestPlayableVersion(server: ProfileServer): String? {
+    val region = server.wireValue
+    return catalog.versions.asReversed().firstOrNull { version ->
+        catalog.songs.any { song ->
+            song.version.equals(version.version, ignoreCase = true) && song.isPlayableIn(region)
+        }
+    }?.version
+}
 
 fun CatalogSong.isDeletedInJp(): Boolean = !isPlayableInJp()
 

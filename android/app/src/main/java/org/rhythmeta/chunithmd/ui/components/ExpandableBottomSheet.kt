@@ -3,7 +3,6 @@ package org.rhythmeta.chunithmd.ui.components
 import android.view.Window
 import android.view.WindowManager
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
@@ -126,7 +125,7 @@ internal fun ExpandableBottomSheet(
 }
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 private fun ExpandableBottomSheetLayout(
     visible: Boolean,
     expandActionLabel: String,
@@ -259,7 +258,6 @@ private fun ExpandableBottomSheetLayout(
 }
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
 private fun ExpandableBottomSheetHeader(
     state: AnchoredDraggableState<BottomSheetAnchor>,
     backdrop: Backdrop,

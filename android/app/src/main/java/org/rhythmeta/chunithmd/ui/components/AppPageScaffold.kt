@@ -44,6 +44,7 @@ fun AppPageScaffold(
     title: String,
     pageBackground: Color,
     blurEnabled: Boolean,
+    largeTitle: Boolean = true,
     topBarScrollBehavior: ScrollBehavior = MiuixScrollBehavior(),
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
@@ -57,7 +58,7 @@ fun AppPageScaffold(
         containerColor = pageBackground,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            MiuixTopAppBar(
+            if (largeTitle) MiuixTopAppBar(
                 title = title,
                 largeTitle = title,
                 navigationIcon = navigationIcon,
@@ -78,6 +79,26 @@ fun AppPageScaffold(
                 color = if (topBarBlurEnabled) Color.Transparent else pageBackground,
                 actions = actions,
                 bottomContent = bottomContent,
+                scrollBehavior = topBarScrollBehavior,
+            ) else top.yukonga.miuix.kmp.basic.SmallTopAppBar(
+                title = title,
+                navigationIcon = navigationIcon,
+                modifier = if (topBarBlurEnabled) {
+                    Modifier.textureBlur(
+                        backdrop = topBarBackdrop,
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp),
+                        blurRadius = 25f,
+                        colors = BlurColors(
+                            blendColors = listOf(
+                                BlendColorEntry(pageBackground.copy(alpha = 0.72f)),
+                            ),
+                        ),
+                    )
+                } else {
+                    Modifier
+                },
+                color = if (topBarBlurEnabled) Color.Transparent else pageBackground,
+                actions = actions,
                 scrollBehavior = topBarScrollBehavior,
             )
         },
