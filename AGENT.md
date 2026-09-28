@@ -61,3 +61,14 @@ The plan is coherent as a direction, but these points need an explicit decision 
 - Shared Rhythmeta auth service topology and the exact `maimaid` migration procedure.
 - KMP dependency versions and minimum OS/SDK support.
 
+## Validation workflow
+
+- After Android navigation or animation changes, Codex should compile the Android app and stop. The user performs device installation, interaction testing, and visual acceptance.
+
+## Android navigation lessons
+
+- Root tabs are peers, so they stay inside one root navigation entry. Switching tabs is a horizontal translation between two adjacent pages; root tabs should not be modeled as stacked `NavDisplay` destinations.
+- Child screens use the navigation stack and the normal Miuix page transition. Keep root back behavior separate: a non-home root returns to home, while home falls through to the system exit behavior.
+- Predictive back must keep the source and destination pages adjacent. The destination layer starts outside the viewport and moves in with the gesture; do not leave a full destination page at `x = 0` underneath the source page.
+- Do not keep a hidden full root `Scaffold` alive while a child destination is transitioning. It adds another top bar, backdrop, and layout pass to an already expensive two-entry transition.
+- Backdrop/offscreen layers must not be nested into a render tree that also consumes the same backdrop. That creates recursive `RenderNode` preparation on some Android devices and can crash native HWUI. Keep the root backdrop at the shell boundary and avoid wrapping child entry content with it again.

@@ -24,4 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "chunithmd"
 include(":app")
- 
+include(":shared")
