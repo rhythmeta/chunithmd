@@ -52,12 +52,14 @@ import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +83,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -89,12 +92,16 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.withFrameNanos
 import kotlinx.serialization.Serializable
+import androidx.navigationevent.NavigationEventDispatcher
+import androidx.navigationevent.NavigationEventDispatcherOwner
+import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.CatalogFilters
 import org.rhythmeta.chunithmd.shared.CatalogJson
@@ -115,13 +122,12 @@ import org.rhythmeta.chunithmd.ui.theme.LocalEnableBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
 import org.rhythmeta.chunithmd.ui.components.LiquidGlassTab
 import org.rhythmeta.chunithmd.ui.components.LiquidGlassTabBar
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.drawPlainBackdrop
-import com.kyant.backdrop.effects.blur
+import org.rhythmeta.chunithmd.ui.settings.SettingsHome
 import org.rhythmeta.chunithmd.ui.settings.ThemeSettingsScreen
+import org.rhythmeta.chunithmd.ui.settings.StaticResourcesScreen
+import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
 import top.yukonga.miuix.kmp.basic.Button as MiuixButton
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
@@ -133,8 +139,15 @@ import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.SearchBar
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.blur.BlendColorEntry
+import top.yukonga.miuix.kmp.blur.BlurColors
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.textureBlur
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -146,7 +159,10 @@ import top.yukonga.miuix.kmp.nav.core.NavKey
 import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
 import top.yukonga.miuix.kmp.nav.core.rememberNavBackStack
 import top.yukonga.miuix.kmp.nav.core.NavDisplayEffects
+import top.yukonga.miuix.kmp.nav.transition.NavMotion
+import top.yukonga.miuix.kmp.nav.transition.NavSettleSpec
 import top.yukonga.miuix.kmp.nav.transition.NavSwipeDirection
+import top.yukonga.miuix.kmp.nav.transition.NavTransition
 import top.yukonga.miuix.kmp.nav.transition.NavTransitions
 
 @Serializable
@@ -156,7 +172,57 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Catalog : AppRoute
     @Serializable data object Settings : AppRoute
     @Serializable data object Theme : AppRoute
+    @Serializable data object Resources : AppRoute
 }
+
+private val SettingsDetailTransition = object : NavTransition by NavTransitions.MiuixDefault {
+    override val motion: NavMotion = NavMotion(
+        commit = NavTransitions.MiuixDefault.motion.commit,
+        cancel = NavTransitions.MiuixDefault.motion.cancel,
+        programmatic = NavSettleSpec.Tween(
+            durationMillis = 400,
+            easing = FastOutSlowInEasing,
+        ),
+    )
+}
+
+@Composable
+private fun rememberPageBackdrop(enabled: Boolean, surfaceColor: Color): LayerBackdrop? {
+    if (!enabled) return null
+    return rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
+}
+
+private fun Modifier.pageBackdrop(backdrop: LayerBackdrop?): Modifier =
+    if (backdrop == null) this else layerBackdrop(backdrop)
+
+@Composable
+private fun NavigationEventGate(
+    enabled: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val parent = LocalNavigationEventDispatcherOwner.current
+    if (parent == null) {
+        content()
+        return
+    }
+    val dispatcher = remember(parent) {
+        NavigationEventDispatcher(parent = parent.navigationEventDispatcher)
+    }
+    SideEffect { dispatcher.isEnabled = enabled }
+    DisposableEffect(dispatcher) {
+        onDispose { dispatcher.dispose() }
+    }
+    val owner = remember(dispatcher) {
+        object : NavigationEventDispatcherOwner {
+            override val navigationEventDispatcher: NavigationEventDispatcher = dispatcher
+        }
+    }
+    CompositionLocalProvider(LocalNavigationEventDispatcherOwner provides owner, content = content)
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -211,12 +277,15 @@ private fun CatalogApp(
     val scope = rememberCoroutineScope()
     // Miuix's surface is the page canvas used by the reference navigation shell.
     val pageBackground = MiuixTheme.colorScheme.surface
-    val navigationBackdrop = rememberLayerBackdrop {
+    val enableBlur = LocalEnableBlur.current
+    val navigationBackdrop = rememberKyantLayerBackdrop {
         drawRect(pageBackground)
         drawContent()
     }
-    val enableBlur = LocalEnableBlur.current
-    val topBarScrollBehavior = MiuixScrollBehavior()
+    val topBarBackdrop = rememberPageBackdrop(enableBlur, pageBackground)
+    val rootTopBarScrollBehavior = MiuixScrollBehavior()
+    val themeTopBarScrollBehavior = MiuixScrollBehavior()
+    val resourcesTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
     val searchScrollConnection = remember {
         object : NestedScrollConnection {
@@ -252,10 +321,14 @@ private fun CatalogApp(
         scope.launch {
             error = null
             runCatching {
-                repository.downloadAndApply { state -> sync = state }
+                withContext(Dispatchers.IO) {
+                    repository.downloadAndApply { state -> sync = state }
+                }
             }.onSuccess { snapshot ->
                 manifest = snapshot.manifest
-                bundle = CatalogJson.decodeBundle(snapshot.bundleJson)
+                bundle = withContext(Dispatchers.Default) {
+                    CatalogJson.decodeBundle(snapshot.bundleJson)
+                }
             }.onFailure {
                 error = it.message ?: "资源同步失败"
                 sync = CatalogSyncState(CatalogSyncStage.Failed, error)
@@ -264,11 +337,18 @@ private fun CatalogApp(
     }
 
     LaunchedEffect(Unit) {
-        runCatching { repository.loadLocal() }.getOrNull()?.let { snapshot ->
+        val localSnapshot = withContext(Dispatchers.IO) {
+            runCatching { repository.loadLocal() }.getOrNull()
+        }
+        localSnapshot?.let { snapshot ->
             manifest = snapshot.manifest
-            bundle = CatalogJson.decodeBundle(snapshot.bundleJson)
+            bundle = withContext(Dispatchers.Default) {
+                CatalogJson.decodeBundle(snapshot.bundleJson)
+            }
             scope.launch {
-                runCatching { repository.checkForUpdate() }.onSuccess { check ->
+                runCatching {
+                    withContext(Dispatchers.IO) { repository.checkForUpdate() }
+                }.onSuccess { check ->
                     if (check.updateAvailable) sync = CatalogSyncState(CatalogSyncStage.Idle, "发现可用更新")
                 }
             }
@@ -296,6 +376,7 @@ private fun CatalogApp(
     }
 
     val rootBackEnabled = navBackStack.lastOrNull() == AppRoute.Home && selectedTab != 0
+    val predictiveBackEnabled = LocalEnablePredictiveBack.current
     if (LocalEnablePredictiveBack.current) {
         PredictiveBackHandler(enabled = rootBackEnabled) { progress: Flow<BackEventCompat> ->
             try {
@@ -322,12 +403,16 @@ private fun CatalogApp(
         }
     } else {
         BackHandler(enabled = rootBackEnabled) {
-            returnToHomeWithoutSecondTransition()
+            navigateToTab(0)
         }
     }
 
     @Composable
-    fun AppFrame(page: Int, content: @Composable (PaddingValues) -> Unit) {
+    fun AppFrame(
+        page: Int,
+        topBarScrollBehavior: ScrollBehavior,
+        content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
+    ) {
         MiuixScaffold(
             // Keep the scaffold's underlay identical to the page. The floating bar is
             // positioned above it; a transparent scaffold would expose the window's default
@@ -336,19 +421,28 @@ private fun CatalogApp(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
                 MiuixTopAppBar(
-                    title = when (page) { 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
-                    largeTitle = when (page) { 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+                    title = when (page) { 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+                    largeTitle = when (page) { 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
                     navigationIcon = {
-                        if (page == 4) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                        if (page == 4 || page == 5) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                             MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                         }
                     },
-                    modifier = Modifier.drawPlainBackdrop(
-                        backdrop = navigationBackdrop,
-                        shape = { RoundedCornerShape(0.dp) },
-                        effects = { if (enableBlur) blur(24.dp.toPx()) },
-                        onDrawSurface = { drawRect(pageBackground.copy(alpha = if (enableBlur) 0.72f else 1f)) },
-                    ),
+                    modifier = if (enableBlur && topBarBackdrop != null) {
+                        Modifier.textureBlur(
+                            backdrop = topBarBackdrop,
+                            shape = RoundedCornerShape(0.dp),
+                            blurRadius = 25f,
+                            colors = BlurColors(
+                                blendColors = listOf(
+                                    BlendColorEntry(pageBackground.copy(alpha = 0.72f)),
+                                ),
+                            ),
+                        )
+                    } else {
+                        Modifier
+                    },
+                    color = if (enableBlur && topBarBackdrop != null) Color.Transparent else pageBackground,
                     actions = {
                         if (page == 2 && bundle != null) {
                             MiuixIconButton(onClick = {}) { MiuixIcon(Icons.Rounded.GridView, contentDescription = "网格视图") }
@@ -363,16 +457,24 @@ private fun CatalogApp(
                             SearchField(search, onSearchChange = { search = it })
                         }
                     },
-                    scrollBehavior = if (page == 2) topBarScrollBehavior else null,
+                    scrollBehavior = topBarScrollBehavior,
                 )
             },
-        ) { padding -> content(padding) }
+        ) { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pageBackdrop(topBarBackdrop),
+            ) {
+                content(padding, topBarScrollBehavior.nestedScrollConnection)
+            }
+        }
     }
 
     @Composable
     fun RootPage(page: Int, modifier: Modifier = Modifier) {
         Box(modifier) {
-            AppFrame(page) { padding ->
+            AppFrame(page, rootTopBarScrollBehavior) { padding, topBarScrollConnection ->
             when (page) {
                 0 -> BlankDestination(Modifier.padding(padding).fillMaxSize(), "主页")
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize(), "扫描")
@@ -382,9 +484,9 @@ private fun CatalogApp(
                     SongList(
                         Modifier.padding(padding).fillMaxSize()
                             .background(MiuixTheme.colorScheme.surface)
-                            .layerBackdrop(navigationBackdrop)
+                            .kyantLayerBackdrop(navigationBackdrop)
                             .nestedScroll(searchScrollConnection)
-                            .nestedScroll(topBarScrollBehavior.nestedScrollConnection),
+                            .nestedScroll(topBarScrollConnection),
                         songs,
                         manifest?.assets?.jacketBaseUrl.orEmpty(),
                         isDark,
@@ -393,38 +495,30 @@ private fun CatalogApp(
                 else -> SettingsHome(
                     Modifier.padding(padding).fillMaxSize()
                         .background(MiuixTheme.colorScheme.surface)
-                        .layerBackdrop(navigationBackdrop),
+                        .kyantLayerBackdrop(navigationBackdrop)
+                        .nestedScroll(topBarScrollConnection),
                     { navBackStack.add(AppRoute.Theme) },
-                ) {
-                    ResourceSettings(Modifier, manifest, sync, error, {
-                        scope.launch {
-                            sync = CatalogSyncState(CatalogSyncStage.Checking)
-                            runCatching { repository.checkForUpdate() }
-                                .onSuccess { check ->
-                                    sync = CatalogSyncState(
-                                        CatalogSyncStage.Idle,
-                                        if (check.updateAvailable) "发现可用更新" else "已是最新版本",
-                                    )
-                                }
-                                .onFailure {
-                                    error = it.message
-                                    sync = CatalogSyncState(CatalogSyncStage.Failed, error)
-                                }
-                        }
-                    }, ::refresh)
-                }
+                    { navBackStack.add(AppRoute.Resources) },
+                )
             }
         }
     }
     }
 
+    if (!predictiveBackEnabled) {
+        BackHandler(enabled = navBackStack.size > 1) {
+            navBackStack.removeLastOrNull()
+        }
+    }
+
+    NavigationEventGate(predictiveBackEnabled) {
     NavDisplay(
         backStack = navBackStack,
         modifier = Modifier.fillMaxSize(),
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Theme) {
+            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.size > 1) {
                 navBackStack.removeLastOrNull()
@@ -432,10 +526,61 @@ private fun CatalogApp(
             }
         },
     ) {
-        entry<AppRoute.Theme>(swipeDismiss = NavSwipeDirection.LeftToRight) {
-            AppFrame(4) { padding ->
+        entry<AppRoute.Theme>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(4, themeTopBarScrollBehavior) { padding, topBarScrollConnection ->
                 Box(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface)) {
-                    ThemeSettingsScreen(themeSettings, padding.calculateTopPadding(), { scope.launch { themeRepository.setColorMode(it) } }, { scope.launch { themeRepository.setKeyColor(it) } }, { scope.launch { themeRepository.setPaletteStyle(it) } }, { scope.launch { themeRepository.setColorSpec(it) } }, { scope.launch { themeRepository.setBlur(it) } }, { scope.launch { themeRepository.setFloatingBar(it) } }, { scope.launch { themeRepository.setFloatingBarBlur(it) } }, { scope.launch { themeRepository.setPredictiveBack(it) } }, { scope.launch { themeRepository.setPageScale(it) } })
+                    ThemeSettingsScreen(
+                        settings = themeSettings,
+                        contentTopPadding = padding.calculateTopPadding(),
+                        onColorModeChange = { scope.launch { themeRepository.setColorMode(it) } },
+                        onKeyColorChange = { scope.launch { themeRepository.setKeyColor(it) } },
+                        onPaletteStyleChange = { scope.launch { themeRepository.setPaletteStyle(it) } },
+                        onColorSpecChange = { scope.launch { themeRepository.setColorSpec(it) } },
+                        onEnableBlurChange = { scope.launch { themeRepository.setBlur(it) } },
+                        onEnableFloatingBottomBarChange = { scope.launch { themeRepository.setFloatingBar(it) } },
+                        onEnableFloatingBottomBarBlurChange = { scope.launch { themeRepository.setFloatingBarBlur(it) } },
+                        onEnablePredictiveBackChange = { scope.launch { themeRepository.setPredictiveBack(it) } },
+                        onPageScaleChange = { scope.launch { themeRepository.setPageScale(it) } },
+                        modifier = Modifier.nestedScroll(topBarScrollConnection),
+                    )
+                }
+            }
+        }
+        entry<AppRoute.Resources>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(5, resourcesTopBarScrollBehavior) { padding, topBarScrollConnection ->
+                Box(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface)) {
+                    StaticResourcesScreen(
+                        modifier = Modifier.padding(padding).nestedScroll(topBarScrollConnection),
+                        manifest = manifest,
+                        sync = sync,
+                        error = error,
+                        onCheck = {
+                            scope.launch {
+                                error = null
+                                sync = CatalogSyncState(CatalogSyncStage.Checking)
+                                runCatching {
+                                    withContext(Dispatchers.IO) { repository.checkForUpdate() }
+                                }
+                                    .onSuccess { check ->
+                                        sync = CatalogSyncState(
+                                            CatalogSyncStage.Idle,
+                                            if (check.updateAvailable) "发现可用更新" else "已是最新静态数据",
+                                        )
+                                    }
+                                    .onFailure {
+                                        error = it.message
+                                        sync = CatalogSyncState(CatalogSyncStage.Failed, error)
+                                    }
+                            }
+                        },
+                        onDownload = ::refresh,
+                    )
                 }
             }
         }
@@ -489,6 +634,7 @@ private fun CatalogApp(
                 )
             }
         }
+    }
     }
 
     if (filterOpen && bundle != null) {
@@ -724,68 +870,6 @@ private fun InitialLoad(sync: CatalogSyncState, error: String?, onRetry: () -> U
 }
 
 @Composable
-private fun ResourceSettings(
-    modifier: Modifier,
-    manifest: org.rhythmeta.chunithmd.shared.StaticManifest?,
-    sync: CatalogSyncState,
-    error: String?,
-    onCheck: () -> Unit,
-    onDownload: () -> Unit,
-) {
-    Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        MiuixText("当前版本", style = MiuixTheme.textStyles.title3)
-        MiuixText(manifest?.version ?: "未安装")
-        MiuixText("SHA-256\n${manifest?.sha256 ?: "-"}", style = MiuixTheme.textStyles.body2)
-        MiuixText("更新时间\n${manifest?.createdAt ?: "-"}", style = MiuixTheme.textStyles.body2)
-        MiuixText(sync.message ?: stageLabel(sync.stage), style = MiuixTheme.textStyles.body1)
-        if (sync.stage in setOf(CatalogSyncStage.Checking, CatalogSyncStage.Downloading, CatalogSyncStage.Validating, CatalogSyncStage.Applying)) CircularProgressIndicator()
-        error?.let { MiuixText(it, color = MiuixTheme.colorScheme.error) }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            MiuixButton(onClick = onCheck) { MiuixText("检查更新") }
-            MiuixButton(onClick = onDownload) { MiuixText(if (manifest == null) "下载资源" else "下载 / 重新安装") }
-        }
-    }
-}
-
-@Composable
-private fun SettingsHome(
-    modifier: Modifier,
-    onAppearance: () -> Unit,
-    resourceContent: @Composable () -> Unit,
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 112.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            MiuixText("外观", style = MiuixTheme.textStyles.title3, modifier = Modifier.padding(horizontal = 4.dp))
-        }
-        item {
-            MiuixCard(
-                modifier = Modifier.fillMaxWidth().clickable(onClick = onAppearance),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    MiuixIcon(Icons.Rounded.Settings, contentDescription = null, tint = MiuixTheme.colorScheme.primary)
-                    Spacer(Modifier.width(14.dp))
-                    Column {
-                        MiuixText("主题", style = MiuixTheme.textStyles.body1)
-                        MiuixText("颜色、导航栏和页面缩放", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
-                    }
-                }
-            }
-        }
-        item {
-            MiuixText("静态资源", style = MiuixTheme.textStyles.title3, modifier = Modifier.padding(horizontal = 4.dp))
-        }
-        item { resourceContent() }
-    }
-}
-
-@Composable
 private fun BlankDestination(modifier: Modifier, title: String) {
     Box(modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface))
 }
@@ -846,14 +930,4 @@ private fun sortLabel(sort: CatalogSort) = when (sort) {
     CatalogSort.Title -> "标题"
     CatalogSort.VersionDate -> "版本 / 发行日期"
     CatalogSort.Difficulty -> "最高定数"
-}
-
-private fun stageLabel(stage: CatalogSyncStage) = when (stage) {
-    CatalogSyncStage.Idle -> "资源已就绪"
-    CatalogSyncStage.Checking -> "正在检查更新"
-    CatalogSyncStage.Downloading -> "正在下载 bundle"
-    CatalogSyncStage.Validating -> "正在校验资源"
-    CatalogSyncStage.Applying -> "正在保存本地快照"
-    CatalogSyncStage.Ready -> "资源已更新"
-    CatalogSyncStage.Failed -> "更新失败"
 }

@@ -5,7 +5,6 @@ import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -38,7 +37,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
-import com.materialkolor.rememberDynamicColorScheme
 import org.rhythmeta.chunithmd.ui.theme.AppThemeSettings
 import org.rhythmeta.chunithmd.ui.theme.ColorMode
 import top.yukonga.miuix.kmp.basic.Card
@@ -84,9 +82,10 @@ fun ThemeSettingsScreen(
     onEnableFloatingBottomBarBlurChange: (Boolean) -> Unit,
     onEnablePredictiveBackChange: (Boolean) -> Unit,
     onPageScaleChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(top = contentTopPadding + 24.dp, start = 12.dp, end = 12.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -94,7 +93,7 @@ fun ThemeSettingsScreen(
             ThemePreviewCard(settings)
             Spacer(Modifier.height(28.dp))
             TabRow(
-                tabs = listOf("系统", "浅色", "深色"),
+                tabs = listOf("跟随系统", "浅色", "深色"),
                 selectedTabIndex = when { settings.colorMode.isSystem -> 0; settings.colorMode.isDark -> 2; else -> 1 },
                 onTabSelected = { index ->
                     val mode = when (index) { 0 -> ColorMode.SYSTEM; 1 -> ColorMode.LIGHT; else -> ColorMode.DARK }
@@ -105,8 +104,8 @@ fun ThemeSettingsScreen(
         item {
             Card(Modifier.fillMaxWidth()) {
                 SwitchPreference(
-                    title = "使用系统动态配色",
-                    summary = "从壁纸提取颜色并生成界面配色",
+                    title = "Monet 动态颜色",
+                    summary = "使用系统动态色板",
                     checked = settings.colorMode.isMonet,
                     onCheckedChange = { onColorModeChange(if (it) settings.colorMode.toMonetMode() else settings.colorMode.toNonMonetMode()) },
                     startAction = { ThemeIcon(Icons.Rounded.Wallpaper) },
@@ -114,14 +113,14 @@ fun ThemeSettingsScreen(
                 AnimatedVisibility(settings.colorMode.isMonet) {
                     Column {
                         OverlayDropdownPreference(
-                            title = "主题色",
-                            items = listOf("壁纸", "红色", "粉色", "紫色", "深紫色", "靛蓝", "蓝色", "青色", "蓝绿色", "绿色", "黄色", "琥珀", "橙色", "棕色", "蓝灰", "樱花"),
+                            title = "种子颜色",
+                            items = listOf("壁纸取色", "红色", "粉色", "紫色", "深紫色", "靛蓝色", "蓝色", "青色", "蓝绿色", "绿色", "黄色", "琥珀色", "橙色", "棕色", "蓝灰色", "樱花色"),
                             selectedIndex = keyColors.indexOf(settings.keyColor).coerceAtLeast(0),
                             onSelectedIndexChange = { onKeyColorChange(keyColors[it]) },
                             startAction = { ThemeIcon(Icons.Rounded.Colorize) },
                         )
                         OverlayDropdownPreference(
-                            title = "配色风格",
+                            title = "色板样式",
                             items = PaletteStyle.entries.map { it.name },
                             selectedIndex = PaletteStyle.entries.indexOf(settings.paletteStyle).coerceAtLeast(0),
                             onSelectedIndexChange = { onPaletteStyleChange(PaletteStyle.entries[it]) },
@@ -141,20 +140,20 @@ fun ThemeSettingsScreen(
         item {
             Card(Modifier.fillMaxWidth()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    SwitchPreference(checked = settings.enableBlur, onCheckedChange = onEnableBlurChange, title = "启用模糊效果", summary = "为顶部栏和悬浮组件启用背景模糊", startAction = { ThemeIcon(Icons.Rounded.BlurOn) })
+                    SwitchPreference(checked = settings.enableBlur, onCheckedChange = onEnableBlurChange, title = "模糊", summary = "在支持的设备上模糊顶部栏和页面", startAction = { ThemeIcon(Icons.Rounded.BlurOn) })
                 }
-                SwitchPreference(checked = settings.enableFloatingBottomBar, onCheckedChange = onEnableFloatingBottomBarChange, title = "悬浮底部导航", summary = "使用悬浮胶囊式底部导航栏", startAction = { ThemeIcon(Icons.Rounded.CallToAction) })
+                SwitchPreference(checked = settings.enableFloatingBottomBar, onCheckedChange = onEnableFloatingBottomBarChange, title = "浮动底栏", summary = "使用浮动导航底栏", startAction = { ThemeIcon(Icons.Rounded.CallToAction) })
                 AnimatedVisibility(settings.enableFloatingBottomBar && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    SwitchPreference(checked = settings.enableFloatingBottomBarBlur, onCheckedChange = onEnableFloatingBottomBarBlurChange, title = "悬浮导航玻璃效果", summary = "为悬浮导航栏启用背景模糊", startAction = { ThemeIcon(Icons.Rounded.WaterDrop) })
+                    SwitchPreference(checked = settings.enableFloatingBottomBarBlur, onCheckedChange = onEnableFloatingBottomBarBlurChange, title = "底栏玻璃", summary = "应用液态玻璃背景效果", startAction = { ThemeIcon(Icons.Rounded.WaterDrop) })
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    SwitchPreference(checked = settings.enablePredictiveBack, onCheckedChange = onEnablePredictiveBackChange, title = "预测返回动画", summary = "使用系统预测返回手势动画", startAction = { ThemeIcon(Icons.AutoMirrored.Rounded.MenuOpen) })
+                    SwitchPreference(checked = settings.enablePredictiveBack, onCheckedChange = onEnablePredictiveBackChange, title = "预测返回", summary = "使用系统返回手势动画", startAction = { ThemeIcon(Icons.AutoMirrored.Rounded.MenuOpen) })
                 }
                 var showScale by rememberSaveable { mutableStateOf(false) }
                 var scale by remember(settings.pageScale) { mutableFloatStateOf(settings.pageScale) }
                 ArrowPreference(
                     title = "页面缩放",
-                    summary = "调整界面密度和文字大小",
+                    summary = "调整页面内容大小",
                     endActions = { Text("${(scale * 100).toInt()}%") },
                     onClick = { showScale = !showScale },
                     holdDownState = showScale,
@@ -188,18 +187,15 @@ private fun ThemeIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
 private fun ThemePreviewCard(settings: AppThemeSettings) {
     val configuration = LocalConfiguration.current
     val ratio = configuration.screenWidthDp.toFloat() / configuration.screenHeightDp.toFloat()
-    val dark = settings.colorMode.isDark || (settings.colorMode.isSystem && isSystemInDarkTheme())
     val colors = MiuixTheme.colorScheme
-    val seed = if (settings.keyColor == 0) colors.primary else Color(settings.keyColor)
-    val dynamic = rememberDynamicColorScheme(seedColor = seed, isDark = dark, style = settings.paletteStyle, specVersion = settings.colorSpec)
-    val background = if (settings.colorMode.isAmoled) Color.Black else if (settings.colorMode.isMonet) dynamic.background else colors.surface
-    val card = if (settings.colorMode.isMonet) dynamic.surfaceContainerHighest else colors.surfaceVariant
+    val background = if (settings.colorMode.isAmoled) Color.Black else if (settings.colorMode.isMonet) colors.background else colors.surface
+    val card = if (settings.colorMode.isMonet) colors.surfaceContainerHighest else colors.surfaceVariant
     Box(Modifier.fillMaxWidth().padding(top = 12.dp), contentAlignment = Alignment.TopCenter) {
         val shape = RoundedCornerShape(20.dp)
         Box(Modifier.fillMaxWidth(0.42f).aspectRatio(ratio).clip(shape).background(background).border(1.dp, colors.outline, shape)) {
             Column {
-                Text("歌曲", color = if (settings.colorMode.isMonet) dynamic.onSurface else colors.onBackground, modifier = Modifier.padding(start = 12.dp, top = 20.dp))
-                Box(Modifier.fillMaxWidth().height(34.dp).padding(8.dp, 4.dp).background(if (settings.colorMode.isMonet) dynamic.secondaryContainer else colors.surfaceVariant, RoundedCornerShape(6.dp)))
+                Text("主页", color = if (settings.colorMode.isMonet) colors.onSurface else colors.onBackground, modifier = Modifier.padding(start = 12.dp, top = 20.dp))
+                Box(Modifier.fillMaxWidth().height(34.dp).padding(8.dp, 4.dp).background(if (settings.colorMode.isMonet) colors.secondaryContainer else colors.surfaceVariant, RoundedCornerShape(6.dp)))
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().padding(8.dp)) {
                     val rows = if (maxHeight >= 180.dp) 4 else if (maxHeight >= 130.dp) 3 else 2
                     Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -210,7 +206,7 @@ private fun ThemePreviewCard(settings: AppThemeSettings) {
             if (settings.enableFloatingBottomBar) {
                 Row(
                     Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp).height(28.dp)
-                        .background(if (settings.colorMode.isMonet) dynamic.surfaceContainer else colors.surface, RoundedCornerShape(14.dp))
+                        .background(if (settings.colorMode.isMonet) colors.surfaceContainer else colors.surface, RoundedCornerShape(14.dp))
                         .border(0.5.dp, colors.onSurface.copy(alpha = 0.12f), RoundedCornerShape(14.dp)).padding(horizontal = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically,
                 ) { repeat(4) { Box(Modifier.size(13.dp).background(if (it == 0) colors.primary else colors.onSurface.copy(alpha = 0.5f), RoundedCornerShape(3.dp))) } }
@@ -221,7 +217,7 @@ private fun ThemePreviewCard(settings: AppThemeSettings) {
 
 @Composable
 private fun PageScaleDialog(show: Boolean, currentScale: () -> Float, onChange: (Float) -> Unit, onDismiss: () -> Unit) {
-    OverlayDialog(show = show, title = "页面缩放", summary = "输入 80 到 110 之间的百分比", onDismissRequest = onDismiss, content = {
+    OverlayDialog(show = show, title = "页面缩放", summary = "调整页面内容大小", onDismissRequest = onDismiss, content = {
         var value by remember(show) { mutableStateOf((currentScale() * 100).toInt().toString()) }
         top.yukonga.miuix.kmp.basic.TextField(
             value = value,

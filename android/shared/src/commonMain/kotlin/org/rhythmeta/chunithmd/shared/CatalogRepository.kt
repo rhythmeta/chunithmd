@@ -51,7 +51,7 @@ class CatalogRepository(
 ) {
     private val snapshotPath: Path = cacheDirectory.toPath() / "catalog-snapshot.json"
 
-    suspend fun loadLocal(): CachedSnapshot? {
+    fun loadLocal(): CachedSnapshot? {
         if (!fileSystem.exists(snapshotPath)) return null
         val snapshot = CatalogJson.decodeSnapshot(fileSystem.read(snapshotPath) { readUtf8() })
         val bytes = snapshot.bundleJson.encodeUtf8().toByteArray()
@@ -85,7 +85,7 @@ class CatalogRepository(
         onState(CatalogSyncState(CatalogSyncStage.Applying))
         val snapshot = CachedSnapshot(check.manifest, bundleJson)
         fileSystem.createDirectories(snapshotPath.parent!!)
-        val temporary = (snapshotPath.toString() + ".tmp").toPath()
+        val temporary = ("$snapshotPath.tmp").toPath()
         fileSystem.write(temporary) { writeUtf8(CatalogJson.encodeSnapshot(snapshot)) }
         fileSystem.atomicMove(temporary, snapshotPath)
         onState(CatalogSyncState(CatalogSyncStage.Ready))

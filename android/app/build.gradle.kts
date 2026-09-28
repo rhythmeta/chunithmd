@@ -56,6 +56,7 @@ dependencies {
     implementation(project(":shared"))
     implementation(libs.miuix.ui)
     implementation(libs.miuix.preference)
+    implementation(libs.miuix.blur)
     implementation(libs.coil.compose)
     implementation(libs.miuix.nav)
     implementation(libs.androidx.datastore.preferences)
