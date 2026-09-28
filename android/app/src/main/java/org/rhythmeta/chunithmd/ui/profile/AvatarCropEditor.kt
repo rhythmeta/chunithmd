@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,12 +73,18 @@ internal fun AvatarCropEditor(
         ) {
             IconButton(
                 onClick = onDismiss,
-                modifier = Modifier.align(Alignment.TopStart).padding(top = 28.dp, start = 12.dp),
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(top = 12.dp, start = 12.dp),
             ) { Icon(Icons.Rounded.Close, contentDescription = "取消") }
             Text(
                 "裁剪头像",
                 style = MiuixTheme.textStyles.title3,
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 34.dp),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(top = 18.dp),
             )
             AvatarCropContent(
                 bitmap = bitmap,
@@ -91,19 +99,22 @@ internal fun AvatarCropEditor(
 private fun AvatarCropContent(bitmap: Bitmap, onApply: (Bitmap) -> Unit, modifier: Modifier) {
     val scope = rememberCoroutineScope()
     var scale by remember(bitmap) { mutableFloatStateOf(1f) }
+    var rotation by remember(bitmap) { mutableFloatStateOf(0f) }
     var offset by remember(bitmap) { mutableStateOf(Offset.Zero) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
-    val transformState = rememberTransformableState { zoom, pan, _ ->
+    val transformState = rememberTransformableState { zoom, pan, rotationChange ->
         val diameter = canvasSize.width.toFloat().coerceAtLeast(1f)
         val base = baseSize(bitmap, diameter)
         scale = (scale * zoom).coerceIn(minScale(base, diameter), 4f)
         offset = clampOffset(offset + pan, base, diameter, scale)
+        rotation = (rotation + rotationChange) % 360f
     }
     LaunchedEffect(bitmap, canvasSize) {
         if (canvasSize.width > 0) {
             val diameter = canvasSize.width.toFloat().coerceAtLeast(1f)
             scale = minScale(baseSize(bitmap, diameter), diameter)
             offset = Offset.Zero
+            rotation = 0f
         }
     }
     BoxWithConstraints(
@@ -135,6 +146,7 @@ private fun AvatarCropContent(bitmap: Bitmap, onApply: (Bitmap) -> Unit, modifie
                             size.width / 2f + offset.x,
                             size.height / 2f + offset.y
                         ) {
+                            rotate(rotation)
                             scale(scale, scale)
                             drawBitmap(
                                 bitmap,
@@ -148,25 +160,42 @@ private fun AvatarCropContent(bitmap: Bitmap, onApply: (Bitmap) -> Unit, modifie
                 }
             }
             Spacer(Modifier.height(18.dp))
-            TextButton(
-                text = "重置",
-                onClick = {
-                    scope.launch {
-                        scale = minScale(baseSize(bitmap, canvasSize.width.toFloat()), canvasSize.width.toFloat())
-                        offset = Offset.Zero
-                    }
-                },
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    if (canvasSize.width > 0) onApply(renderAvatar(bitmap, baseSize(bitmap, canvasSize.width.toFloat()), scale, offset, canvasSize.width.toFloat()))
-                },
+            Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
-                colors = ButtonDefaults.buttonColorsPrimary(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Icon(Icons.Rounded.Check, contentDescription = null)
-                Text("使用头像", modifier = Modifier.padding(start = 8.dp))
+                TextButton(
+                    text = "重置",
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        scope.launch {
+                            scale = minScale(baseSize(bitmap, canvasSize.width.toFloat()), canvasSize.width.toFloat())
+                            offset = Offset.Zero
+                            rotation = 0f
+                        }
+                    },
+                )
+                Button(
+                    onClick = {
+                        if (canvasSize.width > 0) {
+                            onApply(
+                                renderAvatar(
+                                    bitmap,
+                                    baseSize(bitmap, canvasSize.width.toFloat()),
+                                    scale,
+                                    rotation,
+                                    offset,
+                                    canvasSize.width.toFloat(),
+                                ),
+                            )
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColorsPrimary(),
+                ) {
+                    Icon(Icons.Rounded.Check, contentDescription = null)
+                    Text("使用头像", modifier = Modifier.padding(start = 8.dp))
+                }
             }
         }
     }
@@ -185,11 +214,12 @@ private fun clampOffset(value: Offset, base: Offset, diameter: Float, scale: Flo
     return Offset(value.x.coerceIn(-x, x), value.y.coerceIn(-y, y))
 }
 
-private fun renderAvatar(bitmap: Bitmap, base: Offset, scale: Float, offset: Offset, diameter: Float): Bitmap {
+private fun renderAvatar(bitmap: Bitmap, base: Offset, scale: Float, rotation: Float, offset: Offset, diameter: Float): Bitmap {
     val output = createBitmap(512, 512)
     val canvas = Canvas(output)
     val ratio = 512f / diameter
     canvas.withTranslation(256f + offset.x * ratio, 256f + offset.y * ratio) {
+        rotate(rotation)
         scale(scale * ratio, scale * ratio)
         drawBitmap(
             bitmap,
