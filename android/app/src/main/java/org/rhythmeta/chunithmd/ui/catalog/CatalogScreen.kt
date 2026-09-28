@@ -1,7 +1,12 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.GridView
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.backdrops.LayerBackdrop
@@ -62,55 +67,68 @@ import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 @Composable
 fun CatalogScreen(
     modifier: Modifier,
+    contentTopPadding: Dp,
     bundle: CatalogBundle?,
     sync: CatalogSyncState,
     error: String?,
     songs: List<CatalogSong>,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
-    isDark: Boolean,
     navigationBackdrop: LayerBackdrop,
     searchScrollConnection: NestedScrollConnection,
     topBarScrollConnection: NestedScrollConnection,
     onRetry: () -> Unit,
 ) {
     if (bundle == null) {
-        InitialLoad(sync, error, onRetry, modifier)
+        InitialLoad(sync, error, onRetry, modifier.padding(top = contentTopPadding))
     } else {
         SongList(
             modifier = modifier
-                .background(MiuixTheme.colorScheme.surface)
                 .kyantLayerBackdrop(navigationBackdrop)
                 .nestedScroll(searchScrollConnection)
                 .nestedScroll(topBarScrollConnection),
+            contentTopPadding = contentTopPadding,
             songs = songs,
             jacketBaseUrl = jacketBaseUrl,
             localJacketPath = localJacketPath,
-            isDark = isDark,
         )
     }
 }
 
 @Composable
-fun CatalogSearchField(search: String, onSearchChange: (String) -> Unit) {
-    SearchBar(
-        inputField = {
-            InputField(
-                query = search,
-                onQueryChange = onSearchChange,
-                onSearch = {},
-                expanded = false,
-                onExpandedChange = {},
-                label = "歌曲、艺术家、别名...",
-                modifier = Modifier.fillMaxWidth(),
-                leadingIcon = { MiuixIcon(Icons.Rounded.Search, contentDescription = null) },
-            )
-        },
-        onExpandedChange = {},
-        insideMargin = DpSize(width = 16.dp, height = 10.dp),
-        expanded = false,
-        content = {},
-    )
+fun CatalogSearchField(
+    search: String,
+    onSearchChange: (String) -> Unit,
+    visible: Boolean,
+    expanded: Boolean,
+    backEnabled: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    interactionSource: MutableInteractionSource,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+        exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+    ) {
+        SearchBar(
+            inputField = {
+                InputField(
+                    query = search,
+                    onQueryChange = onSearchChange,
+                    onSearch = {},
+                    expanded = expanded,
+                    onExpandedChange = onExpandedChange,
+                    interactionSource = interactionSource,
+                    label = "歌曲、艺术家、别名...",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            onExpandedChange = onExpandedChange,
+            insideMargin = DpSize(width = 16.dp, height = 10.dp),
+            expanded = expanded && backEnabled,
+            content = {},
+        )
+    }
 }
 
 @Composable
@@ -217,18 +235,18 @@ private fun SortAction(
 @Composable
 private fun SongList(
     modifier: Modifier,
+    contentTopPadding: Dp,
     songs: List<CatalogSong>,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
-    isDark: Boolean,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, top = 6.dp, end = 16.dp, bottom = 96.dp),
+        contentPadding = PaddingValues(start = 16.dp, top = contentTopPadding + 6.dp, end = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(songs, key = CatalogSong::songId) { song ->
-            SongCard(song, jacketBaseUrl, localJacketPath, isDark)
+            SongCard(song, jacketBaseUrl, localJacketPath)
         }
     }
 }

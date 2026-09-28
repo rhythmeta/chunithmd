@@ -9,9 +9,7 @@ import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -28,6 +26,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.DocumentScanner
@@ -227,6 +227,9 @@ private fun CatalogApp(
     val themeTopBarScrollBehavior = MiuixScrollBehavior()
     val resourcesTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
+    var searchExpanded by remember { mutableStateOf(false) }
+    val searchInteractionSource = remember { MutableInteractionSource() }
+    val searchFocused by searchInteractionSource.collectIsFocusedAsState()
     val searchScrollConnection = remember {
         object : NestedScrollConnection {
             private var downDistance = 0f
@@ -288,7 +291,6 @@ private fun CatalogApp(
         }
     }
 
-    val isDark = isSystemInDarkTheme()
     val songs = remember(bundle, search, sort, ascending, filters) {
         bundle?.let { CatalogQuery.filterAndSort(it, search, sort, ascending, filters) }.orEmpty()
     }
@@ -370,8 +372,16 @@ private fun CatalogApp(
                 }
             },
             bottomContent = {
-                if (page == 2 && bundle != null) AnimatedVisibility(visible = searchVisible) {
-                    CatalogSearchField(search, onSearchChange = { search = it })
+                if (page == 2 && bundle != null) {
+                    CatalogSearchField(
+                        search = search,
+                        onSearchChange = { search = it },
+                        visible = searchVisible || searchFocused,
+                        expanded = searchExpanded,
+                        backEnabled = searchFocused,
+                        onExpandedChange = { searchExpanded = it },
+                        interactionSource = searchInteractionSource,
+                    )
                 }
             },
             content = content,
@@ -392,14 +402,14 @@ private fun CatalogApp(
                 0 -> BlankDestination(Modifier.padding(padding).fillMaxSize(), "主页")
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize(), "扫描")
                 2 -> CatalogScreen(
-                    modifier = Modifier.padding(padding).fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
+                    contentTopPadding = padding.calculateTopPadding(),
                     bundle = bundle,
                     sync = sync,
                     error = error,
                     songs = songs,
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
                     localJacketPath = repository::localJacketPath,
-                    isDark = isDark,
                     navigationBackdrop = navigationBackdrop,
                     searchScrollConnection = searchScrollConnection,
                     topBarScrollConnection = topBarScrollConnection,

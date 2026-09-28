@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import java.io.File
+import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.VersionPalette
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
@@ -38,8 +40,8 @@ internal fun SongCard(
     song: CatalogSong,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
-    isDark: Boolean,
 ) {
+    val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
     val accentColor = song.sheets.maxByOrNull { difficultyOrder(it.difficulty) }?.let { difficultyColor(it.difficulty) }
         ?: difficultyColor("world's end")
     val palette = VersionPalette.forVersion(song.version, isDark)
@@ -51,10 +53,10 @@ internal fun SongCard(
             .fillMaxWidth()
             .height(76.dp)
             .squircleSurface(
-                color = if (isDark) Color(0xFF111612) else Color(0xFFF8FBF9),
+                color = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = if (isDark) 0.82f else 0.88f),
                 cornerRadius = 14.dp,
             )
-            .squircleBorder(width = 1.dp, color = accentColor.copy(alpha = if (isDark) 0.16f else 0.12f), cornerRadius = 14.dp)
+            .squircleBorder(width = 1.dp, color = accentColor.copy(alpha = 0.12f), cornerRadius = 14.dp)
             .padding(vertical = 12.dp),
     ) {
         Box(
@@ -97,7 +99,7 @@ internal fun SongCard(
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 MiuixText(
-                    text = versionLabel(song.version),
+                    text = CatalogVersionFormatter.badge(song.version),
                     modifier = Modifier.squircleSurface(color = Color(badgeBackground.toInt()), cornerRadius = 4.dp).padding(horizontal = 7.dp, vertical = 3.dp),
                     color = Color(badgeForeground.toInt()),
                     style = MiuixTheme.textStyles.footnote1.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
@@ -133,5 +135,3 @@ private fun difficultyColor(value: String): Color = when (value.lowercase()) {
     "ultima" -> Color(0xFF222222)
     else -> Color(0xFF4AA8C2)
 }
-
-private fun versionLabel(version: String?): String = version.orEmpty().removePrefix("CHUNITHM ").removeSuffix(" PLUS").ifBlank { "CHUNITHM" }.take(12)
