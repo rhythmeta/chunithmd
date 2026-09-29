@@ -13,6 +13,8 @@ data class CatalogFilters(
     val difficulties: Set<String> = emptySet(),
     val types: Set<String> = emptySet(),
     val playableOnly: Boolean = false,
+    val hideDeleted: Boolean = false,
+    val favoritesOnly: Boolean = false,
 )
 
 object CatalogQuery {
@@ -33,6 +35,8 @@ object CatalogQuery {
         sort: CatalogSort = CatalogSort.Default,
         ascending: Boolean = true,
         filters: CatalogFilters = CatalogFilters(),
+        playableRegion: String = "jp",
+        favoriteSongIds: Set<String> = emptySet(),
     ): List<CatalogSong> {
         val query = normalize(search)
         val versionOrder = bundle.catalog.versions.mapIndexed { index, version -> version.version to index }.toMap()
@@ -51,7 +55,9 @@ object CatalogQuery {
                 (filters.versions.isEmpty() || song.version in filters.versions) &&
                 (filters.difficulties.isEmpty() || matchesDifficultyFilter(song, filters.difficulties)) &&
                 (filters.types.isEmpty() || song.sheets.any { it.normalizedType() in filters.types }) &&
-                (!filters.playableOnly || song.isPlayableInJp())
+                (!filters.playableOnly || song.isPlayableIn(playableRegion)) &&
+                (!filters.hideDeleted || song.isPlayableInAnyServer()) &&
+                (!filters.favoritesOnly || song.songId in favoriteSongIds)
         }
         return when (sort) {
             CatalogSort.Default -> filtered
@@ -137,6 +143,36 @@ object CatalogQuery {
         difficulties: List<String>,
         types: List<String>,
         playableOnly: Boolean,
+    ): String = searchAndFilterJson(
+        bundleJson = bundleJson,
+        search = search,
+        sort = sort,
+        ascending = ascending,
+        categories = categories,
+        versions = versions,
+        difficulties = difficulties,
+        types = types,
+        playableOnly = playableOnly,
+        hideDeleted = false,
+        playableRegion = "jp",
+        favoriteSongIds = emptyList(),
+        favoritesOnly = false,
+    )
+
+    fun searchAndFilterJson(
+        bundleJson: String,
+        search: String,
+        sort: String,
+        ascending: Boolean,
+        categories: List<String>,
+        versions: List<String>,
+        difficulties: List<String>,
+        types: List<String>,
+        playableOnly: Boolean,
+        hideDeleted: Boolean,
+        playableRegion: String,
+        favoriteSongIds: List<String>,
+        favoritesOnly: Boolean,
     ): String {
         val bundle = CatalogJson.decodeBundle(bundleJson)
         requireSupportedBundle(bundle)
@@ -152,7 +188,11 @@ object CatalogQuery {
                 difficulties = difficulties.map(::normalize).toSet(),
                 types = types.map(::normalize).toSet(),
                 playableOnly = playableOnly,
+                hideDeleted = hideDeleted,
+                favoritesOnly = favoritesOnly,
             ),
+            playableRegion = playableRegion,
+            favoriteSongIds = favoriteSongIds.toSet(),
         )
         return CatalogJson.codec.encodeToString(results)
     }

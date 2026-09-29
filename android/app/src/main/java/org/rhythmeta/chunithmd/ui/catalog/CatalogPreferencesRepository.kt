@@ -33,6 +33,8 @@ class CatalogPreferencesRepository(private val context: Context) {
                 difficulties = values[DifficultiesKey].orEmpty(),
                 types = values[TypesKey].orEmpty(),
                 playableOnly = values[PlayableOnlyKey] ?: false,
+                hideDeleted = values[HideDeletedKey] ?: false,
+                favoritesOnly = values[FavoritesOnlyKey] ?: false,
             ),
         )
     }
@@ -52,6 +54,8 @@ class CatalogPreferencesRepository(private val context: Context) {
             values[DifficultiesKey] = filters.difficulties
             values[TypesKey] = filters.types
             values[PlayableOnlyKey] = filters.playableOnly
+            values[HideDeletedKey] = filters.hideDeleted
+            values[FavoritesOnlyKey] = filters.favoritesOnly
         }
     }
 
@@ -63,5 +67,7 @@ class CatalogPreferencesRepository(private val context: Context) {
         val DifficultiesKey = stringSetPreferencesKey("difficulties")
         val TypesKey = stringSetPreferencesKey("types")
         val PlayableOnlyKey = booleanPreferencesKey("playable_only")
+        val HideDeletedKey = booleanPreferencesKey("hide_deleted")
+        val FavoritesOnlyKey = booleanPreferencesKey("favorites_only")
     }
 }

@@ -47,6 +47,27 @@ class CatalogQueryTest {
     }
 
     @Test
+    fun chartAvailabilityUsesChineseChartOverridesWhenPresent() {
+        val sheet = CatalogSheet("std", "master", "13", 13.0, mapOf("jp" to true))
+        val song = CatalogSong(
+            songId = "cn-chart",
+            title = "CN chart",
+            version = "X-VERSE",
+            sheets = listOf(sheet),
+            regionOverrides = mapOf(
+                "cn" to RegionOverride(
+                    available = true,
+                    charts = mapOf("std:master" to RegionChartOverride(available = true, levelValue = 13.4)),
+                ),
+            ),
+        )
+
+        assertTrue(song.isPlayableIn("cn"))
+        assertTrue(song.isSheetPlayableIn(sheet, "cn"))
+        assertEquals(13.4, song.regionOverrides.getValue("cn").charts.getValue("std:master").levelValue)
+    }
+
+    @Test
     fun searchesWorldsEndTitleMarkers() {
         val catalog = bundle.copy(
             catalog = bundle.catalog.copy(
@@ -69,6 +90,66 @@ class CatalogQueryTest {
         assertEquals("a", CatalogQuery.filterAndSort(bundle, sort = CatalogSort.Difficulty, ascending = false).first().songId)
         assertTrue(CatalogQuery.filterAndSort(bundle, filters = CatalogFilters(difficulties = setOf("master"))).isNotEmpty())
         assertFalse(CatalogQuery.filterAndSort(bundle, filters = CatalogFilters(types = setOf("we"))).isNotEmpty())
+    }
+
+    @Test
+    fun quickFiltersUseTheSelectedRegionAndHideSongsUnavailableEverywhere() {
+        val catalog = bundle.copy(
+            catalog = bundle.catalog.copy(
+                songs = listOf(
+                    song("jp-only", "JP only", "AIR", 12.0, "jp"),
+                    song("intl-only", "Intl only", "AIR", 12.0, "intl"),
+                    song("cn-only", "CN only", "AIR", 12.0, "jp").copy(
+                        sheets = emptyList(),
+                        regionOverrides = mapOf("cn" to RegionOverride(available = true)),
+                    ),
+                    song("deleted", "Deleted", "AIR", 12.0, "jp").copy(sheets = emptyList()),
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf("intl-only"),
+            CatalogQuery.filterAndSort(
+                catalog,
+                filters = CatalogFilters(playableOnly = true),
+                playableRegion = "intl",
+            ).map { it.songId },
+        )
+        assertEquals(
+            listOf("jp-only", "intl-only", "cn-only"),
+            CatalogQuery.filterAndSort(
+                catalog,
+                filters = CatalogFilters(hideDeleted = true),
+            ).map { it.songId },
+        )
+        assertEquals(
+            listOf("intl-only"),
+            CatalogQuery.filterAndSort(
+                catalog,
+                filters = CatalogFilters(playableOnly = true, hideDeleted = true),
+                playableRegion = "intl",
+            ).map { it.songId },
+        )
+    }
+
+    @Test
+    fun favoritesFilterKeepsOnlyExplicitlyFavoriteSongs() {
+        assertEquals(
+            listOf("a"),
+            CatalogQuery.filterAndSort(
+                bundle,
+                filters = CatalogFilters(favoritesOnly = true),
+                favoriteSongIds = setOf("a"),
+            ).map { it.songId },
+        )
+        assertTrue(
+            CatalogQuery.filterAndSort(
+                bundle,
+                filters = CatalogFilters(favoritesOnly = true),
+                favoriteSongIds = emptySet(),
+            ).isEmpty(),
+        )
     }
 
     @Test

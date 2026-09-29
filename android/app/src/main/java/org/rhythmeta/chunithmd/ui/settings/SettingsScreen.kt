@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.People
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,7 +35,7 @@ fun SettingsHome(
         item {
             SettingsSection(title = "用户") {
                 SettingsRow(
-                    icon = Icons.Rounded.Person,
+                    icon = Icons.Rounded.People,
                     title = "用户档案",
                     summary = "管理本地档案、头像和地区",
                     onClick = onProfiles,

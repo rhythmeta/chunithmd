@@ -32,10 +32,13 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.DocumentScanner
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.PersonAdd
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -99,6 +102,7 @@ import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBarBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
 import org.rhythmeta.chunithmd.ui.catalog.CatalogFilterDialog
+import org.rhythmeta.chunithmd.ui.catalog.FavoriteSongRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogPreferencesRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
@@ -117,6 +121,8 @@ import org.rhythmeta.chunithmd.profile.ProfileAvatarStore
 import org.rhythmeta.chunithmd.profile.ProfileRepository
 import org.rhythmeta.chunithmd.score.ScoreRepository
 import org.rhythmeta.chunithmd.score.ScoreRecordEntity
+import org.rhythmeta.chunithmd.ui.best.BestTableHomeCard
+import org.rhythmeta.chunithmd.ui.best.BestTableScreen
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -147,6 +153,7 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Theme : AppRoute
     @Serializable data object Resources : AppRoute
     @Serializable data object Profiles : AppRoute
+    @Serializable data object BestTable : AppRoute
     @Serializable data class SongDetail(val songId: String) : AppRoute
 }
 
@@ -234,7 +241,9 @@ class MainActivity : ComponentActivity() {
         val repository = CatalogRepository(filesDir.absolutePath)
         val profileRepository = ProfileRepository(applicationContext)
         val scoreRepository = ScoreRepository(applicationContext, profileRepository)
+        val favoriteSongRepository = FavoriteSongRepository(applicationContext)
         val profileAvatarStore = ProfileAvatarStore(applicationContext)
+        val bestTablePreferencesRepository = org.rhythmeta.chunithmd.ui.best.BestTablePreferencesRepository(applicationContext)
         val catalogPreferencesRepository = CatalogPreferencesRepository(applicationContext)
         val themeRepository = ThemePreferencesRepository(applicationContext)
         val catalogState = ViewModelProvider(this)[CatalogStateViewModel::class.java]
@@ -247,7 +256,7 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
-                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, catalogState)
+                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState)
                 }
             }
         }
@@ -263,6 +272,8 @@ private fun CatalogApp(
     profileRepository: ProfileRepository,
     profileAvatarStore: ProfileAvatarStore,
     scoreRepository: ScoreRepository,
+    favoriteSongRepository: FavoriteSongRepository,
+    bestTablePreferencesRepository: org.rhythmeta.chunithmd.ui.best.BestTablePreferencesRepository,
     catalogState: CatalogStateViewModel,
 ) {
     var bundle by catalogState::bundle
@@ -279,9 +290,12 @@ private fun CatalogApp(
     var filterOpen by remember { mutableStateOf(false) }
     var sortOpen by remember { mutableStateOf(false) }
     var profileCreateRequested by remember { mutableStateOf(false) }
+    var bestTableShareRequested by remember { mutableStateOf(false) }
     var quickEditProfile by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.UserProfile?>(null) }
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
     val profileScores by scoreRepository.observeCurrentProfileRecords().collectAsState(initial = emptyList())
+    val bestTablePreferences by bestTablePreferencesRepository.preferences.collectAsState(initial = org.rhythmeta.chunithmd.ui.best.BestTablePreferences())
+    val favoriteSongIds by favoriteSongRepository.favoriteSongIds.collectAsState(initial = emptySet())
     val scoresBySheetKey = remember(profileScores) {
         profileScores.groupBy(ScoreRecordEntity::sheetKey)
             .mapValues { (_, records) -> records.maxByOrNull(ScoreRecordEntity::score)!! }
@@ -315,6 +329,7 @@ private fun CatalogApp(
     val settingsTopBarScrollBehavior = MiuixScrollBehavior()
     val themeTopBarScrollBehavior = MiuixScrollBehavior()
     val resourcesTopBarScrollBehavior = MiuixScrollBehavior()
+    val bestTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -370,11 +385,22 @@ private fun CatalogApp(
 
     LaunchedEffect(repository, catalogState) { catalogState.loadLocal(repository) }
 
-    val songs = remember(bundle, search, sort, ascending, filters) {
-        bundle?.let { CatalogQuery.filterAndSort(it, search, sort, ascending, filters) }.orEmpty()
+    val playableRegion = activeProfile?.server?.wireValue ?: "jp"
+    val songs = remember(bundle, search, sort, ascending, filters, playableRegion, favoriteSongIds) {
+        bundle?.let {
+            CatalogQuery.filterAndSort(
+                it,
+                search,
+                sort,
+                ascending,
+                filters,
+                playableRegion = playableRegion,
+                favoriteSongIds = favoriteSongIds,
+            )
+        }.orEmpty()
     }
     val filterActive = filters.categories.isNotEmpty() || filters.versions.isNotEmpty() ||
-        filters.difficulties.isNotEmpty() || filters.types.isNotEmpty() || filters.playableOnly
+        filters.difficulties.isNotEmpty() || filters.types.isNotEmpty() || filters.playableOnly || filters.hideDeleted || filters.favoritesOnly
     // Keep the detail page in the same navigation state as the root pages so its
     // enter/exit transition is observable and back can return to Settings.
     val navBackStack = rememberNavBackStack<AppRoute>(AppRoute.Home)
@@ -427,12 +453,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = when (page) { 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = when (page) { 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page == 4 || page == 5 || page == 6) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page == 4 || page == 5 || page == 6 || page == 7) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
@@ -460,6 +486,11 @@ private fun CatalogApp(
                 if (page == 6) {
                     MiuixIconButton(onClick = { profileCreateRequested = true }) {
                         MiuixIcon(Icons.Rounded.PersonAdd, contentDescription = "新建档案")
+                    }
+                }
+                if (page == 7) {
+                    MiuixIconButton(onClick = { bestTableShareRequested = true }) {
+                        MiuixIcon(Icons.Rounded.Share, contentDescription = "分享 Best Table")
                     }
                 }
             },
@@ -493,6 +524,11 @@ private fun CatalogApp(
             when (page) {
                 0 -> Column(Modifier.padding(padding).fillMaxSize()) {
                     CurrentProfileCard(activeProfile) { activeProfile?.let { quickEditProfile = it } }
+                    BestTableHomeCard(
+                        bestCount = bestTablePreferences.bestCount,
+                        newCount = bestTablePreferences.newCount,
+                        onClick = { navBackStack.add(AppRoute.BestTable) },
+                    )
                 }
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
                 2 -> CatalogScreen(
@@ -539,7 +575,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles) {
+            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail) {
                 navBackStack.removeLastOrNull()
@@ -629,6 +665,27 @@ private fun CatalogApp(
                 )
             }
         }
+        entry<AppRoute.BestTable>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(7, bestTopBarScrollBehavior) { padding, topBarScrollConnection ->
+                BestTableScreen(
+                    bundle = bundle,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                    records = profileScores,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = topBarScrollConnection,
+                    onOpenSong = { songId -> navBackStack.add(AppRoute.SongDetail(songId)) },
+                    preferencesRepository = bestTablePreferencesRepository,
+                    profileName = activeProfile?.name,
+                    shareRequested = bestTableShareRequested,
+                    onShareRequestHandled = { bestTableShareRequested = false },
+                )
+            }
+        }
         entry<AppRoute.SongDetail>(
             transition = SettingsDetailTransition,
             swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
@@ -643,6 +700,20 @@ private fun CatalogApp(
                 navigationIcon = {
                     MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                         MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    if (song != null) {
+                        val isFavorite = song.songId in favoriteSongIds
+                        MiuixIconButton(onClick = {
+                            scope.launch { favoriteSongRepository.setFavorite(song.songId, !isFavorite) }
+                        }) {
+                            MiuixIcon(
+                                if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                                contentDescription = if (isFavorite) "取消喜爱" else "添加到喜爱",
+                                tint = if (isFavorite) Color(0xFFE85D5D) else MiuixTheme.colorScheme.onSurface,
+                            )
+                        }
                     }
                 },
             ) { padding, topBarScrollConnection ->

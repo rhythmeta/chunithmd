@@ -17,6 +17,8 @@ data class RatingChartEntry(
 data class PlayerRatingSummary(
     val best30: List<RatingChartEntry>,
     val new20: List<RatingChartEntry>,
+    val bestSlotCount: Int = BEST_SLOT_COUNT.toInt(),
+    val newSlotCount: Int = NEW_SLOT_COUNT.toInt(),
 ) {
     val best30Total: Double get() = best30.sumOf { it.rating }
     val new20Total: Double get() = new20.sumOf { it.rating }
@@ -95,7 +97,12 @@ fun calculatePlayerRating(
     val new20 = selectDistinct(candidates.filter { it.isNew }, newSlotCount, emptySet())
     val reservedChartIds = new20.mapTo(mutableSetOf(), RatingChartEntry::chartId)
     val best30 = selectDistinct(candidates.filter { !it.isNew }, bestSlotCount, reservedChartIds)
-    return PlayerRatingSummary(best30 = best30, new20 = new20)
+    return PlayerRatingSummary(
+        best30 = best30,
+        new20 = new20,
+        bestSlotCount = bestSlotCount.coerceAtLeast(0),
+        newSlotCount = newSlotCount.coerceAtLeast(0),
+    )
 }
 
 private const val SCORE_CUTOFF = 500_000L

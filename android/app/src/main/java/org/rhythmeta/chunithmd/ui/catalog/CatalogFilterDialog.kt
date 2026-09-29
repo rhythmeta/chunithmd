@@ -5,14 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,8 +18,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,7 +50,6 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 internal fun CatalogFilterDialog(
     show: Boolean,
     bundle: CatalogBundle,
@@ -97,10 +96,22 @@ internal fun CatalogFilterDialog(
             item {
                 CatalogFilterSection("快速筛选") {
                     CatalogFilterToggleRow(
+                        icon = Icons.Rounded.FavoriteBorder,
+                        title = "仅显示喜爱歌曲",
+                        checked = settings.favoritesOnly,
+                        onCheckedChange = { onSettingsChange(settings.copy(favoritesOnly = it)) },
+                    )
+                    CatalogFilterToggleRow(
                         icon = Icons.Rounded.PlayCircle,
-                        title = "仅显示 JP 可玩",
+                        title = "仅显示可玩歌曲",
                         checked = settings.playableOnly,
                         onCheckedChange = { onSettingsChange(settings.copy(playableOnly = it)) },
+                    )
+                    CatalogFilterToggleRow(
+                        icon = Icons.Rounded.VisibilityOff,
+                        title = "隐藏删除曲",
+                        checked = settings.hideDeleted,
+                        onCheckedChange = { onSettingsChange(settings.copy(hideDeleted = it)) },
                     )
                 }
             }
@@ -176,7 +187,6 @@ private fun CatalogFilterToggleRow(
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 private fun CatalogFilterChipGroup(
     values: List<String>,
     selectedValues: Set<String>,

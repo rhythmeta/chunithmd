@@ -22,7 +22,7 @@ class ScoreRepository(
         context.applicationContext,
         ScoreDatabase::class.java,
         "score-records.db",
-    ).build()
+    ).addMigrations(ScoreDatabase.MIGRATION_1_2).build()
     private val dao = database.records()
 
     fun observeSongRecords(songId: String): Flow<List<ScoreRecordEntity>> =
@@ -35,7 +35,14 @@ class ScoreRepository(
             profile?.let { dao.observeForProfile(it.id) } ?: flowOf(emptyList())
         }
 
-    suspend fun save(songId: String, sheetKey: String, score: Int): ScoreRecordEntity {
+    suspend fun save(
+        songId: String,
+        sheetKey: String,
+        score: Int,
+        clear: ClearType = ClearType.Clear,
+        fullCombo: FullComboType? = null,
+        fullChain: FullChainType? = null,
+    ): ScoreRecordEntity {
         require(ChunithmScoreRules.isValid(score)) { "Score is out of range." }
         val profile = requireNotNull(profileRepository.activeProfile.first()) { "No active profile." }
         val now = clock()
@@ -47,6 +54,9 @@ class ScoreRepository(
             score = score,
             rank = ChunithmScoreRules.rank(score),
             playedAt = now,
+            clear = clear.wireValue,
+            fullCombo = fullCombo?.wireValue,
+            fullChain = fullChain?.wireValue,
         )
         dao.insert(record)
         return record

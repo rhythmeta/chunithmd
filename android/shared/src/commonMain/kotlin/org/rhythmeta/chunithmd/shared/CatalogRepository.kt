@@ -369,8 +369,10 @@ class CatalogBridge(cacheDirectory: String) {
 
     fun query(bundleJson: String, search: String, sort: String, ascending: Boolean,
               categories: List<String>, versions: List<String>, difficulties: List<String>, types: List<String>,
-              playableOnly: Boolean): String = CatalogQuery.searchAndFilterJson(
+              playableOnly: Boolean, hideDeleted: Boolean = false, playableRegion: String = "jp",
+              favoriteSongIds: List<String> = emptyList(), favoritesOnly: Boolean = false): String = CatalogQuery.searchAndFilterJson(
         bundleJson, search, sort, ascending, categories, versions, difficulties, types, playableOnly,
+        hideDeleted, playableRegion, favoriteSongIds, favoritesOnly,
     )
 
     fun refresh(completion: (String?, String?) -> Unit) {

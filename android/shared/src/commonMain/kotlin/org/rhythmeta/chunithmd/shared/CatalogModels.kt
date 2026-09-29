@@ -78,7 +78,7 @@ data class CatalogNoteCounts(
     val slide: Int? = null,
     val air: Int? = null,
     val flick: Int? = null,
-    val touch: Int? = null,
+    // val touch: Int? = null,
     @SerialName("break") val breakCount: Int? = null,
     val total: Int? = null,
 )
@@ -119,9 +119,31 @@ object CatalogJson {
 fun CatalogSong.isPlayableInJp(): Boolean = sheets.any { it.regions["jp"] == true }
 
 fun CatalogSong.isPlayableIn(region: String): Boolean = when {
-    region.equals("cn", ignoreCase = true) -> regionOverrides["cn"]?.available == true
-    else -> sheets.any { it.regions[region.lowercase()] == true }
+    region.equals("cn", ignoreCase = true) -> {
+        val override = regionOverrides["cn"]
+        if (override?.charts?.isNotEmpty() == true) {
+            override.charts.values.any { it.available }
+        } else {
+            override?.available == true
+        }
+    }
+    else -> sheets.any { isSheetPlayableIn(it, region) }
 }
+
+fun CatalogSong.isSheetPlayableIn(sheet: CatalogSheet, region: String): Boolean = when {
+    region.equals("cn", ignoreCase = true) -> {
+        val override = regionOverrides["cn"]
+        if (override?.charts?.isNotEmpty() == true) {
+            override.charts["${sheet.type}:${sheet.difficulty}"]?.available == true
+        } else {
+            override?.available == true
+        }
+    }
+    else -> sheet.regions[region.lowercase()] == true
+}
+
+fun CatalogSong.isPlayableInAnyServer(): Boolean =
+    isPlayableIn("jp") || isPlayableIn("intl") || isPlayableIn("cn")
 
 fun CatalogBundle.latestPlayableVersion(server: ProfileServer): String? {
     val region = server.wireValue

@@ -100,7 +100,7 @@ internal fun SongCard(
         ) {
             AsyncImage(
                 model = localJacketPath(song.imageName)?.let(::File)
-                    ?: jacketBaseUrl.trimEnd('/') + "/" + song.imageName.trimStart('/'),
+                    ?: (jacketBaseUrl.trimEnd('/') + "/" + song.imageName.trimStart('/')),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(MiuixTheme.colorScheme.surfaceVariant),

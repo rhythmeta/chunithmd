@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -60,6 +61,7 @@ import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
@@ -95,6 +97,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -115,9 +118,13 @@ import org.rhythmeta.chunithmd.shared.calculateSingleRating
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.CatalogNoteCounts
+import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.worldsEndStars
 import org.rhythmeta.chunithmd.score.ScoreRecordEntity
 import org.rhythmeta.chunithmd.score.ScoreRepository
+import org.rhythmeta.chunithmd.score.ClearType
+import org.rhythmeta.chunithmd.score.FullChainType
+import org.rhythmeta.chunithmd.score.FullComboType
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -134,6 +141,7 @@ import top.yukonga.miuix.kmp.basic.TextField as MiuixTextField
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.window.WindowListPopup
 import androidx.compose.ui.platform.LocalLocale
@@ -301,11 +309,20 @@ fun SongDetailScreen(
         bestRecord = entrySheet?.let { sheet -> recordsBySheet[scoreSheetKey(song, sheet)].orEmpty().maxByOrNull(ScoreRecordEntity::score) },
         saving = scoreEntrySaving,
         onDismiss = { if (!scoreEntrySaving) scoreEntrySheetKey = null },
-        onSave = { score ->
+        onSave = { score, clear, fullCombo, fullChain ->
             entrySheet?.let { sheet ->
                 scoreEntrySaving = true
                 snackbarScope.launch {
-                    runCatching { scoreRepository.save(song.songId, scoreSheetKey(song, sheet), score) }
+                    runCatching {
+                        scoreRepository.save(
+                            songId = song.songId,
+                            sheetKey = scoreSheetKey(song, sheet),
+                            score = score,
+                            clear = clear,
+                            fullCombo = fullCombo,
+                            fullChain = fullChain,
+                        )
+                    }
                         .onSuccess { scoreEntrySheetKey = null }
                         .onFailure { showMessage("保存成绩失败") }
                     scoreEntrySaving = false
@@ -502,7 +519,7 @@ private fun MetadataGrid(
     val values = listOfNotNull(
         song.bpm?.let { "BPM ${it.toInt()}" to Icons.Rounded.Timer },
         song.category.ifBlank { null }?.let { it to Icons.Rounded.GridView },
-        song.version?.takeIf(String::isNotBlank)?.let { it to Icons.Rounded.Album },
+        song.version?.takeIf(String::isNotBlank)?.let { CatalogVersionFormatter.badge(it) to Icons.Rounded.Album },
         song.releaseDate?.takeIf(String::isNotBlank)?.let { it to Icons.Rounded.CalendarMonth },
     )
     if (values.isEmpty()) return
@@ -827,7 +844,7 @@ private fun ChartDetailCard(
                 MiuixButton(
                     onClick = onRecord,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = MiuixButtonDefaults.buttonColorsPrimary(),
+                    colors = MiuixButtonDefaults.buttonColorsPrimary(color = accentColor),
                 ) {
                     MiuixIcon(Icons.Rounded.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
@@ -859,7 +876,6 @@ private fun NoteCountSection(
         counts.slide?.let { NoteCountEntry("SLIDE", it, 3.0, Color(0xFF4D80FF)) },
         counts.air?.let { NoteCountEntry("AIR", it, 1.0, Color(0xFF34C759)) },
         counts.flick?.let { NoteCountEntry("FLICK", it, 1.0, Color(0xFF4D80FF)) },
-        counts.touch?.let { NoteCountEntry("TOUCH", it, 1.0, Color(0xFF4D80FF)) },
         counts.breakCount?.let { NoteCountEntry("BREAK", it, 5.0, Color(0xFFFF9500)) },
     ).filter { it.count > 0 }
     if (entries.isEmpty()) return
@@ -998,7 +1014,38 @@ private fun ScoreSummarySection(
                         color = scoreRankColor(bestRecord.rank) ?: accentColor,
                     )
                 }
+                RecordStatusBadges(record = bestRecord, accentColor = accentColor)
             }
+        }
+    }
+}
+
+@Composable
+private fun RecordStatusBadges(
+    record: ScoreRecordEntity,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    val statuses = buildList {
+        add(ClearType.displayName(record.clear) to accentColor)
+        FullComboType.displayName(record.fullCombo)?.let { add(it to Color(0xFFFFB300)) }
+        FullChainType.displayName(record.fullChain)?.let { add(it to Color(0xFFB7C4D6)) }
+    }
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        statuses.forEach { (text, color) ->
+            MiuixText(
+                text,
+                style = MiuixTheme.textStyles.footnote2,
+                fontWeight = FontWeight.Bold,
+                color = color,
+                modifier = Modifier
+                    .squircleSurface(color.copy(alpha = 0.14f), 5.dp, SquircleExtension)
+                    .padding(horizontal = 5.dp, vertical = 2.dp),
+            )
         }
     }
 }
@@ -1320,6 +1367,11 @@ private fun ScoreHistoryRow(
                 )
                 MiuixText(formatScore(record.score), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
             }
+            RecordStatusBadges(
+                record = record,
+                accentColor = accentColor,
+                modifier = Modifier.padding(top = 3.dp),
+            )
         }
         MiuixIconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
             MiuixIcon(
@@ -1339,20 +1391,35 @@ private fun ScoreEntrySheet(
     sheet: CatalogSheet?,
     bestRecord: ScoreRecordEntity?,
     saving: Boolean,
-    onSave: (Int) -> Unit,
+    onSave: (Int, ClearType, FullComboType?, FullChainType?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sheetKey = sheet?.let { scoreSheetKey(song, it) }
     var scoreText by rememberSaveable(sheetKey) { mutableStateOf("") }
+    var clear by rememberSaveable(sheetKey) { mutableStateOf(ClearType.Clear.wireValue) }
+    var fullCombo by rememberSaveable(sheetKey) { mutableStateOf<String?>(null) }
+    var fullChain by rememberSaveable(sheetKey) { mutableStateOf<String?>(null) }
     val focusManager = LocalFocusManager.current
     LaunchedEffect(visible, sheetKey) {
-        if (visible) scoreText = ""
+        if (visible) {
+            scoreText = ""
+            clear = ClearType.Clear.wireValue
+            fullCombo = null
+            fullChain = null
+        }
     }
     val parsedScore = scoreText.toIntOrNull()
     val isValid = parsedScore != null && ChunithmScoreRules.isValid(parsedScore)
     val submit: () -> Unit = {
         focusManager.clearFocus()
-        if (!saving && isValid) onSave(parsedScore)
+        if (!saving && isValid) {
+            onSave(
+                parsedScore,
+                ClearType.fromWire(clear),
+                FullComboType.fromWire(fullCombo),
+                FullChainType.fromWire(fullChain),
+            )
+        }
     }
     ExpandableBottomSheet(
         visible = visible,
@@ -1382,11 +1449,16 @@ private fun ScoreEntrySheet(
                 ScoreEntrySongCard(song = song, sheet = sheet)
             }
             item {
-                DetailCard(
-                    color = MiuixTheme.colorScheme.surfaceContainer,
-                    borderColor = MiuixTheme.colorScheme.outline.copy(alpha = 0.12f),
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SmallTitle(
+                        text = "成绩",
+                        insideMargin = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                    )
+                    DetailCard(
+                        color = MiuixTheme.colorScheme.surfaceContainer,
+                        borderColor = MiuixTheme.colorScheme.outline.copy(alpha = 0.12f),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         MiuixText(
                             parsedScore?.takeIf { ChunithmScoreRules.isValid(it) }?.let(ChunithmScoreRules::rank) ?: "-",
                             style = MiuixTheme.textStyles.title1,
@@ -1409,6 +1481,36 @@ private fun ScoreEntrySheet(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                             modifier = Modifier.fillMaxWidth(),
                         )
+                        }
+                    }
+                    SmallTitle(
+                        text = "状态",
+                        insideMargin = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                    )
+                    DetailCard(
+                        color = MiuixTheme.colorScheme.surfaceContainer,
+                        borderColor = MiuixTheme.colorScheme.outline.copy(alpha = 0.12f),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            ScoreStatusDropdown(
+                                title = "CLEAR 状态",
+                                items = ClearType.entries.map { it.displayName },
+                                selectedIndex = ClearType.entries.indexOf(ClearType.fromWire(clear)),
+                                onSelectedIndexChange = { index -> clear = ClearType.entries[index].wireValue },
+                            )
+                            ScoreStatusDropdown(
+                                title = "COMBO 状态",
+                                items = listOf("无") + FullComboType.entries.map { it.displayName },
+                                selectedIndex = fullCombo?.let { value -> FullComboType.entries.indexOf(FullComboType.fromWire(value)) + 1 } ?: 0,
+                                onSelectedIndexChange = { index -> fullCombo = FullComboType.entries.getOrNull(index - 1)?.wireValue },
+                            )
+                            ScoreStatusDropdown(
+                                title = "CHAIN 状态",
+                                items = listOf("无") + FullChainType.entries.map { it.displayName },
+                                selectedIndex = fullChain?.let { value -> FullChainType.entries.indexOf(FullChainType.fromWire(value)) + 1 } ?: 0,
+                                onSelectedIndexChange = { index -> fullChain = FullChainType.entries.getOrNull(index - 1)?.wireValue },
+                            )
+                        }
 
                     }
                 }
@@ -1425,6 +1527,7 @@ private fun ScoreEntrySheet(
                                 MiuixText(formatScore(best.score), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
                                 MiuixText(best.rank, style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold, color = scoreRankColor(best.rank) ?: MiuixTheme.colorScheme.onSurfaceVariantSummary)
                             }
+                            RecordStatusBadges(record = best, accentColor = MiuixTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -1439,6 +1542,80 @@ private fun ScoreEntrySheet(
                     MiuixIcon(if (saving) Icons.Rounded.Timer else Icons.Rounded.Save, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     MiuixText(if (saving) "保存中…" else "保存成绩")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScoreStatusDropdown(
+    title: String,
+    items: List<String>,
+    selectedIndex: Int,
+    onSelectedIndexChange: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        MiuixText(
+            title,
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        )
+        Box {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .squircleSurface(
+                        color = MiuixTheme.colorScheme.surfaceContainerHigh,
+                        cornerRadius = 14.dp,
+                        extension = SquircleExtension,
+                    )
+                    .clickable { expanded = true }
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MiuixText(
+                    items.getOrElse(selectedIndex) { items.firstOrNull().orEmpty() },
+                    style = MiuixTheme.textStyles.body1,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f),
+                )
+                MiuixIcon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(20.dp))
+            }
+            WindowListPopup(
+                show = expanded,
+                alignment = PopupPositionProvider.Align.End,
+                enableWindowDim = false,
+                onDismissRequest = { expanded = false },
+            ) {
+                ListPopupColumn {
+                    items.forEachIndexed { index, item ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (index == selectedIndex) MiuixTheme.colorScheme.primary.copy(alpha = 0.08f)
+                                    else Color.Transparent,
+                                )
+                                .selectable(
+                                    selected = index == selectedIndex,
+                                    role = Role.RadioButton,
+                                    onClick = {
+                                        onSelectedIndexChange(index)
+                                        expanded = false
+                                    },
+                                )
+                                .padding(horizontal = 20.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            MiuixText(item, modifier = Modifier.weight(1f))
+                            if (index == selectedIndex) {
+                                MiuixIcon(Icons.Rounded.Check, contentDescription = null, tint = MiuixTheme.colorScheme.primary)
+                            }
+                        }
+                    }
                 }
             }
         }
