@@ -19,23 +19,10 @@ import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.rhythmeta.chunithmd.R
-import org.rhythmeta.chunithmd.score.ClearType
-import org.rhythmeta.chunithmd.score.FullChainType
-import org.rhythmeta.chunithmd.score.FullComboType
-
-internal data class BestTableShareEntry(
-    val title: String,
-    val difficulty: String,
-    val type: String,
-    val score: Int,
-    val rank: String,
-    val rating: Double,
-    val level: String,
-    val jacketPath: String?,
-    val clear: String,
-    val fullCombo: String?,
-    val fullChain: String?,
-)
+import org.rhythmeta.chunithmd.shared.ClearType
+import org.rhythmeta.chunithmd.shared.BestTableShareEntry
+import org.rhythmeta.chunithmd.shared.FullChainType
+import org.rhythmeta.chunithmd.shared.FullComboType
 
 internal object BestTableImageExporter {
     suspend fun renderToCache(

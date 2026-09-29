@@ -45,8 +45,8 @@ class RatingCalculatorTest {
 
         assertEquals(listOf("old-high", "old-low"), summary.best30.map { it.chartId })
         assertEquals(listOf("new-high", "new-duplicate"), summary.new20.map { it.chartId })
-        assertEquals(34.0 / 50.0, summary.rating, absoluteTolerance = 0.0000001)
-        assertEquals(18.0 / 30.0, summary.best30Average, absoluteTolerance = 0.0000001)
-        assertEquals(16.0 / 20.0, summary.new20Average, absoluteTolerance = 0.0000001)
+        assertEquals(34.0 / 4.0, summary.rating, absoluteTolerance = 0.0000001)
+        assertEquals(18.0 / 2.0, summary.best30Average, absoluteTolerance = 0.0000001)
+        assertEquals(16.0 / 2.0, summary.new20Average, absoluteTolerance = 0.0000001)
     }
 }

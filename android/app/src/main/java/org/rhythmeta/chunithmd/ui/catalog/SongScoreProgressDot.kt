@@ -10,13 +10,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
-import org.rhythmeta.chunithmd.score.ScoreRecordEntity
 import org.rhythmeta.chunithmd.shared.CatalogSheet
+import org.rhythmeta.chunithmd.shared.ScoreRecord
+import org.rhythmeta.chunithmd.shared.scoreProgress
 
 @Composable
 internal fun SongScoreProgressDot(
     sheet: CatalogSheet,
-    score: ScoreRecordEntity?,
+    score: ScoreRecord?,
 ) {
     val color = if (sheet.type.equals("we", ignoreCase = true)) {
         difficultyColor("world's end")
@@ -34,11 +35,7 @@ internal fun SongScoreProgressDot(
     } else {
         null
     }
-    val progress = score?.score
-        ?.minus(1_000_000)
-        ?.coerceIn(0, 10_000)
-        ?.div(10_000f)
-        ?: 0f
+    val progress = scoreProgress(score?.score)
 
     Canvas(modifier = Modifier.size(8.dp)) {
         val outerStroke = 1.2.dp.toPx()

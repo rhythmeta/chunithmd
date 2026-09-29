@@ -120,7 +120,8 @@ import org.rhythmeta.chunithmd.ui.profile.ProfileScreen
 import org.rhythmeta.chunithmd.profile.ProfileAvatarStore
 import org.rhythmeta.chunithmd.profile.ProfileRepository
 import org.rhythmeta.chunithmd.score.ScoreRepository
-import org.rhythmeta.chunithmd.score.ScoreRecordEntity
+import org.rhythmeta.chunithmd.shared.ScoreRecord
+import org.rhythmeta.chunithmd.shared.BestTablePreferences
 import org.rhythmeta.chunithmd.ui.best.BestTableHomeCard
 import org.rhythmeta.chunithmd.ui.best.BestTableScreen
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
@@ -294,11 +295,11 @@ private fun CatalogApp(
     var quickEditProfile by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.UserProfile?>(null) }
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
     val profileScores by scoreRepository.observeCurrentProfileRecords().collectAsState(initial = emptyList())
-    val bestTablePreferences by bestTablePreferencesRepository.preferences.collectAsState(initial = org.rhythmeta.chunithmd.ui.best.BestTablePreferences())
+    val bestTablePreferences by bestTablePreferencesRepository.preferences.collectAsState(initial = BestTablePreferences())
     val favoriteSongIds by favoriteSongRepository.favoriteSongIds.collectAsState(initial = emptySet())
     val scoresBySheetKey = remember(profileScores) {
-        profileScores.groupBy(ScoreRecordEntity::sheetKey)
-            .mapValues { (_, records) -> records.maxByOrNull(ScoreRecordEntity::score)!! }
+        profileScores.groupBy(ScoreRecord::sheetKey)
+            .mapValues { (_, records) -> records.maxByOrNull(ScoreRecord::score)!! }
     }
     val profileVersions = remember(bundle) {
         org.rhythmeta.chunithmd.shared.ProfileServer.entries.associateWith { server ->

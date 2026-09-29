@@ -8,8 +8,14 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import org.rhythmeta.chunithmd.profile.ProfileRepository
 import org.rhythmeta.chunithmd.shared.ChunithmScoreRules
+import org.rhythmeta.chunithmd.shared.ClearType
+import org.rhythmeta.chunithmd.shared.FullChainType
+import org.rhythmeta.chunithmd.shared.FullComboType
+import org.rhythmeta.chunithmd.shared.ScoreRecord
+import org.rhythmeta.chunithmd.shared.ScoreStore
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ScoreRepository(
@@ -17,7 +23,7 @@ class ScoreRepository(
     private val profileRepository: ProfileRepository,
     private val clock: () -> Long = System::currentTimeMillis,
     private val idFactory: () -> String = { UUID.randomUUID().toString() },
-) {
+) : ScoreStore {
     private val database = Room.databaseBuilder(
         context.applicationContext,
         ScoreDatabase::class.java,
@@ -25,28 +31,39 @@ class ScoreRepository(
     ).addMigrations(ScoreDatabase.MIGRATION_1_2).build()
     private val dao = database.records()
 
-    fun observeSongRecords(songId: String): Flow<List<ScoreRecordEntity>> =
+    suspend fun save(songId: String, sheetKey: String, score: Int): ScoreRecord = save(
+        songId = songId,
+        sheetKey = sheetKey,
+        score = score,
+        clear = ClearType.Clear,
+        fullCombo = null,
+        fullChain = null,
+    )
+
+    override fun observeSongRecords(songId: String): Flow<List<ScoreRecord>> =
         profileRepository.activeProfile.flatMapLatest { profile ->
-            profile?.let { dao.observeForSong(it.id, songId) } ?: flowOf(emptyList())
+            profile?.let { dao.observeForSong(it.id, songId).map { records -> records.map(ScoreRecordEntity::toDomain) } }
+                ?: flowOf(emptyList())
         }
 
-    fun observeCurrentProfileRecords(): Flow<List<ScoreRecordEntity>> =
+    override fun observeCurrentProfileRecords(): Flow<List<ScoreRecord>> =
         profileRepository.activeProfile.flatMapLatest { profile ->
-            profile?.let { dao.observeForProfile(it.id) } ?: flowOf(emptyList())
+            profile?.let { dao.observeForProfile(it.id).map { records -> records.map(ScoreRecordEntity::toDomain) } }
+                ?: flowOf(emptyList())
         }
 
-    suspend fun save(
+    override suspend fun save(
         songId: String,
         sheetKey: String,
         score: Int,
-        clear: ClearType = ClearType.Clear,
-        fullCombo: FullComboType? = null,
-        fullChain: FullChainType? = null,
-    ): ScoreRecordEntity {
+        clear: ClearType,
+        fullCombo: FullComboType?,
+        fullChain: FullChainType?,
+    ): ScoreRecord {
         require(ChunithmScoreRules.isValid(score)) { "Score is out of range." }
         val profile = requireNotNull(profileRepository.activeProfile.first()) { "No active profile." }
         val now = clock()
-        val record = ScoreRecordEntity(
+        val record = ScoreRecord(
             id = idFactory(),
             profileId = profile.id,
             songId = songId,
@@ -58,11 +75,11 @@ class ScoreRepository(
             fullCombo = fullCombo?.wireValue,
             fullChain = fullChain?.wireValue,
         )
-        dao.insert(record)
+        dao.insert(ScoreRecordEntity.fromDomain(record))
         return record
     }
 
-    suspend fun delete(id: String) {
+    override suspend fun delete(id: String) {
         val profile = profileRepository.activeProfile.first() ?: return
         val record = dao.find(id) ?: return
         if (record.profileId == profile.id) dao.delete(record)

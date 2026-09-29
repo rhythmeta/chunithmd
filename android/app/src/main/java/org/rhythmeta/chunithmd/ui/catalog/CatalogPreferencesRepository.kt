@@ -9,19 +9,15 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.rhythmeta.chunithmd.shared.CatalogFilters
+import org.rhythmeta.chunithmd.shared.CatalogPreferences
+import org.rhythmeta.chunithmd.shared.CatalogPreferencesStore
 import org.rhythmeta.chunithmd.shared.CatalogSort
 import org.rhythmeta.chunithmd.shared.isWorldsEndCategory
 
 private val Context.catalogPreferencesDataStore by preferencesDataStore(name = "catalog_preferences")
 
-data class CatalogPreferences(
-    val sort: CatalogSort = CatalogSort.Default,
-    val ascending: Boolean = true,
-    val filters: CatalogFilters = CatalogFilters(),
-)
-
-class CatalogPreferencesRepository(private val context: Context) {
-    val preferences: Flow<CatalogPreferences> = context.catalogPreferencesDataStore.data.map { values ->
+class CatalogPreferencesRepository(private val context: Context) : CatalogPreferencesStore {
+    override val preferences: Flow<CatalogPreferences> = context.catalogPreferencesDataStore.data.map { values ->
         CatalogPreferences(
             sort = values[SortKey]
                 ?.let { stored -> CatalogSort.entries.firstOrNull { it.name == stored } }
@@ -39,15 +35,15 @@ class CatalogPreferencesRepository(private val context: Context) {
         )
     }
 
-    suspend fun setSort(sort: CatalogSort) {
+    override suspend fun setSort(sort: CatalogSort) {
         context.catalogPreferencesDataStore.edit { values -> values[SortKey] = sort.name }
     }
 
-    suspend fun setAscending(ascending: Boolean) {
+    override suspend fun setAscending(ascending: Boolean) {
         context.catalogPreferencesDataStore.edit { values -> values[AscendingKey] = ascending }
     }
 
-    suspend fun setFilters(filters: CatalogFilters) {
+    override suspend fun setFilters(filters: CatalogFilters) {
         context.catalogPreferencesDataStore.edit { values ->
             values[CategoriesKey] = filters.categories
             values[VersionsKey] = filters.versions

@@ -120,11 +120,18 @@ import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.CatalogNoteCounts
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.worldsEndStars
-import org.rhythmeta.chunithmd.score.ScoreRecordEntity
 import org.rhythmeta.chunithmd.score.ScoreRepository
-import org.rhythmeta.chunithmd.score.ClearType
-import org.rhythmeta.chunithmd.score.FullChainType
-import org.rhythmeta.chunithmd.score.FullComboType
+import org.rhythmeta.chunithmd.shared.ClearType
+import org.rhythmeta.chunithmd.shared.FullChainType
+import org.rhythmeta.chunithmd.shared.FullComboType
+import org.rhythmeta.chunithmd.shared.ScoreRecord
+import org.rhythmeta.chunithmd.shared.ScoreHistorySort
+import org.rhythmeta.chunithmd.shared.bestScore
+import org.rhythmeta.chunithmd.shared.buildRatingTable
+import org.rhythmeta.chunithmd.shared.breakdown
+import org.rhythmeta.chunithmd.shared.page
+import org.rhythmeta.chunithmd.shared.sheetKey
+import org.rhythmeta.chunithmd.shared.sortForHistory
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -147,7 +154,7 @@ import top.yukonga.miuix.kmp.window.WindowListPopup
 import androidx.compose.ui.platform.LocalLocale
 import androidx.core.net.toUri
 
-private val CHART_TYPE_ORDER = listOf("std", "standard", "dx", "we", "utage")
+private val CHART_TYPE_ORDER = listOf("std", "standard", "we")
 
 @Composable
 fun SongDetailScreen(
@@ -174,9 +181,9 @@ fun SongDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     val scoreRecords by scoreRepository.observeSongRecords(song.songId).collectAsState(initial = emptyList())
-    val recordsBySheet = remember(scoreRecords) { scoreRecords.groupBy(ScoreRecordEntity::sheetKey) }
+    val recordsBySheet = remember(scoreRecords) { scoreRecords.groupBy(ScoreRecord::sheetKey) }
     var scoreEntrySheetKey by rememberSaveable(song.songId) { mutableStateOf<String?>(null) }
-    var recordToDelete by remember { mutableStateOf<ScoreRecordEntity?>(null) }
+    var recordToDelete by remember { mutableStateOf<ScoreRecord?>(null) }
     var scoreEntrySaving by remember { mutableStateOf(false) }
     fun showMessage(message: String) {
         snackbarScope.launch {
@@ -283,8 +290,8 @@ fun SongDetailScreen(
                         sheet = sheet,
                         surfaceColor = surfaceColor,
                         accentColor = accent,
-                        records = recordsBySheet[scoreSheetKey(song, sheet)].orEmpty(),
-                        onRecord = { scoreEntrySheetKey = scoreSheetKey(song, sheet) },
+                        records = recordsBySheet[song.sheetKey(sheet)].orEmpty(),
+                        onRecord = { scoreEntrySheetKey = song.sheetKey(sheet) },
                         onDeleteRecord = { recordToDelete = it },
                     )
                 }
@@ -300,13 +307,13 @@ fun SongDetailScreen(
     }
 
     val entrySheet = scoreEntrySheetKey?.let { key ->
-        song.sheets.firstOrNull { scoreSheetKey(song, it) == key }
+        song.sheets.firstOrNull { song.sheetKey(it) == key }
     }
     ScoreEntrySheet(
         visible = entrySheet != null,
         song = song,
         sheet = entrySheet,
-        bestRecord = entrySheet?.let { sheet -> recordsBySheet[scoreSheetKey(song, sheet)].orEmpty().maxByOrNull(ScoreRecordEntity::score) },
+        bestRecord = entrySheet?.let { sheet -> recordsBySheet[song.sheetKey(sheet)].orEmpty().bestScore() },
         saving = scoreEntrySaving,
         onDismiss = { if (!scoreEntrySaving) scoreEntrySheetKey = null },
         onSave = { score, clear, fullCombo, fullChain ->
@@ -316,7 +323,7 @@ fun SongDetailScreen(
                     runCatching {
                         scoreRepository.save(
                             songId = song.songId,
-                            sheetKey = scoreSheetKey(song, sheet),
+                            sheetKey = song.sheetKey(sheet),
                             score = score,
                             clear = clear,
                             fullCombo = fullCombo,
@@ -697,9 +704,9 @@ private fun ChartDetailCard(
     sheet: CatalogSheet,
     surfaceColor: Color,
     accentColor: Color,
-    records: List<ScoreRecordEntity>,
+    records: List<ScoreRecord>,
     onRecord: () -> Unit,
-    onDeleteRecord: (ScoreRecordEntity) -> Unit,
+    onDeleteRecord: (ScoreRecord) -> Unit,
 ) {
     var expanded by rememberSaveable(song.songId, sheet.type, sheet.difficulty) { mutableStateOf(false) }
     val chevronRotation by animateFloatAsState(
@@ -822,7 +829,7 @@ private fun ChartDetailCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 ScoreSummarySection(
-                    bestRecord = records.maxByOrNull(ScoreRecordEntity::score),
+                    bestRecord = records.bestScore(),
                     accentColor = accentColor,
                 )
                 NoteCountSection(
@@ -855,13 +862,6 @@ private fun ChartDetailCard(
     }
 }
 
-private data class NoteCountEntry(
-    val label: String,
-    val count: Int,
-    val weight: Double,
-    val color: Color,
-)
-
 @Composable
 private fun NoteCountSection(
     songId: String,
@@ -870,14 +870,7 @@ private fun NoteCountSection(
     counts: CatalogNoteCounts?,
 ) {
     if (counts == null) return
-    val entries = listOfNotNull(
-        counts.tap?.let { NoteCountEntry("TAP", it, 1.0, Color(0xFFFF2D78)) },
-        counts.hold?.let { NoteCountEntry("HOLD", it, 2.0, Color(0xFFFF2D78)) },
-        counts.slide?.let { NoteCountEntry("SLIDE", it, 3.0, Color(0xFF4D80FF)) },
-        counts.air?.let { NoteCountEntry("AIR", it, 1.0, Color(0xFF34C759)) },
-        counts.flick?.let { NoteCountEntry("FLICK", it, 1.0, Color(0xFF4D80FF)) },
-        counts.breakCount?.let { NoteCountEntry("BREAK", it, 5.0, Color(0xFFFF9500)) },
-    ).filter { it.count > 0 }
+    val entries = counts.breakdown()
     if (entries.isEmpty()) return
 
     var expanded by rememberSaveable(songId, chartType, difficulty) { mutableStateOf(false) }
@@ -913,10 +906,8 @@ private fun NoteCountSection(
             )
         }
         AnimatedVisibility(visible = expanded) {
-            val totalWeight = entries.sumOf { it.count * it.weight }
             Column {
                 entries.forEachIndexed { index, entry ->
-                    val fraction = if (totalWeight > 0.0) entry.count * entry.weight / totalWeight else 0.0
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -949,9 +940,9 @@ private fun NoteCountSection(
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .width(
-                                        maxOf(4.dp, maxWidth * fraction.toFloat()).coerceAtMost(maxWidth),
+                                        maxOf(4.dp, maxWidth * entry.fraction.toFloat()).coerceAtMost(maxWidth),
                                     )
-                                    .background(entry.color.copy(alpha = 0.5f)),
+                                    .background(noteCountColor(entry.label).copy(alpha = 0.5f)),
                             )
                         }
                         MiuixText(
@@ -963,7 +954,7 @@ private fun NoteCountSection(
                             textAlign = TextAlign.End,
                         )
                         MiuixText(
-                            "${(fraction * 100).toInt()}%",
+                            "${(entry.fraction * 100).toInt()}%",
                             style = MiuixTheme.textStyles.footnote2,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             modifier = Modifier.width(34.dp),
@@ -976,9 +967,16 @@ private fun NoteCountSection(
     }
 }
 
+private fun noteCountColor(label: String): Color = when (label) {
+    "TAP", "HOLD" -> Color(0xFFFF2D78)
+    "SLIDE", "FLICK" -> Color(0xFF4D80FF)
+    "AIR" -> Color(0xFF34C759)
+    else -> Color.Gray
+}
+
 @Composable
 private fun ScoreSummarySection(
-    bestRecord: ScoreRecordEntity?,
+    bestRecord: ScoreRecord?,
     accentColor: Color,
 ) {
     Row(
@@ -1022,7 +1020,7 @@ private fun ScoreSummarySection(
 
 @Composable
 private fun RecordStatusBadges(
-    record: ScoreRecordEntity,
+    record: ScoreRecord,
     accentColor: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -1050,32 +1048,13 @@ private fun RecordStatusBadges(
     }
 }
 
-private data class RatingTableRow(
-    val rank: String,
-    val score: Int,
-    val rating: Double,
-    val delta: Double,
-)
-
 @Composable
 private fun RatingTableSection(
     constant: Double?,
 ) {
     val level = constant?.takeIf { it > 0.0 && it.isFinite() } ?: return
     var expanded by rememberSaveable(level) { mutableStateOf(false) }
-    val rows = remember(level) {
-        val values = ChunithmScoreRules.rankThresholds.asReversed().map { threshold ->
-            threshold to calculateSingleRating(level, threshold.score)
-        }
-        values.mapIndexed { index, (threshold, rating) ->
-            RatingTableRow(
-                rank = threshold.rank,
-                score = threshold.score,
-                rating = rating,
-                delta = (rating - (values.getOrNull(index + 1)?.second ?: 0.0)).coerceAtLeast(0.0),
-            )
-        }
-    }
+    val rows = remember(level) { buildRatingTable(level) }
     val chevronRotation by animateFloatAsState(
         targetValue = if (expanded) 90f else 0f,
         animationSpec = tween(durationMillis = 180),
@@ -1197,9 +1176,9 @@ private const val SCORE_HISTORY_PAGE_SIZE = 10
 
 @Composable
 private fun ScoreHistorySection(
-    records: List<ScoreRecordEntity>,
+    records: List<ScoreRecord>,
     accentColor: Color,
-    onDeleteRecord: (ScoreRecordEntity) -> Unit,
+    onDeleteRecord: (ScoreRecord) -> Unit,
 ) {
     val sheetKey = records.first().sheetKey
     var expanded by rememberSaveable(sheetKey) { mutableStateOf(false) }
@@ -1207,17 +1186,15 @@ private fun ScoreHistorySection(
     var page by rememberSaveable(sheetKey) { mutableIntStateOf(1) }
     val sortedRecords = remember(records, sortByTime) {
         if (sortByTime) {
-            records.sortedByDescending(ScoreRecordEntity::playedAt)
+            records.sortForHistory(ScoreHistorySort.Time)
         } else {
-            records.sortedWith(compareByDescending<ScoreRecordEntity> { it.score }.thenByDescending { it.playedAt })
+            records.sortForHistory(ScoreHistorySort.Score)
         }
     }
     val totalPages = ((sortedRecords.size + SCORE_HISTORY_PAGE_SIZE - 1) / SCORE_HISTORY_PAGE_SIZE).coerceAtLeast(1)
     val validPage = page.coerceIn(1, totalPages)
-    val displayRecords = sortedRecords
-        .drop((validPage - 1) * SCORE_HISTORY_PAGE_SIZE)
-        .take(SCORE_HISTORY_PAGE_SIZE)
-    val bestId = records.maxWithOrNull(compareBy<ScoreRecordEntity> { it.score }.thenBy { it.playedAt })?.id
+    val displayRecords = sortedRecords.page(validPage, SCORE_HISTORY_PAGE_SIZE)
+    val bestId = records.bestScore()?.id
     LaunchedEffect(totalPages) { page = page.coerceIn(1, totalPages) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1327,7 +1304,7 @@ private fun ScoreHistorySortOption(
 
 @Composable
 private fun ScoreHistoryRow(
-    record: ScoreRecordEntity,
+    record: ScoreRecord,
     isBest: Boolean,
     alternate: Boolean,
     accentColor: Color,
@@ -1389,12 +1366,12 @@ private fun ScoreEntrySheet(
     visible: Boolean,
     song: CatalogSong,
     sheet: CatalogSheet?,
-    bestRecord: ScoreRecordEntity?,
+    bestRecord: ScoreRecord?,
     saving: Boolean,
     onSave: (Int, ClearType, FullComboType?, FullChainType?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetKey = sheet?.let { scoreSheetKey(song, it) }
+    val sheetKey = sheet?.let { song.sheetKey(it) }
     var scoreText by rememberSaveable(sheetKey) { mutableStateOf("") }
     var clear by rememberSaveable(sheetKey) { mutableStateOf(ClearType.Clear.wireValue) }
     var fullCombo by rememberSaveable(sheetKey) { mutableStateOf<String?>(null) }
@@ -1675,8 +1652,6 @@ private fun DeleteScoreRecordDialog(onConfirm: () -> Unit, onDismiss: () -> Unit
     }
 }
 
-private fun scoreSheetKey(song: CatalogSong, sheet: CatalogSheet): String = "${song.songId}:${sheet.type}:${sheet.difficulty}"
-
 private fun formatScore(score: Int): String = String.format(Locale.ROOT, "%,d", score)
 
 private fun formatRating(rating: Double): String = String.format(Locale.ROOT, "%.2f", rating)
@@ -1794,9 +1769,7 @@ private fun typeOrder(value: String): Int = CHART_TYPE_ORDER.indexOfFirst { it.e
 
 private fun chartTypeLabel(value: String): String = when (value.lowercase()) {
     "std", "standard" -> "STD"
-    "dx" -> "DX"
     "we" -> "World's End"
-    "utage" -> "Utage"
     else -> value
 }
 

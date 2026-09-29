@@ -57,20 +57,19 @@ import coil.compose.AsyncImage
 import java.io.File
 import java.util.Locale
 import kotlinx.coroutines.launch
-import org.rhythmeta.chunithmd.score.ClearType
-import org.rhythmeta.chunithmd.score.FullChainType
-import org.rhythmeta.chunithmd.score.FullComboType
-import org.rhythmeta.chunithmd.score.ScoreRecordEntity
 import org.rhythmeta.chunithmd.shared.CatalogBundle
-import org.rhythmeta.chunithmd.shared.CatalogSheet
-import org.rhythmeta.chunithmd.shared.CatalogSong
-import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
+import org.rhythmeta.chunithmd.shared.BestTableEntry
+import org.rhythmeta.chunithmd.shared.BestTablePreferences
+import org.rhythmeta.chunithmd.shared.BestTableShareEntry
+import org.rhythmeta.chunithmd.shared.ClearType
+import org.rhythmeta.chunithmd.shared.FullChainType
+import org.rhythmeta.chunithmd.shared.FullComboType
 import org.rhythmeta.chunithmd.shared.ProfileServer
 import org.rhythmeta.chunithmd.shared.RatingChartEntry
+import org.rhythmeta.chunithmd.shared.ScoreRecord
+import org.rhythmeta.chunithmd.shared.buildBestTableEntries
 import org.rhythmeta.chunithmd.shared.calculatePlayerRating
-import org.rhythmeta.chunithmd.shared.calculateSingleRating
-import org.rhythmeta.chunithmd.shared.isSheetPlayableIn
 import org.rhythmeta.chunithmd.shared.latestPlayableVersion
 import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
 import org.rhythmeta.chunithmd.ui.catalog.SongVisualUtils
@@ -86,28 +85,11 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-private data class BestTableEntry(
-    val chartId: String,
-    val songId: String,
-    val title: String,
-    val imageName: String,
-    val type: String,
-    val difficulty: String,
-    val level: String,
-    val score: Int,
-    val rank: String,
-    val rating: Double,
-    val isNew: Boolean,
-    val clear: String,
-    val fullCombo: String?,
-    val fullChain: String?,
-)
-
 @Composable
 fun BestTableScreen(
     bundle: CatalogBundle?,
     activeServer: ProfileServer,
-    records: List<ScoreRecordEntity>,
+    records: List<ScoreRecord>,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
     contentTopPadding: Dp,
@@ -144,8 +126,8 @@ fun BestTableScreen(
         newCountText = preferences.newCount.toString()
         selectedVersion = preferences.selectedVersion
     }
-    val bestCount = bestCountText.toIntOrNull()?.coerceIn(1, 99) ?: preferences.bestCount
-    val newCount = newCountText.toIntOrNull()?.coerceIn(1, 99) ?: preferences.newCount
+    val bestCount = bestCountText.toIntOrNull()?.coerceIn(BestTablePreferences.MIN_COUNT, BestTablePreferences.MAX_COUNT) ?: preferences.bestCount
+    val newCount = newCountText.toIntOrNull()?.coerceIn(BestTablePreferences.MIN_COUNT, BestTablePreferences.MAX_COUNT) ?: preferences.newCount
     val versionOptions = remember(bundle) {
         listOf<String?>(null) + bundle.catalog.versions.asReversed().map { it.version }.distinct()
     }
@@ -154,8 +136,8 @@ fun BestTableScreen(
     val versionLabels = versionOptions.map { version ->
         version?.let(CatalogVersionFormatter::badge) ?: "自动"
     }
-    val entries = remember(bundle, records, activeServer, effectiveVersion) {
-        buildBestTableEntries(bundle, records, activeServer, effectiveVersion)
+    val entries = remember(bundle, records, activeServer, selectedVersion) {
+        buildBestTableEntries(bundle, records, activeServer, selectedVersion)
     }
     val summary = remember(entries, bestCount, newCount) {
         calculatePlayerRating(entries.map { entry ->
@@ -178,7 +160,7 @@ fun BestTableScreen(
                     score = entry.score,
                     rank = entry.rank,
                     rating = entry.rating,
-                    level = entry.level,
+                    level = formatLevel(entry.constant),
                     jacketPath = localJacketPath(entry.imageName),
                     clear = entry.clear,
                     fullCombo = entry.fullCombo,
@@ -258,8 +240,10 @@ fun BestTableScreen(
                 onBestChange = { value -> if (value.length <= 2 && value.all(Char::isDigit)) bestCountText = value },
                 onNewChange = { value -> if (value.length <= 2 && value.all(Char::isDigit)) newCountText = value },
                 onCommit = {
-                    val best = bestCountText.toIntOrNull()?.coerceIn(1, 99) ?: 30
-                    val newer = newCountText.toIntOrNull()?.coerceIn(1, 99) ?: 20
+                    val best = bestCountText.toIntOrNull()?.coerceIn(BestTablePreferences.MIN_COUNT, BestTablePreferences.MAX_COUNT)
+                        ?: BestTablePreferences.DEFAULT_BEST_COUNT
+                    val newer = newCountText.toIntOrNull()?.coerceIn(BestTablePreferences.MIN_COUNT, BestTablePreferences.MAX_COUNT)
+                        ?: BestTablePreferences.DEFAULT_NEW_COUNT
                     bestCountText = best.toString()
                     newCountText = newer.toString()
                     focusManager.clearFocus()
@@ -369,8 +353,8 @@ private fun BestCapacityCard(
         colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            CapacityTextField("新曲数量", bestText, onBestChange, onCommit)
-            CapacityTextField("旧曲数量", newText, onNewChange, onCommit)
+            CapacityTextField("Best 数量", bestText, onBestChange, onCommit)
+            CapacityTextField("New 数量", newText, onNewChange, onCommit)
         }
     }
 }
@@ -469,7 +453,7 @@ private fun BestTableEntryCard(
             }
             Column(modifier = Modifier.padding(end = 14.dp), horizontalAlignment = Alignment.End) {
                 Text(formatRating(entry.rating), style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Black, color = BestAccent)
-                Text("定数 ${entry.level}", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                Text("定数 ${formatLevel(entry.constant)}", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
         }
     }
@@ -486,62 +470,7 @@ private fun EntryBadge(text: String, color: Color) {
     )
 }
 
-private fun buildBestTableEntries(
-    bundle: CatalogBundle,
-    records: List<ScoreRecordEntity>,
-    activeServer: ProfileServer,
-    selectedVersion: String?,
-): List<BestTableEntry> {
-    val bestScores = records.groupBy(ScoreRecordEntity::sheetKey)
-        .mapValues { (_, values) -> values.maxByOrNull(ScoreRecordEntity::score)!! }
-    val latestVersion = selectedVersion ?: bundle.latestPlayableVersion(activeServer)
-    val selectedVersionIndex = selectedVersion?.let { selected ->
-        bundle.catalog.versions.indexOfFirst { it.version.equals(selected, ignoreCase = true) }
-            .takeIf { it >= 0 }
-    }
-    return bundle.catalog.songs.flatMap { song ->
-        song.sheets.filter { sheet ->
-            val songVersionIndex = song.version?.let { songVersion ->
-                bundle.catalog.versions.indexOfFirst { it.version.equals(songVersion, ignoreCase = true) }
-            }
-            val releasedBySelectedVersion = selectedVersionIndex == null || songVersionIndex == null || songVersionIndex <= selectedVersionIndex
-            releasedBySelectedVersion && (selectedVersion != null || song.isSheetPlayableIn(sheet, activeServer.wireValue))
-        }.mapNotNull { sheet ->
-            val key = scoreSheetKey(song, sheet)
-            val record = bestScores[key] ?: return@mapNotNull null
-            val constant = if (activeServer == ProfileServer.Cn) {
-                song.regionOverrides["cn"]
-                    ?.charts
-                    ?.get("${sheet.type}:${sheet.difficulty}")
-                    ?.levelValue
-                    ?: sheet.internalLevelValue
-                    ?: sheet.levelValue
-            } else {
-                sheet.internalLevelValue ?: sheet.levelValue
-            } ?: return@mapNotNull null
-            val rating = calculateSingleRating(constant, record.score)
-            if (rating <= 0.0) return@mapNotNull null
-            BestTableEntry(
-                chartId = key,
-                songId = song.songId,
-                title = CatalogSongFormatter.displayTitle(song),
-                imageName = song.imageName,
-                type = sheet.type,
-                difficulty = sheet.difficulty,
-                level = String.format(Locale.ROOT, "%.1f", constant),
-                score = record.score,
-                rank = record.rank,
-                rating = rating,
-                isNew = latestVersion != null && song.version.equals(latestVersion, ignoreCase = true),
-                clear = record.clear,
-                fullCombo = record.fullCombo,
-                fullChain = record.fullChain,
-            )
-        }
-    }.sortedByDescending(BestTableEntry::rating)
-}
-
-private fun scoreSheetKey(song: CatalogSong, sheet: CatalogSheet): String = "${song.songId}:${sheet.type}:${sheet.difficulty}"
+private fun formatLevel(value: Double): String = String.format(Locale.ROOT, "%.1f", value)
 
 private fun formatRating(value: Double): String = String.format(Locale.ROOT, "%.2f", value)
 

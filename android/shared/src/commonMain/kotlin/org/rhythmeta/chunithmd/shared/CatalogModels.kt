@@ -78,8 +78,6 @@ data class CatalogNoteCounts(
     val slide: Int? = null,
     val air: Int? = null,
     val flick: Int? = null,
-    // val touch: Int? = null,
-    @SerialName("break") val breakCount: Int? = null,
     val total: Int? = null,
 )
 

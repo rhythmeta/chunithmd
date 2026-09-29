@@ -39,7 +39,7 @@ import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSort
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
-import org.rhythmeta.chunithmd.score.ScoreRecordEntity
+import org.rhythmeta.chunithmd.shared.ScoreRecord
 import top.yukonga.miuix.kmp.basic.Button as MiuixButton
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -64,7 +64,7 @@ fun CatalogScreen(
     sync: CatalogSyncState,
     error: String?,
     songs: List<CatalogSong>,
-    scoresBySheetKey: Map<String, ScoreRecordEntity>,
+    scoresBySheetKey: Map<String, ScoreRecord>,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
     listState: LazyListState,
@@ -210,7 +210,7 @@ private fun SongList(
     modifier: Modifier,
     contentTopPadding: Dp,
     songs: List<CatalogSong>,
-    scoresBySheetKey: Map<String, ScoreRecordEntity>,
+    scoresBySheetKey: Map<String, ScoreRecord>,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
     listState: LazyListState,

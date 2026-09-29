@@ -7,32 +7,28 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.rhythmeta.chunithmd.shared.BestTablePreferences
+import org.rhythmeta.chunithmd.shared.BestTablePreferencesStore
 
 private val Context.bestTablePreferencesDataStore by preferencesDataStore(name = "best_table_preferences")
 
-data class BestTablePreferences(
-    val bestCount: Int = 30,
-    val newCount: Int = 20,
-    val selectedVersion: String? = null,
-)
-
-class BestTablePreferencesRepository(private val context: Context) {
-    val preferences: Flow<BestTablePreferences> = context.bestTablePreferencesDataStore.data.map { values ->
+class BestTablePreferencesRepository(private val context: Context) : BestTablePreferencesStore {
+    override val preferences: Flow<BestTablePreferences> = context.bestTablePreferencesDataStore.data.map { values ->
         BestTablePreferences(
-            bestCount = values[BestCountKey]?.coerceIn(1, 99) ?: 30,
-            newCount = values[NewCountKey]?.coerceIn(1, 99) ?: 20,
+            bestCount = values[BestCountKey] ?: BestTablePreferences.DEFAULT_BEST_COUNT,
+            newCount = values[NewCountKey] ?: BestTablePreferences.DEFAULT_NEW_COUNT,
             selectedVersion = values[SelectedVersionKey],
-        )
+        ).normalized()
     }
 
-    suspend fun setCapacity(bestCount: Int, newCount: Int) {
+    override suspend fun setCapacity(bestCount: Int, newCount: Int) {
         context.bestTablePreferencesDataStore.edit { values ->
-            values[BestCountKey] = bestCount.coerceIn(1, 99)
-            values[NewCountKey] = newCount.coerceIn(1, 99)
+            values[BestCountKey] = bestCount.coerceIn(BestTablePreferences.MIN_COUNT, BestTablePreferences.MAX_COUNT)
+            values[NewCountKey] = newCount.coerceIn(BestTablePreferences.MIN_COUNT, BestTablePreferences.MAX_COUNT)
         }
     }
 
-    suspend fun setVersion(version: String?) {
+    override suspend fun setVersion(version: String?) {
         context.bestTablePreferencesDataStore.edit { values ->
             if (version.isNullOrBlank()) values.remove(SelectedVersionKey)
             else values[SelectedVersionKey] = version

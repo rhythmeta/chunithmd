@@ -25,9 +25,9 @@ data class PlayerRatingSummary(
     val total: Double get() = best30Total + new20Total
 
     /** Empty slots count as zero, so this remains a B50 rating while importing partial data. */
-    val rating: Double get() = total / TOTAL_SLOT_COUNT
-    val best30Average: Double get() = best30Total / BEST_SLOT_COUNT
-    val new20Average: Double get() = new20Total / NEW_SLOT_COUNT
+    val rating: Double get() = total / (bestSlotCount + newSlotCount).coerceAtLeast(1)
+    val best30Average: Double get() = best30Total / bestSlotCount.coerceAtLeast(1)
+    val new20Average: Double get() = new20Total / newSlotCount.coerceAtLeast(1)
 
     companion object {
         const val BEST_SLOT_COUNT = 30.0

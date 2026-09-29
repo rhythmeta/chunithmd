@@ -36,7 +36,9 @@ import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.VersionPalette
-import org.rhythmeta.chunithmd.score.ScoreRecordEntity
+import org.rhythmeta.chunithmd.shared.ScoreRecord
+import org.rhythmeta.chunithmd.shared.progressSheets
+import org.rhythmeta.chunithmd.shared.sheetKey
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
@@ -47,7 +49,7 @@ internal fun SongCard(
     song: CatalogSong,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
-    scoresBySheetKey: Map<String, ScoreRecordEntity>,
+    scoresBySheetKey: Map<String, ScoreRecord>,
     onClick: () -> Unit,
 ) {
     val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
@@ -162,19 +164,6 @@ internal fun difficultyColor(value: String): Color = when (value.lowercase()) {
     "ultima" -> Color(0xFF222222)
     else -> Color(0xFF4AA8C2)
 }
-
-private fun CatalogSong.progressSheets(): List<org.rhythmeta.chunithmd.shared.CatalogSheet> {
-    val available = sheets.filter { it.regions["jp"] == true }
-    val preferred = available.filter { it.type.equals("dx", true) }
-        .ifEmpty { available.filter { it.type.equals("std", true) || it.type.equals("standard", true) } }
-    val worldsEnd = available.filter { it.type.equals("we", true) }
-    return (preferred + worldsEnd)
-        .distinctBy { if (it.type.equals("we", true)) "we" else it.difficulty.lowercase() }
-        .sortedByDescending { difficultyOrder(if (it.type.equals("we", true)) "world's end" else it.difficulty) }
-}
-
-private fun CatalogSong.sheetKey(sheet: org.rhythmeta.chunithmd.shared.CatalogSheet): String =
-    "$songId:${sheet.type}:${sheet.difficulty}"
 
 internal val WORLDS_END_GRADIENT_COLORS = listOf(
     Color(0xFF65B94A),
