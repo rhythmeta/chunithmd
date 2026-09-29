@@ -8,6 +8,33 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val chunithmdBuildNumber = providers.environmentVariable("CHUNITHMD_BUILD_NUMBER")
+    .orElse(
+        providers.exec {
+            commandLine(
+                "sh",
+                rootProject.file("../scripts/build-number.sh").absolutePath,
+            )
+        }.standardOutput.asText.map(String::trim),
+    )
+    .map { value ->
+        value.toIntOrNull()?.takeIf { it > 0 }
+            ?: error("Invalid CHUNITHMD_BUILD_NUMBER: $value")
+    }
+val splitReleaseApks = providers.gradleProperty("CHUNITHMD_SPLIT_RELEASE_APKS")
+    .map { it.toBoolean() }
+    .orElse(false)
+val releaseKeystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH")
+val releaseKeystorePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD")
+val releaseKeyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS")
+val releaseKeyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD")
+val releaseSigningConfigured = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { provider -> provider.orNull?.isNotBlank() == true }
+
 android {
     namespace = "org.rhythmeta.chunithmd"
     compileSdk {
@@ -18,10 +45,26 @@ android {
         applicationId = "org.rhythmeta.chunithmd"
         minSdk = 29
         targetSdk = 37
-        versionCode = 1
+        versionCode = chunithmdBuildNumber.get()
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        getByName("debug") {
+            enableV3Signing = true
+        }
+        if (releaseSigningConfigured) {
+            create("release") {
+                storeFile = file(releaseKeystorePath.get())
+                storePassword = releaseKeystorePassword.get()
+                keyAlias = releaseKeyAlias.get()
+                keyPassword = releaseKeyPassword.get()
+                storeType = "PKCS12"
+                enableV3Signing = true
+            }
+        }
     }
 
     buildTypes {
@@ -30,6 +73,17 @@ android {
                 enable = true
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
+            if (releaseSigningConfigured) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+    }
+    splits {
+        abi {
+            isEnable = splitReleaseApks.get()
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = false
         }
     }
     compileOptions {
