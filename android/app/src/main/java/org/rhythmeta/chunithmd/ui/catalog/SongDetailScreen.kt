@@ -24,6 +24,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -50,19 +51,26 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -74,42 +82,63 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.graphics.scale
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import java.io.File
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 import kotlinx.coroutines.launch
 import org.rhythmeta.chunithmd.shared.CatalogSheet
+import org.rhythmeta.chunithmd.shared.ChunithmScoreRules
+import org.rhythmeta.chunithmd.shared.calculateSingleRating
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.CatalogNoteCounts
+import org.rhythmeta.chunithmd.shared.worldsEndStars
+import org.rhythmeta.chunithmd.score.ScoreRecordEntity
+import org.rhythmeta.chunithmd.score.ScoreRepository
+import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.Button as MiuixButton
+import top.yukonga.miuix.kmp.basic.ButtonDefaults as MiuixButtonDefaults
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.SnackbarDuration
 import top.yukonga.miuix.kmp.basic.SnackbarHost
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.basic.TextField as MiuixTextField
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.window.WindowListPopup
+import androidx.compose.ui.platform.LocalLocale
+import androidx.core.net.toUri
 
-private val DETAIL_REGIONS = listOf("jp" to "JP", "intl" to "INTL", "cn" to "CN")
 private val CHART_TYPE_ORDER = listOf("std", "standard", "dx", "we", "utage")
 
 @Composable
@@ -121,6 +150,7 @@ fun SongDetailScreen(
     localJacketPath: (String) -> String?,
     contentTopPadding: Dp,
     topBarScrollConnection: NestedScrollConnection,
+    scoreRepository: ScoreRepository,
     onBackgroundChanged: (Color?) -> Unit = {},
 ) {
     if (song == null) {
@@ -132,17 +162,22 @@ fun SongDetailScreen(
         return
     }
 
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
+    val scoreRecords by scoreRepository.observeSongRecords(song.songId).collectAsState(initial = emptyList())
+    val recordsBySheet = remember(scoreRecords) { scoreRecords.groupBy(ScoreRecordEntity::sheetKey) }
+    var scoreEntrySheetKey by rememberSaveable(song.songId) { mutableStateOf<String?>(null) }
+    var recordToDelete by remember { mutableStateOf<ScoreRecordEntity?>(null) }
+    var scoreEntrySaving by remember { mutableStateOf(false) }
     fun showMessage(message: String) {
         snackbarScope.launch {
             snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Short)
         }
     }
-    val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
+    val isDark = SongVisualUtils.isDarkTheme(MiuixTheme.colorScheme.background)
     var jacketAccent by remember(song.songId) { mutableStateOf<Color?>(null) }
-    val detailColors = jacketAccent?.let { detailColors(it, isDark) }
+    val detailColors = jacketAccent?.let { SongVisualUtils.detailColors(it, isDark) }
     val accent = detailColors?.accent ?: MiuixTheme.colorScheme.primary
     val pageBackground = detailColors?.background ?: MiuixTheme.colorScheme.background
     val surfaceColor = detailColors?.surface ?: MiuixTheme.colorScheme.surfaceContainer
@@ -240,6 +275,9 @@ fun SongDetailScreen(
                         sheet = sheet,
                         surfaceColor = surfaceColor,
                         accentColor = accent,
+                        records = recordsBySheet[scoreSheetKey(song, sheet)].orEmpty(),
+                        onRecord = { scoreEntrySheetKey = scoreSheetKey(song, sheet) },
+                        onDeleteRecord = { recordToDelete = it },
                     )
                 }
             }
@@ -250,6 +288,38 @@ fun SongDetailScreen(
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(bottom = 12.dp),
+        )
+    }
+
+    val entrySheet = scoreEntrySheetKey?.let { key ->
+        song.sheets.firstOrNull { scoreSheetKey(song, it) == key }
+    }
+    ScoreEntrySheet(
+        visible = entrySheet != null,
+        song = song,
+        sheet = entrySheet,
+        bestRecord = entrySheet?.let { sheet -> recordsBySheet[scoreSheetKey(song, sheet)].orEmpty().maxByOrNull(ScoreRecordEntity::score) },
+        saving = scoreEntrySaving,
+        onDismiss = { if (!scoreEntrySaving) scoreEntrySheetKey = null },
+        onSave = { score ->
+            entrySheet?.let { sheet ->
+                scoreEntrySaving = true
+                snackbarScope.launch {
+                    runCatching { scoreRepository.save(song.songId, scoreSheetKey(song, sheet), score) }
+                        .onSuccess { scoreEntrySheetKey = null }
+                        .onFailure { showMessage("保存成绩失败") }
+                    scoreEntrySaving = false
+                }
+            }
+        },
+    )
+    recordToDelete?.let { record ->
+        DeleteScoreRecordDialog(
+            onConfirm = {
+                recordToDelete = null
+                snackbarScope.launch { scoreRepository.delete(record.id) }
+            },
+            onDismiss = { recordToDelete = null },
         )
     }
 }
@@ -292,6 +362,13 @@ private fun SongDetailHeader(
     onCopyText: (String) -> Unit,
     onCoverAction: (CoverAction) -> Unit,
 ) {
+    val context = LocalContext.current
+    val coverRequest = remember(coverModel) {
+        ImageRequest.Builder(context)
+            .data(coverModel)
+            .allowHardware(false)
+            .build()
+    }
     var jacketMenuExpanded by remember(song.songId) { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -313,7 +390,7 @@ private fun SongDetailHeader(
                     MiuixIcon(Icons.Rounded.MusicNote, contentDescription = null, tint = accentColor, modifier = Modifier.size(56.dp))
                 } else {
                     AsyncImage(
-                        model = coverModel,
+                        model = coverRequest,
                         contentDescription = song.title,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
@@ -321,7 +398,7 @@ private fun SongDetailHeader(
                             runCatching {
                                 result.result.drawable.toBitmap(config = Bitmap.Config.ARGB_8888)
                             }.getOrNull()?.let { bitmap ->
-                                averageBitmapColor(bitmap)?.let { color ->
+                                SongVisualUtils.averageJacketColor(bitmap)?.let { color ->
                                     Log.d("SongDetailScreen", "jacket color=${color.toArgb()} model=$coverModel")
                                     onAccentColor(color)
                                 } ?: Log.w("SongDetailScreen", "jacket color unavailable model=$coverModel")
@@ -598,7 +675,15 @@ private fun ChartTypeSelector(
 }
 
 @Composable
-private fun ChartDetailCard(song: CatalogSong, sheet: CatalogSheet, surfaceColor: Color, accentColor: Color) {
+private fun ChartDetailCard(
+    song: CatalogSong,
+    sheet: CatalogSheet,
+    surfaceColor: Color,
+    accentColor: Color,
+    records: List<ScoreRecordEntity>,
+    onRecord: () -> Unit,
+    onDeleteRecord: (ScoreRecordEntity) -> Unit,
+) {
     var expanded by rememberSaveable(song.songId, sheet.type, sheet.difficulty) { mutableStateOf(false) }
     val chevronRotation by animateFloatAsState(
         targetValue = if (expanded) 90f else 0f,
@@ -606,18 +691,55 @@ private fun ChartDetailCard(song: CatalogSong, sheet: CatalogSheet, surfaceColor
         label = "difficulty-chevron",
     )
     val chartAccent = if (sheet.type.equals("we", true)) difficultyColor("world's end") else difficultyColor(sheet.difficulty)
+    val isWorldsEnd = sheet.type.equals("we", true)
+    val worldsEndTextBrush = if (isWorldsEnd) {
+        Brush.horizontalGradient(WORLDS_END_GRADIENT_COLORS)
+    } else {
+        null
+    }
+    val chartBackgroundBrush = if (isWorldsEnd) {
+        Brush.horizontalGradient(WORLDS_END_GRADIENT_COLORS.map { it.copy(alpha = 0.24f) })
+    } else {
+        null
+    }
     val difficultyLabel = sheet.difficulty.trim().uppercase(Locale.ROOT).ifBlank { "未知难度" }
-    val internalLevel = sheet.levelValue?.let { String.format(Locale.ROOT, "%.1f", it) }
-        ?: sheet.level.ifBlank { "-" }
+    val worldsEndStars = sheet.worldsEndStars()?.coerceIn(0, 5)
+    val levelLabel = if (isWorldsEnd && worldsEndStars != null) {
+        "★".repeat(worldsEndStars) + "☆".repeat(5 - worldsEndStars)
+    } else {
+        (sheet.internalLevelValue ?: sheet.levelValue)?.let { String.format(Locale.ROOT, "%.1f", it) }
+            ?: sheet.level.ifBlank { "-" }
+    }
     DetailCard(
         color = surfaceColor,
         borderColor = chartAccent.copy(alpha = 0.58f),
-        modifier = Modifier
-            .clip(RoundedCornerShape(18.dp))
-            .clickable { expanded = !expanded },
+        backgroundBrush = chartBackgroundBrush,
+        modifier = Modifier.then(
+            if (!expanded) {
+                Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { expanded = true },
+                )
+            } else {
+                Modifier
+            },
+        ),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (expanded) {
+                        Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { expanded = false },
+                        )
+                    } else {
+                        Modifier
+                    },
+                ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -625,16 +747,24 @@ private fun ChartDetailCard(song: CatalogSong, sheet: CatalogSheet, surfaceColor
                     .width(5.dp)
                     .height(50.dp)
                     .offset(x = (-16).dp)
-                    .squircleSurface(
-                        color = chartAccent,
-                        cornerRadius = 50.dp,
-                        extension = SquircleExtension,
-                    ),
+                    .let { barModifier ->
+                        if (sheet.type.equals("we", true)) {
+                            barModifier
+                                .clip(RoundedCornerShape(50.dp))
+                                .background(Brush.verticalGradient(WORLDS_END_GRADIENT_COLORS))
+                        } else {
+                            barModifier.squircleSurface(
+                                color = chartAccent,
+                                cornerRadius = 50.dp,
+                                extension = SquircleExtension,
+                            )
+                        }
+                    },
             )
             Column(modifier = Modifier.weight(1f)) {
                 MiuixText(
                     difficultyLabel,
-                    style = MiuixTheme.textStyles.title3,
+                    style = MiuixTheme.textStyles.title3.copy(brush = worldsEndTextBrush),
                     fontWeight = FontWeight.Bold,
                     color = chartAccent,
                 )
@@ -651,7 +781,12 @@ private fun ChartDetailCard(song: CatalogSong, sheet: CatalogSheet, surfaceColor
                         )
                     }
             }
-            MiuixText(internalLevel, style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, color = chartAccent)
+            MiuixText(
+                levelLabel,
+                style = MiuixTheme.textStyles.title3.copy(brush = worldsEndTextBrush),
+                fontWeight = FontWeight.Bold,
+                color = chartAccent,
+            )
             Spacer(Modifier.width(6.dp))
             MiuixIcon(
                 Icons.Rounded.ChevronRight,
@@ -669,12 +804,35 @@ private fun ChartDetailCard(song: CatalogSong, sheet: CatalogSheet, surfaceColor
                 modifier = Modifier.padding(top = 12.dp, bottom = 0.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                ScoreSummarySection(
+                    bestRecord = records.maxByOrNull(ScoreRecordEntity::score),
+                    accentColor = accentColor,
+                )
                 NoteCountSection(
                     songId = song.songId,
                     chartType = sheet.type,
                     difficulty = sheet.difficulty,
                     counts = sheet.noteCounts,
                 )
+                RatingTableSection(
+                    constant = sheet.internalLevelValue ?: sheet.levelValue,
+                )
+                if (records.isNotEmpty()) {
+                    ScoreHistorySection(
+                        records = records,
+                        accentColor = accentColor,
+                        onDeleteRecord = onDeleteRecord,
+                    )
+                }
+                MiuixButton(
+                    onClick = onRecord,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = MiuixButtonDefaults.buttonColorsPrimary(),
+                ) {
+                    MiuixIcon(Icons.Rounded.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    MiuixText("记录成绩")
+                }
             }
         }
     }
@@ -699,6 +857,8 @@ private fun NoteCountSection(
         counts.tap?.let { NoteCountEntry("TAP", it, 1.0, Color(0xFFFF2D78)) },
         counts.hold?.let { NoteCountEntry("HOLD", it, 2.0, Color(0xFFFF2D78)) },
         counts.slide?.let { NoteCountEntry("SLIDE", it, 3.0, Color(0xFF4D80FF)) },
+        counts.air?.let { NoteCountEntry("AIR", it, 1.0, Color(0xFF34C759)) },
+        counts.flick?.let { NoteCountEntry("FLICK", it, 1.0, Color(0xFF4D80FF)) },
         counts.touch?.let { NoteCountEntry("TOUCH", it, 1.0, Color(0xFF4D80FF)) },
         counts.breakCount?.let { NoteCountEntry("BREAK", it, 5.0, Color(0xFFFF9500)) },
     ).filter { it.count > 0 }
@@ -801,6 +961,560 @@ private fun NoteCountSection(
 }
 
 @Composable
+private fun ScoreSummarySection(
+    bestRecord: ScoreRecordEntity?,
+    accentColor: Color,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            MiuixText(
+                "当前最佳",
+                style = MiuixTheme.textStyles.footnote2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+            if (bestRecord == null) {
+                MiuixText(
+                    "暂无成绩",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            } else {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    MiuixText(
+                        formatScore(bestRecord.score),
+                        style = MiuixTheme.textStyles.title2,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    MiuixText(
+                        bestRecord.rank,
+                        style = MiuixTheme.textStyles.title2,
+                        fontWeight = FontWeight.Bold,
+                        color = scoreRankColor(bestRecord.rank) ?: accentColor,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private data class RatingTableRow(
+    val rank: String,
+    val score: Int,
+    val rating: Double,
+    val delta: Double,
+)
+
+@Composable
+private fun RatingTableSection(
+    constant: Double?,
+) {
+    val level = constant?.takeIf { it > 0.0 && it.isFinite() } ?: return
+    var expanded by rememberSaveable(level) { mutableStateOf(false) }
+    val rows = remember(level) {
+        val values = ChunithmScoreRules.rankThresholds.asReversed().map { threshold ->
+            threshold to calculateSingleRating(level, threshold.score)
+        }
+        values.mapIndexed { index, (threshold, rating) ->
+            RatingTableRow(
+                rank = threshold.rank,
+                score = threshold.score,
+                rating = rating,
+                delta = (rating - (values.getOrNull(index + 1)?.second ?: 0.0)).coerceAtLeast(0.0),
+            )
+        }
+    }
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) 90f else 0f,
+        animationSpec = tween(durationMillis = 180),
+        label = "rating-chevron",
+    )
+
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { expanded = !expanded },
+                )
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MiuixText(
+                "分数 → Rating",
+                style = MiuixTheme.textStyles.body2,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+            )
+            MiuixIcon(
+                Icons.Rounded.ChevronRight,
+                contentDescription = if (expanded) "收起 Rating" else "展开 Rating",
+                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.58f),
+                modifier = Modifier.size(16.dp).rotate(chevronRotation),
+            )
+        }
+        AnimatedVisibility(visible = expanded) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    MiuixText(
+                        "等级",
+                        style = MiuixTheme.textStyles.footnote2,
+                        fontWeight = FontWeight.Bold,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier.width(42.dp),
+                    )
+                    MiuixText(
+                        "分数",
+                        style = MiuixTheme.textStyles.footnote2,
+                        fontWeight = FontWeight.Bold,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    MiuixText(
+                        "Rating",
+                        style = MiuixTheme.textStyles.footnote2,
+                        fontWeight = FontWeight.Bold,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.width(64.dp),
+                    )
+                    MiuixText(
+                        "差值",
+                        style = MiuixTheme.textStyles.footnote2,
+                        fontWeight = FontWeight.Bold,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.width(50.dp),
+                    )
+                }
+                rows.forEachIndexed { index, row ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                if (index % 2 == 0) {
+                                    MiuixTheme.colorScheme.onSurface.copy(alpha = 0.02f)
+                                } else {
+                                    Color.Transparent
+                                },
+                            )
+                            .padding(horizontal = 4.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        MiuixText(
+                            row.rank,
+                            style = MiuixTheme.textStyles.footnote1,
+                            fontWeight = FontWeight.Bold,
+                            color = scoreRankColor(row.rank) ?: MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            modifier = Modifier.width(42.dp),
+                        )
+                        MiuixText(
+                            formatScore(row.score),
+                            style = MiuixTheme.textStyles.footnote1,
+                            modifier = Modifier.weight(1f),
+                        )
+                        MiuixText(
+                            formatRating(row.rating),
+                            style = MiuixTheme.textStyles.body2,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.width(64.dp),
+                        )
+                        MiuixText(
+                            row.delta.takeIf { it > 0.0 }?.let { "↑${formatRating(it)}" }.orEmpty(),
+                            style = MiuixTheme.textStyles.footnote2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.width(50.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private const val SCORE_HISTORY_PAGE_SIZE = 10
+
+@Composable
+private fun ScoreHistorySection(
+    records: List<ScoreRecordEntity>,
+    accentColor: Color,
+    onDeleteRecord: (ScoreRecordEntity) -> Unit,
+) {
+    val sheetKey = records.first().sheetKey
+    var expanded by rememberSaveable(sheetKey) { mutableStateOf(false) }
+    var sortByTime by rememberSaveable(sheetKey) { mutableStateOf(true) }
+    var page by rememberSaveable(sheetKey) { mutableIntStateOf(1) }
+    val sortedRecords = remember(records, sortByTime) {
+        if (sortByTime) {
+            records.sortedByDescending(ScoreRecordEntity::playedAt)
+        } else {
+            records.sortedWith(compareByDescending<ScoreRecordEntity> { it.score }.thenByDescending { it.playedAt })
+        }
+    }
+    val totalPages = ((sortedRecords.size + SCORE_HISTORY_PAGE_SIZE - 1) / SCORE_HISTORY_PAGE_SIZE).coerceAtLeast(1)
+    val validPage = page.coerceIn(1, totalPages)
+    val displayRecords = sortedRecords
+        .drop((validPage - 1) * SCORE_HISTORY_PAGE_SIZE)
+        .take(SCORE_HISTORY_PAGE_SIZE)
+    val bestId = records.maxWithOrNull(compareBy<ScoreRecordEntity> { it.score }.thenBy { it.playedAt })?.id
+    LaunchedEffect(totalPages) { page = page.coerceIn(1, totalPages) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { expanded = !expanded },
+                )
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MiuixText(
+                "历史成绩",
+                style = MiuixTheme.textStyles.body2,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+            )
+            ScoreHistorySortOption(
+                text = "时间",
+                selected = sortByTime,
+                accentColor = accentColor,
+                onClick = { sortByTime = true; page = 1 },
+            )
+            ScoreHistorySortOption(
+                text = "分数",
+                selected = !sortByTime,
+                accentColor = accentColor,
+                onClick = { sortByTime = false; page = 1 },
+            )
+            MiuixIcon(
+                Icons.Rounded.ChevronRight,
+                contentDescription = if (expanded) "收起历史成绩" else "展开历史成绩",
+                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.58f),
+                modifier = Modifier.size(16.dp).rotate(if (expanded) 90f else 0f),
+            )
+        }
+        AnimatedVisibility(visible = expanded) {
+            Column {
+                displayRecords.forEachIndexed { index, record ->
+                    ScoreHistoryRow(
+                        record = record,
+                        isBest = record.id == bestId,
+                        alternate = index % 2 == 0,
+                        accentColor = accentColor,
+                        onDelete = { onDeleteRecord(record) },
+                    )
+                }
+                if (totalPages > 1) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        MiuixIconButton(onClick = { page = (validPage - 1).coerceAtLeast(1) }) {
+                            MiuixIcon(
+                                Icons.Rounded.ChevronRight,
+                                contentDescription = "上一页",
+                                tint = if (validPage > 1) accentColor else MiuixTheme.colorScheme.disabledOnSecondaryVariant,
+                                modifier = Modifier.size(18.dp).rotate(180f),
+                            )
+                        }
+                        MiuixText(
+                            "$validPage / $totalPages",
+                            style = MiuixTheme.textStyles.footnote1,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                        )
+                        MiuixIconButton(onClick = { page = (validPage + 1).coerceAtMost(totalPages) }) {
+                            MiuixIcon(
+                                Icons.Rounded.ChevronRight,
+                                contentDescription = "下一页",
+                                tint = if (validPage < totalPages) accentColor else MiuixTheme.colorScheme.disabledOnSecondaryVariant,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScoreHistorySortOption(
+    text: String,
+    selected: Boolean,
+    accentColor: Color,
+    onClick: () -> Unit,
+) {
+    MiuixText(
+        text,
+        style = MiuixTheme.textStyles.footnote2,
+        color = if (selected) accentColor else MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        modifier = Modifier
+            .background(
+                color = if (selected) accentColor.copy(alpha = 0.12f) else Color.Transparent,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 7.dp, vertical = 5.dp),
+    )
+}
+
+@Composable
+private fun ScoreHistoryRow(
+    record: ScoreRecordEntity,
+    isBest: Boolean,
+    alternate: Boolean,
+    accentColor: Color,
+    onDelete: () -> Unit,
+) {
+    val locale = LocalLocale.current.platformLocale
+    val dateFormatter = remember(locale) { DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale) }
+    val timeFormatter = remember(locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale) }
+    val playedAt = Instant.ofEpochMilli(record.playedAt).atZone(ZoneId.systemDefault())
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                when {
+                    isBest -> Modifier
+                        .squircleSurface(color = accentColor.copy(alpha = 0.1f), cornerRadius = 8.dp, extension = SquircleExtension)
+                        .squircleBorder(1.5.dp, accentColor, 8.dp, SquircleExtension)
+                    alternate -> Modifier.background(MiuixTheme.colorScheme.onSurface.copy(alpha = 0.02f))
+                    else -> Modifier
+                },
+            )
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.width(72.dp)) {
+            MiuixText(playedAt.format(dateFormatter), style = MiuixTheme.textStyles.footnote1, fontWeight = FontWeight.Bold)
+            MiuixText(playedAt.format(timeFormatter), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                MiuixText(
+                    record.rank,
+                    style = MiuixTheme.textStyles.footnote1,
+                    fontWeight = FontWeight.Bold,
+                    color = scoreRankColor(record.rank) ?: MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+                MiuixText(formatScore(record.score), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
+            }
+        }
+        MiuixIconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+            MiuixIcon(
+                Icons.Rounded.Delete,
+                contentDescription = "删除成绩记录",
+                tint = MiuixTheme.colorScheme.error.copy(alpha = 0.65f),
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ScoreEntrySheet(
+    visible: Boolean,
+    song: CatalogSong,
+    sheet: CatalogSheet?,
+    bestRecord: ScoreRecordEntity?,
+    saving: Boolean,
+    onSave: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheetKey = sheet?.let { scoreSheetKey(song, it) }
+    var scoreText by rememberSaveable(sheetKey) { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(visible, sheetKey) {
+        if (visible) scoreText = ""
+    }
+    val parsedScore = scoreText.toIntOrNull()
+    val isValid = parsedScore != null && ChunithmScoreRules.isValid(parsedScore)
+    val submit: () -> Unit = {
+        focusManager.clearFocus()
+        if (!saving && isValid) onSave(parsedScore)
+    }
+    ExpandableBottomSheet(
+        visible = visible,
+        onDismissRequest = onDismiss,
+        expandActionLabel = "展开",
+        collapseActionLabel = "收起到半屏",
+        expandedStateDescription = "已全屏展开",
+        halfExpandedStateDescription = "半屏",
+        header = {
+            MiuixIconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterStart)) {
+                MiuixIcon(Icons.Rounded.Close, contentDescription = "取消")
+            }
+            MiuixText("记录成绩", style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Center))
+            if (isValid && !saving) {
+                MiuixIconButton(onClick = submit, modifier = Modifier.align(Alignment.CenterEnd)) {
+                    MiuixIcon(Icons.Rounded.Check, contentDescription = "保存", tint = MiuixTheme.colorScheme.primary)
+                }
+            }
+        },
+    ) { topInset ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, top = topInset + 12.dp, end = 16.dp, bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            item {
+                ScoreEntrySongCard(song = song, sheet = sheet)
+            }
+            item {
+                DetailCard(
+                    color = MiuixTheme.colorScheme.surfaceContainer,
+                    borderColor = MiuixTheme.colorScheme.outline.copy(alpha = 0.12f),
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        MiuixText(
+                            parsedScore?.takeIf { ChunithmScoreRules.isValid(it) }?.let(ChunithmScoreRules::rank) ?: "-",
+                            style = MiuixTheme.textStyles.title1,
+                            fontWeight = FontWeight.Bold,
+                            color = parsedScore?.takeIf { ChunithmScoreRules.isValid(it) }?.let { scoreRankColor(ChunithmScoreRules.rank(it)) }
+                                ?: MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                        )
+                        MiuixTextField(
+                            value = scoreText,
+                            onValueChange = { value ->
+                                if (value.length <= 7 && value.all(Char::isDigit) && (value.toIntOrNull() ?: 0) <= ChunithmScoreRules.maximumScore) {
+                                    scoreText = value
+                                }
+                            },
+                            label = "分数",
+                            useLabelAsPlaceholder = true,
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+
+                    }
+                }
+            }
+            bestRecord?.let { best ->
+                item {
+                    DetailCard(
+                        color = MiuixTheme.colorScheme.surfaceContainerHigh,
+                        borderColor = MiuixTheme.colorScheme.outline.copy(alpha = 0.08f),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            MiuixText("当前最佳", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                MiuixText(formatScore(best.score), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
+                                MiuixText(best.rank, style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold, color = scoreRankColor(best.rank) ?: MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                            }
+                        }
+                    }
+                }
+            }
+            item {
+                MiuixButton(
+                    onClick = submit,
+                    enabled = isValid && !saving,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = MiuixButtonDefaults.buttonColorsPrimary(),
+                ) {
+                    MiuixIcon(if (saving) Icons.Rounded.Timer else Icons.Rounded.Save, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    MiuixText(if (saving) "保存中…" else "保存成绩")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScoreEntrySongCard(song: CatalogSong, sheet: CatalogSheet?) {
+    val chartColor = sheet?.let { difficultyColor(it.difficulty) } ?: MiuixTheme.colorScheme.primary
+    DetailCard(
+        color = SongVisualUtils.detailColors(chartColor, SongVisualUtils.isDarkTheme(MiuixTheme.colorScheme.background)).surface,
+        borderColor = chartColor.copy(alpha = 0.18f),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                MiuixText(song.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                MiuixText(song.artist.ifBlank { "未知艺术家" }, style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            sheet?.let {
+                Column(horizontalAlignment = Alignment.End) {
+                    MiuixText(it.difficulty.uppercase(Locale.ROOT), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold, color = chartColor)
+                    MiuixText((it.internalLevelValue ?: it.levelValue)?.let { value -> String.format(Locale.ROOT, "%.1f", value) } ?: it.level, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, color = chartColor)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeleteScoreRecordDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    WindowDialog(
+        show = true,
+        title = "删除成绩记录",
+        summary = "确定删除这条历史成绩吗？",
+        onDismissRequest = onDismiss,
+        outsideMargin = DpSize(24.dp, 24.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            MiuixButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f),
+                colors = MiuixButtonDefaults.buttonColors(),
+            ) {
+                MiuixText("取消")
+            }
+            MiuixButton(
+                onClick = onConfirm,
+                modifier = Modifier.weight(1f),
+                colors = MiuixButtonDefaults.buttonColorsPrimary(),
+            ) {
+                MiuixText("删除")
+            }
+        }
+    }
+}
+
+private fun scoreSheetKey(song: CatalogSong, sheet: CatalogSheet): String = "${song.songId}:${sheet.type}:${sheet.difficulty}"
+
+private fun formatScore(score: Int): String = String.format(Locale.ROOT, "%,d", score)
+
+private fun formatRating(rating: Double): String = String.format(Locale.ROOT, "%.2f", rating)
+
+private fun scoreRankColor(rank: String): Color? = when (rank.uppercase(Locale.ROOT)) {
+    "SSS+", "SSS" -> Color(0xFFFFD900)
+    "SS+", "SS" -> Color(0xFFFFBF00)
+    "S+", "S" -> Color(0xFFFF9900)
+    "AAA" -> Color(0xFFCC99FF)
+    "AA" -> Color(0xFF99CCFF)
+    "A" -> Color(0xFF80E680)
+    else -> null
+}
+
+@Composable
 private fun EmptyChartState() {
     Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         MiuixText("暂无谱面数据", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
@@ -812,12 +1526,18 @@ private fun DetailCard(
     color: Color,
     borderColor: Color,
     modifier: Modifier = Modifier,
+    backgroundBrush: Brush? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .squircleSurface(color = color, cornerRadius = 18.dp, extension = SquircleExtension)
+            .then(
+                backgroundBrush?.let { brush ->
+                    Modifier.background(brush, RoundedCornerShape(18.dp))
+                } ?: Modifier,
+            )
             .squircleBorder(0.5.dp, borderColor.copy(alpha = 0.48f), 18.dp, SquircleExtension)
             .then(modifier)
             .padding(16.dp),
@@ -883,70 +1603,10 @@ private fun copyText(context: Context, value: String, onMessage: (String) -> Uni
 }
 
 private fun openExternalSearch(context: Context, url: String): Boolean = runCatching {
-    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
 }.isSuccess
 
 private fun safeFileName(value: String): String = value.replace(Regex("[^\\p{L}\\p{N}._-]+"), "_").trim('_').ifBlank { "chunithm-cover" }
-
-private fun averageBitmapColor(bitmap: Bitmap): Color? {
-    if (bitmap.width <= 0 || bitmap.height <= 0) return null
-    val scaleFactor = minOf(1f, 96f / maxOf(bitmap.width, bitmap.height).toFloat())
-    val sampledWidth = (bitmap.width * scaleFactor).toInt().coerceAtLeast(1)
-    val sampledHeight = (bitmap.height * scaleFactor).toInt().coerceAtLeast(1)
-    val sampledBitmap = if (sampledWidth == bitmap.width && sampledHeight == bitmap.height) bitmap
-    else bitmap.scale(sampledWidth, sampledHeight)
-    return try {
-        val pixels = IntArray(sampledWidth * sampledHeight)
-        sampledBitmap.getPixels(pixels, 0, sampledWidth, 0, 0, sampledWidth, sampledHeight)
-        var red = 0L
-        var green = 0L
-        var blue = 0L
-        var alpha = 0L
-        pixels.forEach { pixel ->
-            red += android.graphics.Color.red(pixel)
-            green += android.graphics.Color.green(pixel)
-            blue += android.graphics.Color.blue(pixel)
-            alpha += android.graphics.Color.alpha(pixel)
-        }
-        val count = pixels.size.toFloat()
-        Color(red / count / 255f, green / count / 255f, blue / count / 255f, alpha / count / 255f)
-    } finally {
-        if (sampledBitmap !== bitmap) sampledBitmap.recycle()
-    }
-}
-
-private data class DetailColors(
-    val background: Color,
-    val surface: Color,
-    val selectedSurface: Color,
-    val accent: Color,
-)
-
-private fun detailColors(raw: Color, darkTheme: Boolean): DetailColors {
-    val rawHsv = FloatArray(3)
-    android.graphics.Color.colorToHSV(raw.toArgb(), rawHsv)
-    val accentHsv = rawHsv.copyOf().apply {
-        this[1] = (this[1] * 0.85f).coerceIn(0.25f, 0.75f)
-        this[2] = if (darkTheme) 0.82f else 0.62f
-    }
-    fun colorWith(saturationScale: Float, value: Float): Color {
-        val hsv = rawHsv.copyOf().apply {
-            this[1] = (this[1] * saturationScale).coerceIn(if (darkTheme) 0.08f else 0.03f, if (darkTheme) 0.30f else 0.18f)
-            this[2] = value
-        }
-        return Color(android.graphics.Color.HSVToColor(hsv))
-    }
-    val backgroundHsv = rawHsv.copyOf().apply {
-        this[1] = if (darkTheme) (this[1] * 0.75f).coerceIn(0.20f, 0.45f) else (this[1] * 0.45f).coerceIn(0.08f, 0.30f)
-        this[2] = if (darkTheme) (this[2] * 0.35f).coerceIn(0.12f, 0.28f) else (0.88f + (this[2] - 0.5f) * 0.08f).coerceIn(0.84f, 0.94f)
-    }
-    return DetailColors(
-        background = Color(android.graphics.Color.HSVToColor(backgroundHsv)),
-        surface = colorWith(if (darkTheme) 0.34f else 0.16f, if (darkTheme) 0.20f else 0.98f),
-        selectedSurface = colorWith(if (darkTheme) 0.48f else 0.28f, if (darkTheme) 0.30f else 0.94f),
-        accent = Color(android.graphics.Color.HSVToColor(accentHsv)),
-    )
-}
 
 private fun songRegionAvailable(song: CatalogSong, region: String): Boolean = when {
     region.equals("cn", true) -> song.regionOverrides["cn"]?.available == true

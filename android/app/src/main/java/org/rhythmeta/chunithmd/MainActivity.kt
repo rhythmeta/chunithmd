@@ -115,6 +115,8 @@ import org.rhythmeta.chunithmd.ui.profile.ProfileEditorSheet
 import org.rhythmeta.chunithmd.ui.profile.ProfileScreen
 import org.rhythmeta.chunithmd.profile.ProfileAvatarStore
 import org.rhythmeta.chunithmd.profile.ProfileRepository
+import org.rhythmeta.chunithmd.score.ScoreRepository
+import org.rhythmeta.chunithmd.score.ScoreRecordEntity
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -231,6 +233,7 @@ class MainActivity : ComponentActivity() {
         window.isNavigationBarContrastEnforced = false
         val repository = CatalogRepository(filesDir.absolutePath)
         val profileRepository = ProfileRepository(applicationContext)
+        val scoreRepository = ScoreRepository(applicationContext, profileRepository)
         val profileAvatarStore = ProfileAvatarStore(applicationContext)
         val catalogPreferencesRepository = CatalogPreferencesRepository(applicationContext)
         val themeRepository = ThemePreferencesRepository(applicationContext)
@@ -244,7 +247,7 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
-                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, catalogState)
+                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, catalogState)
                 }
             }
         }
@@ -259,6 +262,7 @@ private fun CatalogApp(
     themeSettings: AppThemeSettings,
     profileRepository: ProfileRepository,
     profileAvatarStore: ProfileAvatarStore,
+    scoreRepository: ScoreRepository,
     catalogState: CatalogStateViewModel,
 ) {
     var bundle by catalogState::bundle
@@ -277,6 +281,11 @@ private fun CatalogApp(
     var profileCreateRequested by remember { mutableStateOf(false) }
     var quickEditProfile by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.UserProfile?>(null) }
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
+    val profileScores by scoreRepository.observeCurrentProfileRecords().collectAsState(initial = emptyList())
+    val scoresBySheetKey = remember(profileScores) {
+        profileScores.groupBy(ScoreRecordEntity::sheetKey)
+            .mapValues { (_, records) -> records.maxByOrNull(ScoreRecordEntity::score)!! }
+    }
     val profileVersions = remember(bundle) {
         org.rhythmeta.chunithmd.shared.ProfileServer.entries.associateWith { server ->
             bundle?.latestPlayableVersion(server)
@@ -493,6 +502,7 @@ private fun CatalogApp(
                     sync = sync,
                     error = error,
                     songs = songs,
+                    scoresBySheetKey = scoresBySheetKey,
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
                     localJacketPath = repository::localJacketPath,
                     listState = catalogListState,
@@ -645,6 +655,7 @@ private fun CatalogApp(
                     contentTopPadding = padding.calculateTopPadding(),
                     topBarScrollConnection = topBarScrollConnection,
                     onBackgroundChanged = { songDetailBackground = it },
+                    scoreRepository = scoreRepository,
                 )
             }
         }

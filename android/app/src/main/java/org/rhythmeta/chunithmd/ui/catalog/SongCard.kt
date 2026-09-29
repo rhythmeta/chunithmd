@@ -3,6 +3,7 @@ package org.rhythmeta.chunithmd.ui.catalog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +36,7 @@ import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.VersionPalette
+import org.rhythmeta.chunithmd.score.ScoreRecordEntity
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
@@ -44,6 +47,7 @@ internal fun SongCard(
     song: CatalogSong,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
+    scoresBySheetKey: Map<String, ScoreRecordEntity>,
     onClick: () -> Unit,
 ) {
     val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
@@ -57,12 +61,18 @@ internal fun SongCard(
     val palette = VersionPalette.forVersion(song.version, isDark)
     val badgeBackground = if (isDark) palette.darkBackground else palette.lightBackground
     val badgeForeground = if (isDark) palette.darkForeground else palette.lightForeground
+    val interactionSource = remember { MutableInteractionSource() }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(76.dp)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                role = Role.Button,
+                onClick = onClick,
+            )
             .squircleSurface(
                 color = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = if (isDark) 0.82f else 0.88f),
                 cornerRadius = 14.dp,
@@ -124,21 +134,14 @@ internal fun SongCard(
                     maxLines = 1,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    DIFFICULTIES.forEachIndexed { index, difficulty ->
-                        val available = song.sheets.any {
-                            it.regions["jp"] == true && if (difficulty.equals("world's end", true)) {
-                                it.type.equals("we", true)
-                            } else {
-                                it.difficulty.equals(difficulty, true)
-                            }
-                        }
+                    val progressSheets = song.progressSheets()
+                    progressSheets.forEachIndexed { index, sheet ->
                         Box(
                             Modifier
                                 .padding(start = if (index == 0) 0.dp else 3.dp)
-                                .size(7.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(if (available) difficultyColor(difficulty) else MiuixTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
-                        )
+                        ) {
+                            SongScoreProgressDot(sheet, scoresBySheetKey[song.sheetKey(sheet)])
+                        }
                     }
                 }
             }
@@ -159,6 +162,19 @@ internal fun difficultyColor(value: String): Color = when (value.lowercase()) {
     "ultima" -> Color(0xFF222222)
     else -> Color(0xFF4AA8C2)
 }
+
+private fun CatalogSong.progressSheets(): List<org.rhythmeta.chunithmd.shared.CatalogSheet> {
+    val available = sheets.filter { it.regions["jp"] == true }
+    val preferred = available.filter { it.type.equals("dx", true) }
+        .ifEmpty { available.filter { it.type.equals("std", true) || it.type.equals("standard", true) } }
+    val worldsEnd = available.filter { it.type.equals("we", true) }
+    return (preferred + worldsEnd)
+        .distinctBy { if (it.type.equals("we", true)) "we" else it.difficulty.lowercase() }
+        .sortedByDescending { difficultyOrder(if (it.type.equals("we", true)) "world's end" else it.difficulty) }
+}
+
+private fun CatalogSong.sheetKey(sheet: org.rhythmeta.chunithmd.shared.CatalogSheet): String =
+    "$songId:${sheet.type}:${sheet.difficulty}"
 
 internal val WORLDS_END_GRADIENT_COLORS = listOf(
     Color(0xFF65B94A),

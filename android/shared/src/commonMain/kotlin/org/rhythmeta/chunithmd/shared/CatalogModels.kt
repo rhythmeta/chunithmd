@@ -68,6 +68,7 @@ data class CatalogSheet(
     val regions: Map<String, Boolean> = emptyMap(),
     val noteDesigner: String? = null,
     val noteCounts: CatalogNoteCounts? = null,
+    val internalLevelValue: Double? = null,
 )
 
 @Serializable
@@ -75,6 +76,8 @@ data class CatalogNoteCounts(
     val tap: Int? = null,
     val hold: Int? = null,
     val slide: Int? = null,
+    val air: Int? = null,
+    val flick: Int? = null,
     val touch: Int? = null,
     @SerialName("break") val breakCount: Int? = null,
     val total: Int? = null,

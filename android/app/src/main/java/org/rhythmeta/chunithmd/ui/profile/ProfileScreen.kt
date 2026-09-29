@@ -293,7 +293,7 @@ internal fun ProfileEditorSheet(
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         TextField(value = name, onValueChange = { name = it }, label = "姓名", useLabelAsPlaceholder = true, singleLine = true, modifier = Modifier.fillMaxWidth())
                         TextField(value = title, onValueChange = { title = it }, label = "称号", useLabelAsPlaceholder = true, singleLine = true, modifier = Modifier.fillMaxWidth())
-                        WindowDropdownPreference(items = listOf("日本", "国际", "中国"), selectedIndex = ProfileServer.entries.indexOf(server), title = "地区", onSelectedIndexChange = { server = ProfileServer.entries[it] })
+                        WindowDropdownPreference(items = listOf("日服", "国际服", "国服"), selectedIndex = ProfileServer.entries.indexOf(server), title = "服务器", onSelectedIndexChange = { server = ProfileServer.entries[it] })
                     }
                 }
             }
