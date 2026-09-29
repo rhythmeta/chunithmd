@@ -70,12 +70,19 @@ android {
     buildTypes {
         release {
             optimization {
-                enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
+                // Kotlin Multiplatform/Ktor file classes currently trigger an
+                // IllegalAccessError when AGP optimization is enabled.
+                enable = false
             }
+            isMinifyEnabled = true
+            isShrinkResources = true
             if (releaseSigningConfigured) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
     splits {
