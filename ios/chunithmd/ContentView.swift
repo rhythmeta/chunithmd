@@ -178,7 +178,7 @@ private struct SongRow: View {
                     ForEach(difficultyNames, id: \.self) { difficulty in
                         let available = song.sheets.contains { $0.difficulty.caseInsensitiveCompare(difficulty) == .orderedSame && $0.regions?["jp"] == true }
                         Circle()
-                            .fill(available ? difficultyColor(difficulty) : Color.secondary.opacity(0.2))
+                            .fill(available ? difficultyStyle(difficulty) : AnyShapeStyle(Color.secondary.opacity(0.2)))
                             .frame(width: 7, height: 7)
                             .overlay(Circle().strokeBorder(available ? .clear : Color.secondary.opacity(0.25), lineWidth: 0.6))
                     }
@@ -330,14 +330,28 @@ private func formatByteCount(_ bytes: Int64) -> String {
     return unit == 0 ? "\(Int(value)) \(units[unit])" : String(format: "%.1f %@", value, units[unit])
 }
 
-private func difficultyColor(_ difficulty: String) -> Color {
-    switch difficulty {
-    case "basic": Color(red: 0.31, green: 0.68, blue: 0.24)
-    case "advanced": Color(red: 0.83, green: 0.67, blue: 0.12)
-    case "expert": Color(red: 0.83, green: 0.20, blue: 0.20)
-    case "master": Color(red: 0.54, green: 0.27, blue: 0.73)
-    case "ultima": Color(red: 0.15, green: 0.15, blue: 0.16)
-    default: Color(red: 0.17, green: 0.57, blue: 0.69)
+private let ultimaGradient = LinearGradient(
+    gradient: Gradient(stops: [
+        .init(color: Color(red: 0.035, green: 0.035, blue: 0.047), location: 0),
+        .init(color: Color(red: 0.035, green: 0.035, blue: 0.047), location: 0.2),
+        .init(color: Color(red: 0.89, green: 0.075, blue: 0.27), location: 0.43),
+        .init(color: Color(red: 0.89, green: 0.075, blue: 0.27), location: 0.55),
+        .init(color: Color(red: 0.035, green: 0.035, blue: 0.047), location: 0.64),
+        .init(color: Color(red: 0.035, green: 0.035, blue: 0.047), location: 0.83),
+        .init(color: Color(red: 0.89, green: 0.075, blue: 0.27), location: 1),
+    ]),
+    startPoint: UnitPoint(x: 0, y: 1),
+    endPoint: UnitPoint(x: 1, y: 0),
+)
+
+private func difficultyStyle(_ difficulty: String) -> AnyShapeStyle {
+    switch difficulty.lowercased() {
+    case "basic": AnyShapeStyle(Color(red: 0.31, green: 0.68, blue: 0.24))
+    case "advanced": AnyShapeStyle(Color(red: 0.83, green: 0.67, blue: 0.12))
+    case "expert": AnyShapeStyle(Color(red: 0.83, green: 0.20, blue: 0.20))
+    case "master": AnyShapeStyle(Color(red: 0.54, green: 0.27, blue: 0.73))
+    case "ultima": AnyShapeStyle(ultimaGradient)
+    default: AnyShapeStyle(Color(red: 0.17, green: 0.57, blue: 0.69))
     }
 }
 

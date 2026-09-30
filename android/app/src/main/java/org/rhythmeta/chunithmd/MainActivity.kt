@@ -35,10 +35,10 @@ import androidx.compose.material.icons.rounded.DocumentScanner
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.PersonAdd
-import androidx.compose.material.icons.rounded.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -491,7 +491,7 @@ private fun CatalogApp(
                 }
                 if (page == 7) {
                     MiuixIconButton(onClick = { bestTableShareRequested = true }) {
-                        MiuixIcon(Icons.Rounded.Share, contentDescription = "分享 Best Table")
+                        MiuixIcon(Icons.Rounded.IosShare, contentDescription = "分享 Best Table")
                     }
                 }
             },

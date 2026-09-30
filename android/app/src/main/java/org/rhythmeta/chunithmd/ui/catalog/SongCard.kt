@@ -21,8 +21,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -54,10 +56,12 @@ internal fun SongCard(
 ) {
     val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
     val hasWorldsEnd = song.sheets.any { it.type.equals("we", ignoreCase = true) }
+    val highestDifficulty = song.sheets.maxByOrNull { difficultyOrder(it.difficulty) }
+    val hasUltima = !hasWorldsEnd && highestDifficulty?.difficulty.equals("ultima", ignoreCase = true)
     val accentColor = if (hasWorldsEnd) {
         difficultyColor("world's end")
     } else {
-        song.sheets.maxByOrNull { difficultyOrder(it.difficulty) }?.let { difficultyColor(it.difficulty) }
+        highestDifficulty?.let { difficultyColor(it.difficulty) }
             ?: difficultyColor("world's end")
     }
     val palette = VersionPalette.forVersion(song.version, isDark)
@@ -91,6 +95,8 @@ internal fun SongCard(
                 .let { barModifier ->
                     if (hasWorldsEnd) {
                         barModifier.background(Brush.verticalGradient(WORLDS_END_GRADIENT_COLORS))
+                    } else if (hasUltima) {
+                        barModifier.background(ultimaStripedBrush())
                     } else {
                         barModifier.squircleSurface(color = accentColor, cornerRadius = 2.dp)
                     }
@@ -154,6 +160,25 @@ internal fun SongCard(
 
 internal val DIFFICULTIES = listOf("basic", "advanced", "expert", "master", "ultima", "world's end")
 
+internal val ULTIMA_ACCENT_COLOR = Color(0xFFE32655)
+
+private val ULTIMA_STRIPE_STOPS = arrayOf(
+    0f to Color(0xFF09090C),
+    0.2f to Color(0xFF09090C),
+    0.43f to ULTIMA_ACCENT_COLOR,
+    0.55f to ULTIMA_ACCENT_COLOR,
+    0.64f to Color(0xFF09090C),
+    0.83f to Color(0xFF09090C),
+    1f to ULTIMA_ACCENT_COLOR,
+)
+
+internal fun ultimaStripedBrush(alpha: Float = 1f): Brush = Brush.linearGradient(
+    colorStops = ULTIMA_STRIPE_STOPS.map { (position, color) -> position to color.copy(alpha = alpha) }.toTypedArray(),
+    start = Offset(0f, 64f),
+    end = Offset(64f, 0f),
+    tileMode = TileMode.Repeated,
+)
+
 internal fun difficultyOrder(value: String): Int = DIFFICULTIES.indexOfFirst { it.equals(value, true) }
 
 internal fun difficultyColor(value: String): Color = when (value.lowercase()) {
@@ -161,7 +186,7 @@ internal fun difficultyColor(value: String): Color = when (value.lowercase()) {
     "advanced" -> Color(0xFFE6BD31)
     "expert" -> Color(0xFFE34A47)
     "master" -> Color(0xFF9A50C9)
-    "ultima" -> Color(0xFF222222)
+    "ultima" -> ULTIMA_ACCENT_COLOR
     else -> Color(0xFF4AA8C2)
 }
 
