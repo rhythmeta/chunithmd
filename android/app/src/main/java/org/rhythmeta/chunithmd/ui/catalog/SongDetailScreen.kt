@@ -716,15 +716,11 @@ private fun ChartDetailCard(
     )
     val chartAccent = if (sheet.type.equals("we", true)) difficultyColor("world's end") else difficultyColor(sheet.difficulty)
     val isWorldsEnd = sheet.type.equals("we", true)
-    val worldsEndTextBrush = if (isWorldsEnd) {
-        Brush.horizontalGradient(WORLDS_END_GRADIENT_COLORS)
-    } else {
-        null
-    }
-    val chartBackgroundBrush = if (isWorldsEnd) {
-        Brush.horizontalGradient(WORLDS_END_GRADIENT_COLORS.map { it.copy(alpha = 0.24f) })
-    } else {
-        null
+    val isUltima = !isWorldsEnd && sheet.difficulty.equals("ultima", true)
+    val chartTextBrush = when {
+        isWorldsEnd -> Brush.horizontalGradient(WORLDS_END_GRADIENT_COLORS)
+        isUltima -> ultimaStripedBrush()
+        else -> null
     }
     val difficultyLabel = sheet.difficulty.trim().uppercase(Locale.ROOT).ifBlank { "未知难度" }
     val worldsEndStars = sheet.worldsEndStars()?.coerceIn(0, 5)
@@ -737,7 +733,6 @@ private fun ChartDetailCard(
     DetailCard(
         color = surfaceColor,
         borderColor = chartAccent.copy(alpha = 0.58f),
-        backgroundBrush = chartBackgroundBrush,
         modifier = Modifier.then(
             if (!expanded) {
                 Modifier.clickable(
@@ -776,6 +771,10 @@ private fun ChartDetailCard(
                             barModifier
                                 .clip(RoundedCornerShape(50.dp))
                                 .background(Brush.verticalGradient(WORLDS_END_GRADIENT_COLORS))
+                        } else if (isUltima) {
+                            barModifier
+                                .clip(RoundedCornerShape(50.dp))
+                                .background(ultimaStripedBrush())
                         } else {
                             barModifier.squircleSurface(
                                 color = chartAccent,
@@ -788,7 +787,7 @@ private fun ChartDetailCard(
             Column(modifier = Modifier.weight(1f)) {
                 MiuixText(
                     difficultyLabel,
-                    style = MiuixTheme.textStyles.title3.copy(brush = worldsEndTextBrush),
+                    style = MiuixTheme.textStyles.title3.copy(brush = chartTextBrush),
                     fontWeight = FontWeight.Bold,
                     color = chartAccent,
                 )
@@ -807,7 +806,7 @@ private fun ChartDetailCard(
             }
             MiuixText(
                 levelLabel,
-                style = MiuixTheme.textStyles.title3.copy(brush = worldsEndTextBrush),
+                style = MiuixTheme.textStyles.title3.copy(brush = chartTextBrush),
                 fontWeight = FontWeight.Bold,
                 color = chartAccent,
             )

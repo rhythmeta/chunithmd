@@ -25,6 +25,7 @@ internal fun SongScoreProgressDot(
         difficultyColor(sheet.difficulty)
     }
     val isWorldsEnd = sheet.type.equals("we", ignoreCase = true)
+    val isUltima = !isWorldsEnd && sheet.difficulty.equals("ultima", ignoreCase = true)
     val worldsEndBrush = if (isWorldsEnd) {
         Brush.sweepGradient(WORLDS_END_GRADIENT_COLORS)
     } else {
@@ -35,6 +36,8 @@ internal fun SongScoreProgressDot(
     } else {
         null
     }
+    val ultimaBrush = if (isUltima) ultimaStripedBrush() else null
+    val ultimaOuterBrush = if (isUltima) ultimaStripedBrush(alpha = 0.3f) else null
     val progress = scoreProgress(score?.score)
 
     Canvas(modifier = Modifier.size(8.dp)) {
@@ -42,6 +45,12 @@ internal fun SongScoreProgressDot(
         if (worldsEndOuterBrush != null) {
             drawCircle(
                 brush = worldsEndOuterBrush,
+                radius = (size.minDimension - outerStroke) / 2f,
+                style = Stroke(width = outerStroke),
+            )
+        } else if (ultimaOuterBrush != null) {
+            drawCircle(
+                brush = ultimaOuterBrush,
                 radius = (size.minDimension - outerStroke) / 2f,
                 style = Stroke(width = outerStroke),
             )
@@ -58,6 +67,16 @@ internal fun SongScoreProgressDot(
             if (worldsEndBrush != null) {
                 drawArc(
                     brush = worldsEndBrush,
+                    startAngle = -90f,
+                    sweepAngle = progress * 360f,
+                    useCenter = false,
+                    topLeft = Offset(inset, inset),
+                    size = Size(innerSize, innerSize),
+                    style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Butt),
+                )
+            } else if (ultimaBrush != null) {
+                drawArc(
+                    brush = ultimaBrush,
                     startAngle = -90f,
                     sweepAngle = progress * 360f,
                     useCenter = false,

@@ -124,6 +124,7 @@ internal fun CatalogFilterDialog(
                         onToggle = { value -> onSettingsChange(settings.copy(difficulties = settings.difficulties.toggled(value))) },
                         displayValue = { it.uppercase() },
                         rainbowValue = "world's end",
+                        stripedValue = "ultima",
                     )
                 }
             }
@@ -194,6 +195,7 @@ private fun CatalogFilterChipGroup(
     onToggle: (String) -> Unit,
     displayValue: (String) -> String = { it },
     rainbowValue: String? = null,
+    stripedValue: String? = null,
 ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -205,6 +207,7 @@ private fun CatalogFilterChipGroup(
                 selected = value in selectedValues,
                 color = colorForValue(value),
                 rainbow = value.equals(rainbowValue, ignoreCase = true),
+                striped = value.equals(stripedValue, ignoreCase = true),
                 onClick = { onToggle(value) },
             )
         }
@@ -217,6 +220,7 @@ private fun CatalogFilterChip(
     selected: Boolean,
     color: Color,
     rainbow: Boolean,
+    striped: Boolean,
     onClick: () -> Unit,
 ) {
     val backgroundColor by animateColorAsState(
@@ -224,7 +228,7 @@ private fun CatalogFilterChip(
         label = "catalog-filter-chip-background",
     )
     val borderColor by animateColorAsState(
-        targetValue = if (selected && rainbow) Color.White.copy(alpha = 0.72f)
+        targetValue = if (selected && (rainbow || striped)) Color.White.copy(alpha = 0.72f)
         else if (selected) color.copy(alpha = 0.45f)
         else MiuixTheme.colorScheme.onSurface.copy(alpha = 0.09f),
         label = "catalog-filter-chip-border",
@@ -240,6 +244,10 @@ private fun CatalogFilterChip(
                     Modifier
                         .clip(squircleShape(50.dp))
                         .background(Brush.horizontalGradient(WORLDS_END_FILTER_GRADIENT))
+                } else if (selected && striped) {
+                    Modifier
+                        .clip(squircleShape(50.dp))
+                        .background(ultimaStripedBrush())
                 } else {
                     Modifier.squircleSurface(color = backgroundColor, cornerRadius = 50.dp, extension = SquircleExtension)
                 },
@@ -260,7 +268,7 @@ private fun difficultyFilterColor(value: String, darkTheme: Boolean): Color = wh
     "advanced" -> Color(0xFFE6BD31)
     "expert" -> Color(0xFFE34A47)
     "master" -> Color(0xFF9A50C9)
-    "ultima" -> if (darkTheme) Color(0xFFB7B7C0) else Color(0xFF222222)
+    "ultima" -> ULTIMA_ACCENT_COLOR
     else -> Color(0xFF4AA8C2)
 }
 

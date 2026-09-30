@@ -1,6 +1,7 @@
 package org.rhythmeta.chunithmd.ui.best
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardActions
@@ -72,6 +73,7 @@ import org.rhythmeta.chunithmd.shared.buildBestTableEntries
 import org.rhythmeta.chunithmd.shared.calculatePlayerRating
 import org.rhythmeta.chunithmd.shared.latestPlayableVersion
 import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
+import org.rhythmeta.chunithmd.ui.catalog.ultimaStripedBrush
 import org.rhythmeta.chunithmd.ui.catalog.SongVisualUtils
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import top.yukonga.miuix.kmp.basic.Card
@@ -390,6 +392,7 @@ private fun BestTableEntryCard(
     onClick: () -> Unit,
 ) {
     val accent = difficultyColor(entry.difficulty)
+    val isUltima = entry.difficulty.equals("ultima", ignoreCase = true)
     val imageModel = remember(entry.imageName, jacketBaseUrl) {
         localJacketPath(entry.imageName)?.let(::File)
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${entry.imageName.trimStart('/')}" }
@@ -405,11 +408,20 @@ private fun BestTableEntryCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.height(52.dp).width(4.dp).squircleSurface(
-                    color = accent,
-                    cornerRadius = 2.dp,
-                    extension = SquircleExtension,
-                ),
+                Modifier
+                    .height(52.dp)
+                    .width(4.dp)
+                    .then(
+                        if (isUltima) {
+                            Modifier.clip(RoundedCornerShape(2.dp)).background(ultimaStripedBrush())
+                        } else {
+                            Modifier.squircleSurface(
+                                color = accent,
+                                cornerRadius = 2.dp,
+                                extension = SquircleExtension,
+                            )
+                        },
+                    ),
             )
             Spacer(Modifier.width(10.dp))
             Box(
