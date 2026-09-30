@@ -5,12 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +45,7 @@ import org.rhythmeta.chunithmd.ui.components.squircleShape
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.RangeSlider
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.squircle.squircleBorder
@@ -50,6 +53,7 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 internal fun CatalogFilterDialog(
     show: Boolean,
     bundle: CatalogBundle,
@@ -116,15 +120,59 @@ internal fun CatalogFilterDialog(
                 }
             }
             item {
-                CatalogFilterSection("难度") {
-                    CatalogFilterChipGroup(
-                        values = DIFFICULTIES,
-                        selectedValues = settings.difficulties,
-                        colorForValue = { difficultyFilterColor(it, darkTheme) },
-                        onToggle = { value -> onSettingsChange(settings.copy(difficulties = settings.difficulties.toggled(value))) },
-                        displayValue = { it.uppercase() },
-                        rainbowValue = "world's end",
-                        stripedValue = "ultima",
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CatalogFilterSection("难度") {
+                        CatalogFilterChipGroup(
+                            values = DIFFICULTIES,
+                            selectedValues = settings.difficulties,
+                            colorForValue = { difficultyFilterColor(it, darkTheme) },
+                            onToggle = { value -> onSettingsChange(settings.copy(difficulties = settings.difficulties.toggled(value))) },
+                            displayValue = { it.uppercase() },
+                            rainbowValue = "world's end",
+                            stripedValue = "ultima",
+                        )
+                        CatalogFilterDivider()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "定数区间",
+                                style = MiuixTheme.textStyles.footnote1,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            )
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                text = "${settings.minLevel} - ${settings.maxLevel}",
+                                style = MiuixTheme.textStyles.body1,
+                                color = if (settings.difficulties.isEmpty()) {
+                                    MiuixTheme.colorScheme.onSurfaceVariantSummary
+                                } else {
+                                    MiuixTheme.colorScheme.primary
+                                },
+                            )
+                        }
+                        RangeSlider(
+                            value = settings.minLevel.toFloat()..settings.maxLevel.toFloat(),
+                            onValueChange = { range ->
+                                onSettingsChange(
+                                    settings.copy(
+                                        minLevel = range.start.toSteppedLevel(),
+                                        maxLevel = range.endInclusive.toSteppedLevel(),
+                                    ),
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = settings.difficulties.isNotEmpty(),
+                            valueRange = 1f..15f,
+                            steps = 139,
+                        )
+                    }
+                    Text(
+                        text = "必须选择至少一个参考难度。系统将筛选出包含该难度、且该难度定数在下方区间内的歌曲。",
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier.padding(horizontal = 4.dp),
                     )
                 }
             }
@@ -146,6 +194,16 @@ internal fun CatalogFilterDialog(
                         colorForValue = { MiuixTheme.colorScheme.primary },
                         onToggle = { value -> onSettingsChange(settings.copy(versions = settings.versions.toggled(value))) },
                         displayValue = CatalogVersionFormatter::badge,
+                    )
+                }
+            }
+            item {
+                CatalogFilterSection("谱面类型") {
+                    CatalogFilterChipGroup(
+                        values = CatalogQuery.availableTypes(bundle),
+                        selectedValues = settings.types,
+                        colorForValue = { MiuixTheme.colorScheme.primary },
+                        onToggle = { value -> onSettingsChange(settings.copy(types = settings.types.toggled(value))) },
                     )
                 }
             }
@@ -188,6 +246,7 @@ private fun CatalogFilterToggleRow(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun CatalogFilterChipGroup(
     values: List<String>,
     selectedValues: Set<String>,
@@ -262,6 +321,18 @@ private fun CatalogFilterChip(
 }
 
 private fun Set<String>.toggled(value: String): Set<String> = if (value in this) this - value else this + value
+
+@Composable
+private fun CatalogFilterDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(MiuixTheme.colorScheme.onSurface.copy(alpha = 0.1f)),
+    )
+}
+
+private fun Float.toSteppedLevel(): Double = kotlin.math.round(this * 10f).toInt() / 10.0
 
 private fun difficultyFilterColor(value: String, darkTheme: Boolean): Color = when (value.lowercase()) {
     "basic" -> Color(0xFF65B94A)

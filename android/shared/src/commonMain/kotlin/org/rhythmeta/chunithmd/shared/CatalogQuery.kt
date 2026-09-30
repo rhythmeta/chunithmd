@@ -12,6 +12,8 @@ data class CatalogFilters(
     val versions: Set<String> = emptySet(),
     val difficulties: Set<String> = emptySet(),
     val types: Set<String> = emptySet(),
+    val minLevel: Double = 1.0,
+    val maxLevel: Double = 16.0,
     val playableOnly: Boolean = false,
     val hideDeleted: Boolean = false,
     val favoritesOnly: Boolean = false,
@@ -53,7 +55,12 @@ object CatalogQuery {
             matchesSearch &&
                 (selectedCategories.isEmpty() || song.category in selectedCategories) &&
                 (filters.versions.isEmpty() || song.version in filters.versions) &&
-                (filters.difficulties.isEmpty() || matchesDifficultyFilter(song, filters.difficulties)) &&
+                (filters.difficulties.isEmpty() || matchesDifficultyFilter(
+                    song = song,
+                    selected = filters.difficulties,
+                    minLevel = filters.minLevel,
+                    maxLevel = filters.maxLevel,
+                )) &&
                 (filters.types.isEmpty() || song.sheets.any { it.normalizedType() in filters.types }) &&
                 (!filters.playableOnly || song.isPlayableIn(playableRegion)) &&
                 (!filters.hideDeleted || song.isPlayableInAnyServer()) &&
@@ -121,12 +128,20 @@ object CatalogQuery {
         }
     }
 
-    private fun matchesDifficultyFilter(song: CatalogSong, selected: Set<String>): Boolean {
+    private fun matchesDifficultyFilter(
+        song: CatalogSong,
+        selected: Set<String>,
+        minLevel: Double,
+        maxLevel: Double,
+    ): Boolean {
         return selected.any { difficulty ->
             if (difficulty.equals("world's end", ignoreCase = true)) {
                 song.isWorldsEnd()
             } else {
-                song.sheets.any { it.normalizedDifficulty() == difficulty }
+                song.sheets.any { sheet ->
+                    sheet.normalizedDifficulty() == difficulty &&
+                        sheet.levelValue != null && sheet.levelValue in minLevel..maxLevel
+                }
             }
         }
     }

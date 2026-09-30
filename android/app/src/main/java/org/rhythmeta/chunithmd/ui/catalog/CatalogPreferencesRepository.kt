@@ -3,6 +3,7 @@ package org.rhythmeta.chunithmd.ui.catalog
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -28,6 +29,8 @@ class CatalogPreferencesRepository(private val context: Context) : CatalogPrefer
                 versions = values[VersionsKey].orEmpty(),
                 difficulties = values[DifficultiesKey].orEmpty(),
                 types = values[TypesKey].orEmpty(),
+                minLevel = values[MinLevelKey]?.toDouble() ?: 1.0,
+                maxLevel = values[MaxLevelKey]?.toDouble() ?: 16.0,
                 playableOnly = values[PlayableOnlyKey] ?: false,
                 hideDeleted = values[HideDeletedKey] ?: false,
                 favoritesOnly = values[FavoritesOnlyKey] ?: false,
@@ -49,6 +52,8 @@ class CatalogPreferencesRepository(private val context: Context) : CatalogPrefer
             values[VersionsKey] = filters.versions
             values[DifficultiesKey] = filters.difficulties
             values[TypesKey] = filters.types
+            values[MinLevelKey] = filters.minLevel.toFloat()
+            values[MaxLevelKey] = filters.maxLevel.toFloat()
             values[PlayableOnlyKey] = filters.playableOnly
             values[HideDeletedKey] = filters.hideDeleted
             values[FavoritesOnlyKey] = filters.favoritesOnly
@@ -62,6 +67,8 @@ class CatalogPreferencesRepository(private val context: Context) : CatalogPrefer
         val VersionsKey = stringSetPreferencesKey("versions")
         val DifficultiesKey = stringSetPreferencesKey("difficulties")
         val TypesKey = stringSetPreferencesKey("types")
+        val MinLevelKey = floatPreferencesKey("min_level")
+        val MaxLevelKey = floatPreferencesKey("max_level")
         val PlayableOnlyKey = booleanPreferencesKey("playable_only")
         val HideDeletedKey = booleanPreferencesKey("hide_deleted")
         val FavoritesOnlyKey = booleanPreferencesKey("favorites_only")
