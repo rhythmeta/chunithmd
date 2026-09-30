@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -57,7 +58,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import java.io.File
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.BestTableEntry
@@ -138,15 +141,37 @@ fun BestTableScreen(
     val versionLabels = versionOptions.map { version ->
         version?.let(CatalogVersionFormatter::badge) ?: "自动"
     }
-    val entries = remember(bundle, records, activeServer, selectedVersion) {
-        buildBestTableEntries(bundle, records, activeServer, selectedVersion)
+    val entries by produceState<List<BestTableEntry>?>(
+        null,
+        bundle,
+        records,
+        activeServer,
+        selectedVersion,
+    ) {
+        value = null
+        value = withContext(Dispatchers.Default) {
+            buildBestTableEntries(bundle, records, activeServer, selectedVersion)
+        }
     }
-    val summary = remember(entries, bestCount, newCount) {
-        calculatePlayerRating(entries.map { entry ->
+    val loadedEntries = entries
+    if (loadedEntries == null) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            CircularProgressIndicator()
+            Spacer(Modifier.height(12.dp))
+            Text("正在计算 Best 表", style = MiuixTheme.textStyles.body1)
+        }
+        return
+    }
+    val summary = remember(loadedEntries, bestCount, newCount) {
+        calculatePlayerRating(loadedEntries.map { entry ->
             RatingChartEntry(entry.chartId, entry.songId, entry.rating, entry.isNew)
         }, bestSlotCount = bestCount, newSlotCount = newCount)
     }
-    val entriesById = remember(entries) { entries.associateBy(BestTableEntry::chartId) }
+    val entriesById = remember(loadedEntries) { loadedEntries.associateBy(BestTableEntry::chartId) }
     val bestEntries = summary.best30.mapNotNull { entriesById[it.chartId] }
     val newEntries = summary.new20.mapNotNull { entriesById[it.chartId] }
     val listState = rememberLazyListState()
