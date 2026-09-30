@@ -22,7 +22,9 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -34,6 +36,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.DocumentScanner
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.Search
@@ -124,6 +127,9 @@ import org.rhythmeta.chunithmd.shared.ScoreRecord
 import org.rhythmeta.chunithmd.shared.BestTablePreferences
 import org.rhythmeta.chunithmd.ui.best.BestTableHomeCard
 import org.rhythmeta.chunithmd.ui.best.BestTableScreen
+import org.rhythmeta.chunithmd.ui.random.RandomSongHomeCard
+import org.rhythmeta.chunithmd.ui.random.RandomSongScreen
+import org.rhythmeta.chunithmd.ui.random.RandomSongSessionState
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -155,6 +161,7 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Resources : AppRoute
     @Serializable data object Profiles : AppRoute
     @Serializable data object BestTable : AppRoute
+    @Serializable data object RandomSong : AppRoute
     @Serializable data class SongDetail(val songId: String) : AppRoute
 }
 
@@ -292,7 +299,10 @@ private fun CatalogApp(
     var sortOpen by remember { mutableStateOf(false) }
     var profileCreateRequested by remember { mutableStateOf(false) }
     var bestTableShareRequested by remember { mutableStateOf(false) }
+    var randomSongFilterRequested by remember { mutableStateOf(false) }
+    var randomSongFilterActive by remember { mutableStateOf(false) }
     var quickEditProfile by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.UserProfile?>(null) }
+    val randomSongSessionState = remember { RandomSongSessionState() }
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
     val profileScores by scoreRepository.observeCurrentProfileRecords().collectAsState(initial = emptyList())
     val bestTablePreferences by bestTablePreferencesRepository.preferences.collectAsState(initial = BestTablePreferences())
@@ -331,6 +341,7 @@ private fun CatalogApp(
     val themeTopBarScrollBehavior = MiuixScrollBehavior()
     val resourcesTopBarScrollBehavior = MiuixScrollBehavior()
     val bestTopBarScrollBehavior = MiuixScrollBehavior()
+    val randomSongTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -401,7 +412,9 @@ private fun CatalogApp(
         }.orEmpty()
     }
     val filterActive = filters.categories.isNotEmpty() || filters.versions.isNotEmpty() ||
-        filters.difficulties.isNotEmpty() || filters.types.isNotEmpty() || filters.playableOnly || filters.hideDeleted || filters.favoritesOnly
+        filters.difficulties.isNotEmpty() || filters.types.isNotEmpty() ||
+        filters.minLevel != 1.0 || filters.maxLevel != 16.0 ||
+        filters.playableOnly || filters.hideDeleted || filters.favoritesOnly
     // Keep the detail page in the same navigation state as the root pages so its
     // enter/exit transition is observable and back can return to Settings.
     val navBackStack = rememberNavBackStack<AppRoute>(AppRoute.Home)
@@ -454,12 +467,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = when (page) { 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = when (page) { 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page == 4 || page == 5 || page == 6 || page == 7) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page == 4 || page == 5 || page == 6 || page == 7 || page == 8) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
@@ -494,6 +507,15 @@ private fun CatalogApp(
                         MiuixIcon(Icons.Rounded.IosShare, contentDescription = "分享 Best Table")
                     }
                 }
+                if (page == 8) {
+                    MiuixIconButton(onClick = { randomSongFilterRequested = true }) {
+                        MiuixIcon(
+                            Icons.Rounded.FilterList,
+                            contentDescription = "筛选",
+                            tint = if (randomSongFilterActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
             },
             bottomContent = {
                 if (page == 2 && bundle != null) {
@@ -519,6 +541,7 @@ private fun CatalogApp(
                 0 -> homeTopBarScrollBehavior
                 1 -> scanTopBarScrollBehavior
                 2 -> catalogTopBarScrollBehavior
+                8 -> randomSongTopBarScrollBehavior
                 else -> settingsTopBarScrollBehavior
             }
             AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
@@ -530,6 +553,18 @@ private fun CatalogApp(
                         newCount = bestTablePreferences.newCount,
                         onClick = { navBackStack.add(AppRoute.BestTable) },
                     )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                    ) {
+                        RandomSongHomeCard(
+                            modifier = Modifier.weight(1f),
+                            onClick = { navBackStack.add(AppRoute.RandomSong) },
+                        )
+                        Spacer(Modifier.weight(1f))
+                    }
                 }
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
                 2 -> CatalogScreen(
@@ -576,7 +611,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable) {
+            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail) {
                 navBackStack.removeLastOrNull()
@@ -684,6 +719,28 @@ private fun CatalogApp(
                     profileName = activeProfile?.name,
                     shareRequested = bestTableShareRequested,
                     onShareRequestHandled = { bestTableShareRequested = false },
+                )
+            }
+        }
+        entry<AppRoute.RandomSong>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(8, randomSongTopBarScrollBehavior) { padding, topBarScrollConnection ->
+                RandomSongScreen(
+                    bundle = bundle,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    scores = profileScores,
+                    favoriteSongIds = favoriteSongIds,
+                    playableRegion = playableRegion,
+                    sessionState = randomSongSessionState,
+                    filterRequested = randomSongFilterRequested,
+                    onFilterRequestHandled = { randomSongFilterRequested = false },
+                    onFilterActiveChanged = { randomSongFilterActive = it },
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = topBarScrollConnection,
+                    onOpenSong = { songId -> navBackStack.add(AppRoute.SongDetail(songId)) },
                 )
             }
         }

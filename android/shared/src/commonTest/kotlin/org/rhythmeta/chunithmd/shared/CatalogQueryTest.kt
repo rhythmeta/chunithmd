@@ -93,6 +93,55 @@ class CatalogQueryTest {
     }
 
     @Test
+    fun difficultyFilterUsesTheSelectedConstantRange() {
+        assertEquals(
+            listOf("a"),
+            CatalogQuery.filterAndSort(
+                bundle,
+                filters = CatalogFilters(
+                    difficulties = setOf("master"),
+                    minLevel = 13.0,
+                    maxLevel = 13.5,
+                ),
+            ).map { it.songId },
+        )
+        assertEquals(
+            listOf("offline"),
+            CatalogQuery.filterAndSort(
+                bundle,
+                filters = CatalogFilters(
+                    difficulties = setOf("master"),
+                    minLevel = 13.1,
+                    maxLevel = 14.0,
+                ),
+            ).map { it.songId },
+        )
+    }
+
+    @Test
+    fun worldsEndDifficultyIgnoresTheStandardConstantRange() {
+        val catalog = bundle.copy(
+            catalog = bundle.catalog.copy(
+                songs = listOf(
+                    song("we", "World's End", "AIR", 12.0, "jp", type = "we", level = "☆", levelValue = 101.0),
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf("we"),
+            CatalogQuery.filterAndSort(
+                catalog,
+                filters = CatalogFilters(
+                    difficulties = setOf("world's end"),
+                    minLevel = 14.0,
+                    maxLevel = 16.0,
+                ),
+            ).map { it.songId },
+        )
+    }
+
+    @Test
     fun quickFiltersUseTheSelectedRegionAndHideSongsUnavailableEverywhere() {
         val catalog = bundle.copy(
             catalog = bundle.catalog.copy(
