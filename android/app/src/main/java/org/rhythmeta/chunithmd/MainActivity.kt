@@ -418,6 +418,11 @@ private fun CatalogApp(
     // Keep the detail page in the same navigation state as the root pages so its
     // enter/exit transition is observable and back can return to Settings.
     val navBackStack = rememberNavBackStack<AppRoute>(AppRoute.Home)
+    fun pushRoute(route: AppRoute) {
+        if (navBackStack.lastOrNull() != route) {
+            navBackStack.add(route)
+        }
+    }
     fun navigateToTab(index: Int) {
         animateRootTransition = true
         selectedTab = index
@@ -551,7 +556,7 @@ private fun CatalogApp(
                     BestTableHomeCard(
                         bestCount = bestTablePreferences.bestCount,
                         newCount = bestTablePreferences.newCount,
-                        onClick = { navBackStack.add(AppRoute.BestTable) },
+                        onClick = { pushRoute(AppRoute.BestTable) },
                     )
                     Row(
                         modifier = Modifier
@@ -561,7 +566,7 @@ private fun CatalogApp(
                     ) {
                         RandomSongHomeCard(
                             modifier = Modifier.weight(1f),
-                            onClick = { navBackStack.add(AppRoute.RandomSong) },
+                            onClick = { pushRoute(AppRoute.RandomSong) },
                         )
                         Spacer(Modifier.weight(1f))
                     }
@@ -582,16 +587,16 @@ private fun CatalogApp(
                     searchScrollConnection = searchScrollConnection,
                     topBarScrollConnection = topBarScrollConnection,
                     onRetry = ::refresh,
-                    onSongClick = { song -> navBackStack.add(AppRoute.SongDetail(song.songId)) },
+                    onSongClick = { song -> pushRoute(AppRoute.SongDetail(song.songId)) },
                 )
                 else -> SettingsHome(
                     Modifier.padding(padding).fillMaxSize()
                         .background(MiuixTheme.colorScheme.surface)
                         .kyantLayerBackdrop(navigationBackdrop)
                         .nestedScroll(topBarScrollConnection),
-                    { navBackStack.add(AppRoute.Theme) },
-                    { navBackStack.add(AppRoute.Resources) },
-                    { navBackStack.add(AppRoute.Profiles) },
+                    { pushRoute(AppRoute.Theme) },
+                    { pushRoute(AppRoute.Resources) },
+                    { pushRoute(AppRoute.Profiles) },
                 )
             }
         }
@@ -714,7 +719,7 @@ private fun CatalogApp(
                     localJacketPath = repository::localJacketPath,
                     contentTopPadding = padding.calculateTopPadding(),
                     topBarScrollConnection = topBarScrollConnection,
-                    onOpenSong = { songId -> navBackStack.add(AppRoute.SongDetail(songId)) },
+                    onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
                     preferencesRepository = bestTablePreferencesRepository,
                     profileName = activeProfile?.name,
                     shareRequested = bestTableShareRequested,
@@ -740,7 +745,7 @@ private fun CatalogApp(
                     onFilterActiveChanged = { randomSongFilterActive = it },
                     contentTopPadding = padding.calculateTopPadding(),
                     topBarScrollConnection = topBarScrollConnection,
-                    onOpenSong = { songId -> navBackStack.add(AppRoute.SongDetail(songId)) },
+                    onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
                 )
             }
         }
