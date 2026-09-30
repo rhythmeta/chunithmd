@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -130,6 +129,8 @@ import org.rhythmeta.chunithmd.ui.best.BestTableScreen
 import org.rhythmeta.chunithmd.ui.random.RandomSongHomeCard
 import org.rhythmeta.chunithmd.ui.random.RandomSongScreen
 import org.rhythmeta.chunithmd.ui.random.RandomSongSessionState
+import org.rhythmeta.chunithmd.ui.recommendation.RecommendationHomeCard
+import org.rhythmeta.chunithmd.ui.recommendation.RecommendationScreen
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -162,6 +163,7 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Profiles : AppRoute
     @Serializable data object BestTable : AppRoute
     @Serializable data object RandomSong : AppRoute
+    @Serializable data object Recommendations : AppRoute
     @Serializable data class SongDetail(val songId: String) : AppRoute
 }
 
@@ -301,6 +303,8 @@ private fun CatalogApp(
     var bestTableShareRequested by remember { mutableStateOf(false) }
     var randomSongFilterRequested by remember { mutableStateOf(false) }
     var randomSongFilterActive by remember { mutableStateOf(false) }
+    var recommendationSelectedPage by rememberSaveable { mutableIntStateOf(0) }
+    var recommendationSwitcherVisible by rememberSaveable { mutableStateOf(true) }
     var quickEditProfile by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.UserProfile?>(null) }
     val randomSongSessionState = remember { RandomSongSessionState() }
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
@@ -318,6 +322,48 @@ private fun CatalogApp(
     }
     val catalogListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val recommendationSwitcherShowThreshold = with(LocalDensity.current) { 56.dp.toPx() }
+    val recommendationSwitcherHideThreshold = with(LocalDensity.current) { 36.dp.toPx() }
+    val recommendationSwitcherScrollConnection = remember(
+        recommendationSwitcherShowThreshold,
+        recommendationSwitcherHideThreshold,
+    ) {
+        object : NestedScrollConnection {
+            private var downwardDistance = 0f
+            private var upwardDistance = 0f
+
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (source != NestedScrollSource.UserInput) return super.onPreScroll(available, source)
+                when {
+                    available.y > 0f -> {
+                        upwardDistance = 0f
+                        if (recommendationSwitcherVisible) {
+                            downwardDistance = 0f
+                        } else {
+                            downwardDistance += available.y
+                            if (downwardDistance >= recommendationSwitcherShowThreshold) {
+                                recommendationSwitcherVisible = true
+                                downwardDistance = 0f
+                            }
+                        }
+                    }
+                    available.y < 0f -> {
+                        downwardDistance = 0f
+                        if (recommendationSwitcherVisible) {
+                            upwardDistance -= available.y
+                            if (upwardDistance >= recommendationSwitcherHideThreshold) {
+                                recommendationSwitcherVisible = false
+                                upwardDistance = 0f
+                            }
+                        } else {
+                            upwardDistance = 0f
+                        }
+                    }
+                }
+                return super.onPreScroll(available, source)
+            }
+        }
+    }
 
     LaunchedEffect(catalogPreferencesRepository) {
         val saved = catalogPreferencesRepository.preferences.first()
@@ -342,6 +388,7 @@ private fun CatalogApp(
     val resourcesTopBarScrollBehavior = MiuixScrollBehavior()
     val bestTopBarScrollBehavior = MiuixScrollBehavior()
     val randomSongTopBarScrollBehavior = MiuixScrollBehavior()
+    val recommendationTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -419,6 +466,7 @@ private fun CatalogApp(
     // enter/exit transition is observable and back can return to Settings.
     val navBackStack = rememberNavBackStack<AppRoute>(AppRoute.Home)
     fun pushRoute(route: AppRoute) {
+        if (route == AppRoute.Recommendations) recommendationSwitcherVisible = true
         if (navBackStack.lastOrNull() != route) {
             navBackStack.add(route)
         }
@@ -472,12 +520,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = when (page) { 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = when (page) { 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page == 4 || page == 5 || page == 6 || page == 7 || page == 8) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page == 4 || page == 5 || page == 6 || page == 7 || page == 8 || page == 9) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
@@ -534,6 +582,13 @@ private fun CatalogApp(
                         interactionSource = searchInteractionSource,
                     )
                 }
+                if (page == 9) {
+                    org.rhythmeta.chunithmd.ui.recommendation.RecommendationPageSwitcher(
+                        selectedPage = recommendationSelectedPage,
+                        visible = recommendationSwitcherVisible,
+                        onSelectedPageChange = { recommendationSelectedPage = it },
+                    )
+                }
             },
             content = content,
         )
@@ -547,6 +602,7 @@ private fun CatalogApp(
                 1 -> scanTopBarScrollBehavior
                 2 -> catalogTopBarScrollBehavior
                 8 -> randomSongTopBarScrollBehavior
+                9 -> recommendationTopBarScrollBehavior
                 else -> settingsTopBarScrollBehavior
             }
             AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
@@ -568,7 +624,10 @@ private fun CatalogApp(
                             modifier = Modifier.weight(1f),
                             onClick = { pushRoute(AppRoute.RandomSong) },
                         )
-                        Spacer(Modifier.weight(1f))
+                        RecommendationHomeCard(
+                            modifier = Modifier.weight(1f),
+                            onClick = { pushRoute(AppRoute.Recommendations) },
+                        )
                     }
                 }
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
@@ -616,7 +675,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong) {
+            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail) {
                 navBackStack.removeLastOrNull()
@@ -745,6 +804,26 @@ private fun CatalogApp(
                     onFilterActiveChanged = { randomSongFilterActive = it },
                     contentTopPadding = padding.calculateTopPadding(),
                     topBarScrollConnection = topBarScrollConnection,
+                    onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
+                )
+            }
+        }
+        entry<AppRoute.Recommendations>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(9, recommendationTopBarScrollBehavior) { padding, topBarScrollConnection ->
+                RecommendationScreen(
+                    bundle = bundle,
+                    records = profileScores,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                    preferences = bestTablePreferences,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = topBarScrollConnection,
+                    switcherScrollConnection = recommendationSwitcherScrollConnection,
+                    selectedPage = recommendationSelectedPage,
                     onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
                 )
             }
