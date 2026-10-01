@@ -27,6 +27,7 @@ fun SettingsHome(
     onAppearance: () -> Unit,
     onResources: () -> Unit,
     onProfiles: () -> Unit,
+    onAccount: () -> Unit,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -34,6 +35,7 @@ fun SettingsHome(
     ) {
         item {
             SettingsSection(title = "用户") {
+                SettingsRow(icon=Icons.Rounded.People, title="Rhythmeta 账号", summary="登录、备份与恢复", onClick=onAccount)
                 SettingsRow(
                     icon = Icons.Rounded.People,
                     title = "用户档案",

@@ -4,9 +4,7 @@
 
 - `chunithmd` is the CHUNITHM counterpart of `maimaid` under the Rhythmeta ecosystem.
 - The project is ready for UI and client implementation. The authoritative data sources are considered sufficiently settled for current feature work.
-- Do not prematurely lock in deferred backend, static-bundle, or synchronization decisions that are still explicitly marked as deferred below.
 - Agents may freely create new Android UI files, including screens, components, navigation shells, and supporting presentation code, when implementing or restructuring the Android app.
-- The immediate next planning topic is the `chunithmd` static bundle build and publication flow.
 
 ## Client architecture
 
@@ -66,54 +64,17 @@ Before implementation, explicitly choose:
 
 When modifying an existing feature, preserve these architectural boundaries unless there is a documented reason to change them.
 
-## Online scope
+## Online scope and deployment
 
-- The first `chunithmd` online scope is limited to the account system and community aliases. Other online features are out of scope until separately approved.
-- Community aliases should follow the existing `maimaid` product and data-model direction, while meeting a serverless deployment requirement.
-- “Serverless” is a deployment/runtime constraint to resolve in the service design. It must include a concrete choice of runtime, database/storage, migrations, scheduled jobs, rate limiting, and consistency behavior; it is not satisfied by merely placing a conventional stateful server behind a function URL.
-
-## Rhythmeta account continuity
-
-- Existing `maimaid` accounts should be upgraded into Rhythmeta accounts without requiring users to create a second account.
-- Account identity must remain stable across the upgrade. Preserve the canonical user identifier and existing credentials or provide an explicit, secure migration path.
-- The shared authentication contract must define token issuer/audience, signing keys and rotation, refresh-token/session invalidation, email verification, MFA/passkeys, username/handle uniqueness, and rollback/compatibility behavior before either client is implemented.
-- A hostname or route change alone is not an account migration. Do not fork the user table or create a second independent identity namespace for `chunithmd`.
-
-## API namespace
-
-- Public API base paths are unified under the Rhythmeta host:
-  - `https://api.rhythmeta.org/maimaid/v1`
-  - `https://api.rhythmeta.org/chunithmd/v1`
-- The exact behavior of shared authentication routes, health checks, documentation, internal jobs, redirects, and legacy paths remains a design item. Versioned resource routes should not silently mix the two product namespaces.
-- API schemas, error envelopes, pagination, auth headers, and compatibility rules should be shared where the contract is common and product-scoped where data is product-specific.
-
-## `chunithmd` backend direction
-
-- Use ElysiaJS 2 for the `chunithmd` service, with generated API documentation as a primary benefit.
-- Confirm the actual Elysia 2 release, Bun/runtime support, OpenAPI plugin/version, validation/schema library, and serverless adapter before scaffolding the backend.
-- Generated documentation must be derived from the registered route schemas and checked in CI; it must not become a second hand-maintained API contract.
-
-## Review of the current plan
-
-The plan is coherent as a direction, but these points need an explicit decision before implementation:
-
-1. **KMP boundary:** “one logic, native UI” does not by itself decide what is shared. Define shared modules and native escape hatches, especially for secure credential storage, camera/OCR, background work, database access, and deep links.
-2. **Account migration:** define whether `maimaid` and `chunithmd` call one shared auth service or two services that validate the same Rhythmeta issuer. Plan a staged migration and legacy endpoint/token compatibility window.
-3. **Serverless aliases:** the current `maimaid` backend uses Bun/Hono, Prisma, PostgreSQL, and stateful community-alias workflows. Reusing its data model is reasonable, but its runtime and job/storage assumptions do not automatically satisfy serverless. Decide what is shared and what is reimplemented at the edge.
-4. **API path migration:** changing to `/maimaid/v1` and `/chunithmd/v1` affects clients, CORS, docs, reverse-proxy rules, monitoring, and every generated URL. Keep an explicit compatibility or redirect plan for existing `maimaid` clients.
-5. **Product scope wording:** the first online scope should be recorded as “accounts plus community aliases”; all other online features remain deferred. Local/offline catalog and static data are separate from this online-scope statement.
-6. **Data-source gate:** do not select schemas, identifiers, bundle formats, or synchronization behavior for `chunithmd` until the authoritative data sources, licensing/attribution requirements, update cadence, and reproducible build inputs are confirmed.
-
-## Deferred decisions
-
-- Deferred decisions listed below do not block Android UI implementation. They only constrain code that would depend on those decisions.
-
-- Authoritative CHUNITHM song/chart data sources and source precedence.
-- Static bundle format, manifest/versioning, compression, signatures/checksums, delta updates, and rollback.
-- Static asset hosting and whether the bundle is embedded, downloaded, or both.
-- Serverless provider/runtime and its database, object storage, queue/cron, and observability choices.
-- Shared Rhythmeta auth service topology and the exact `maimaid` migration procedure.
-- KMP dependency versions and minimum OS/SDK support.
+- Rhythmeta accounts, community aliases and manual personal-data backups are approved for both games.
+- The shared backend is https://github.com/rhythmeta/rhythmeta-backend: Hono on Cloudflare Workers with native D1 SQL and the existing public R2 bucket. This supersedes the earlier Elysia proposal.
+- The dashboard is https://github.com/rhythmeta/rhythmeta-dashboard, deployed at https://dash.rhythmeta.org.
+- APIs: https://api.rhythmeta.org/auth/v1 for accounts; `/maimaid/v1` and `/chunithmd/v1` for game-scoped resources. Legacy `/v1/*` returns 410.
+- Existing account IDs, password credentials, MFA and passkeys are preserved. Sessions were invalidated at migration. Native login uses state + PKCE S256 and exact registered callbacks.
+- Manual backups use shared `backup.proto`, gzip, SHA-256, 64 MiB compressed/512 MiB raw limits and the last three snapshots per user/game. Restore replaces personal data and uses a durable rollback journal. Static data and credentials are excluded.
+- KMP `commonMain` owns authentication, network requests, serialization, validation and backup/recovery coordination. Android owns Room/DataStore/Keystore adapters; iOS owns Keychain/protected file adapters and SwiftUI. The current iOS catalog shell preserves complete imported snapshots until personal-data UI is added.
+- Each game repository owns static catalog publication and emits a public `community-index.json`; backend services do not build catalogs.
+- Independent backend/dashboard validation and deployment workflows own their releases. Cloudflare deployment credentials are organization Actions secrets.
 
 ## UI file creation rule
 

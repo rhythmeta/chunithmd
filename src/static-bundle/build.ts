@@ -102,6 +102,12 @@ export const buildStaticBundle = async (options: BuildOptions) => {
 	await mkdir(path.join(options.outputDirectory, "jackets"), { recursive: true });
 	await writeFile(path.join(options.outputDirectory, "manifest.json"), `${JSON.stringify(manifest)}\n`);
 	await writeFile(path.join(options.outputDirectory, bundlePath.slice(1)), bundleBytes);
+ await writeFile(path.join(options.outputDirectory, "community-index.json"), JSON.stringify({
+  schemaVersion: 1, game: "chunithmd",
+  songs: Object.fromEntries(payload.catalog.songs.map(song => [song.songId, payload.aliases[song.songId] ?? []])),
+  catalog: payload.catalog.songs.map(song => ({songIdentifier: song.songId, title: song.title, artist: song.artist, coverUrl: `${staticBaseUrl}/jackets/${encodeURIComponent(song.imageName)}`})),
+ }));
+ await writeFile(path.join(options.outputDirectory, "_headers"), "/*\n  Access-Control-Allow-Origin: *\n/community-index.json\n  Cache-Control: public, max-age=300\n");
 
 	if (options.downloadImages !== false) {
 		const imageNames = Array.from(new Set(primaryValue.songs.map((song) => song.imageName))).filter(Boolean);

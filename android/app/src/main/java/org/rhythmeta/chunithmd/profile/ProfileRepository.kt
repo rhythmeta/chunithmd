@@ -26,7 +26,11 @@ class ProfileRepository(context: Context) {
     private val dao = database.profiles()
     private val mutex = Mutex()
 
-    // TODO: add account binding/cloud sync without changing the local profile contract.
+    suspend fun exportProfiles(): List<UserProfile> = dao.observeAllOnce().map(UserProfileEntity::toShared)
+
+    suspend fun replaceProfiles(profiles: List<UserProfile>) = mutex.withLock {
+        database.withTransaction { dao.deleteAll(); profiles.forEach { dao.upsert(it.toEntity()) } }
+    }
 
     val profiles: Flow<List<UserProfile>> = dao.observeAll().map { entities -> entities.map(UserProfileEntity::toShared).sortedForDisplay() }
     val activeProfile: Flow<UserProfile?> = dao.observeActive().map { it?.toShared() }

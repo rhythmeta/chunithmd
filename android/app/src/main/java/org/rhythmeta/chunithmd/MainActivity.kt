@@ -2,6 +2,7 @@ package org.rhythmeta.chunithmd
 
 import android.os.Bundle
 import androidx.activity.BackEventCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
@@ -180,6 +181,7 @@ private sealed interface AppRoute : NavKey {
 //    @Serializable data object Settings : AppRoute
     @Serializable data object Theme : AppRoute
     @Serializable data object Resources : AppRoute
+    @Serializable data object Account : AppRoute
     @Serializable data object Profiles : AppRoute
     @Serializable data object BestTable : AppRoute
     @Serializable data object RandomSong : AppRoute
@@ -260,6 +262,20 @@ private fun NavigationEventGate(
 }
 
 class MainActivity : ComponentActivity() {
+    private val accountClient by lazy { org.rhythmeta.chunithmd.shared.account.RhythmetaClient(org.rhythmeta.chunithmd.account.AndroidSecretStore(applicationContext)) }
+    private fun receiveAuth(intent: android.content.Intent?) {
+        val url = intent?.data?.takeIf { it.scheme == "chunithmd" && it.host == "auth" } ?: return
+        lifecycleScope.launch {
+            try { accountClient.handleCallback(url.toString()) }
+            catch(error: Exception) { android.widget.Toast.makeText(this@MainActivity, error.message ?: "登录失败", android.widget.Toast.LENGTH_LONG).show() }
+        }
+    }
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        receiveAuth(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
@@ -282,7 +298,23 @@ class MainActivity : ComponentActivity() {
         val catalogPreferencesRepository = CatalogPreferencesRepository(applicationContext)
         val themeRepository = ThemePreferencesRepository(applicationContext)
         val catalogState = ViewModelProvider(this)[CatalogStateViewModel::class.java]
+        val collectionRepository = SongCollectionRepository(applicationContext)
+        val backupCoordinator = org.rhythmeta.chunithmd.shared.backup.BackupCoordinator(accountClient,
+            org.rhythmeta.chunithmd.account.AndroidSnapshotStore(applicationContext, profileRepository, scoreRepository, collectionRepository, favoriteSongRepository))
+        receiveAuth(intent)
         setContent {
+            var recovered by remember { mutableStateOf(false) }
+            var recoveryError by remember { mutableStateOf<String?>(null) }
+            LaunchedEffect(Unit) {
+                try { backupCoordinator.recover(); recovered=true }
+                catch(error: Exception) { recoveryError=error.message }
+            }
+            if (!recovered) {
+                ChunithmdTheme(DefaultAppThemeSettings) {
+                    top.yukonga.miuix.kmp.basic.Text(recoveryError ?: "正在恢复本地数据…", modifier=Modifier.padding(32.dp))
+                }
+                return@setContent
+            }
             val themeSettings by produceState(DefaultAppThemeSettings, themeRepository) {
                 themeRepository.settings.collect { value = it }
             }
@@ -291,7 +323,7 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
-                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState)
+                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator)
                 }
             }
         }
@@ -310,10 +342,12 @@ private fun CatalogApp(
     favoriteSongRepository: FavoriteSongRepository,
     bestTablePreferencesRepository: org.rhythmeta.chunithmd.ui.best.BestTablePreferencesRepository,
     catalogState: CatalogStateViewModel,
+    collectionRepository: SongCollectionRepository,
+    accountClient: org.rhythmeta.chunithmd.shared.account.RhythmetaClient,
+    backupCoordinator: org.rhythmeta.chunithmd.shared.backup.BackupCoordinator,
 ) {
     var bundle by catalogState::bundle
     val applicationContext = LocalContext.current.applicationContext
-    val collectionRepository = remember(applicationContext) { SongCollectionRepository(applicationContext) }
     val collections by collectionRepository.collections.collectAsState(initial = emptyList())
     val collectionsUiState = rememberCollectionsUiState()
     var manifest by catalogState::manifest
@@ -597,12 +631,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = titleOverride ?: when (page) { 14, 13 -> "收藏夹"; 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = titleOverride ?: when (page) { 15 -> "Rhythmeta 账号"; 14, 13 -> "收藏夹"; 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page in 4..14) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page in 4..15) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
@@ -793,6 +827,7 @@ private fun CatalogApp(
                     { pushRoute(AppRoute.Theme) },
                     { pushRoute(AppRoute.Resources) },
                     { pushRoute(AppRoute.Profiles) },
+                    { pushRoute(AppRoute.Account) },
                 )
             }
         }
@@ -812,7 +847,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
+            if (navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
                 navBackStack.removeLastOrNull()
@@ -885,6 +920,14 @@ private fun CatalogApp(
                         onDownload = ::refresh,
                     )
                 }
+            }
+        }
+        entry<AppRoute.Account>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(15, resourcesTopBarScrollBehavior) { padding, connection ->
+                org.rhythmeta.chunithmd.account.RhythmetaScreen(accountClient, backupCoordinator, Modifier.padding(padding).nestedScroll(connection))
             }
         }
         entry<AppRoute.Profiles>(

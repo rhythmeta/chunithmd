@@ -20,6 +20,12 @@ interface ScoreRecordDao {
     @Insert
     suspend fun insert(record: ScoreRecordEntity)
 
+    @Query("SELECT * FROM score_records ORDER BY playedAt, id")
+    suspend fun all(): List<ScoreRecordEntity>
+
+    @Query("DELETE FROM score_records")
+    suspend fun deleteAll()
+
     @Delete
     suspend fun delete(record: ScoreRecordEntity)
 }

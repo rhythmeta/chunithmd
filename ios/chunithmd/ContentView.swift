@@ -6,6 +6,8 @@ struct ContentView: View {
     @State private var store = CatalogStore()
     @State private var showingFilters = false
     @State private var showingResources = false
+    @State private var showingAccount = false
+    @State private var accountStore = RhythmetaAccountStore()
 
     var body: some View {
         NavigationStack {
@@ -32,6 +34,7 @@ struct ContentView: View {
             .searchable(text: $store.search, prompt: "曲名、艺术家、别名或 ID")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button("Rhythmeta 账号", systemImage: "person.crop.circle") { showingAccount = true }
                     if !store.bundleJson.isEmpty {
                         Menu {
                             ForEach(sortOptions, id: \.key) { option in
@@ -82,6 +85,10 @@ struct ContentView: View {
             }
         }
         .task { store.start() }
+        .sheet(isPresented: $showingAccount) { NavigationStack { RhythmetaAccountView(store: accountStore) } }
+        .onOpenURL { url in
+            if url.scheme == "chunithmd", url.host == "auth" { accountStore.bridge.handleCallback(url: url.absoluteString) }
+        }
         .sheet(isPresented: $showingFilters) {
             CatalogFilterSheet(store: store)
         }

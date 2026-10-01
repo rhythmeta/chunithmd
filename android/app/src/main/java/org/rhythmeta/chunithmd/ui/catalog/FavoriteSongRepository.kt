@@ -15,6 +15,10 @@ class FavoriteSongRepository(private val context: Context) : FavoriteSongStore {
         values[FavoriteSongIdsKey].orEmpty()
     }
 
+    suspend fun replaceFavorites(ids: Set<String>) {
+        context.favoriteSongsDataStore.edit { it[FavoriteSongIdsKey] = ids }
+    }
+
     override suspend fun setFavorite(songId: String, favorite: Boolean) {
         context.favoriteSongsDataStore.edit { values ->
             val current = values[FavoriteSongIdsKey].orEmpty().toMutableSet()

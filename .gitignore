@@ -42,3 +42,6 @@ static-worker/public/jackets/
 .DS_Store
 
 miuix-doc
+static-worker/public/community-index.json
+static-worker/public/_headers
+static-worker/.wrangler/

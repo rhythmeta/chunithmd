@@ -1,6 +1,7 @@
 package org.rhythmeta.chunithmd.score
 
 import androidx.room.Room
+import androidx.room.withTransaction
 import java.util.UUID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,13 @@ class ScoreRepository(
         "score-records.db",
     ).addMigrations(ScoreDatabase.MIGRATION_1_2).build()
     private val dao = database.records()
+
+    suspend fun exportRecords(): List<ScoreRecord> = dao.all().map { it.toDomain() }
+
+    suspend fun replaceRecords(records: List<ScoreRecord>) = database.withTransaction {
+        dao.deleteAll()
+        records.forEach { dao.insert(ScoreRecordEntity.fromDomain(it)) }
+    }
 
     suspend fun save(songId: String, sheetKey: String, score: Int): ScoreRecord = save(
         songId = songId,
