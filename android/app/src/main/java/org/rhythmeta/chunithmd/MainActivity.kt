@@ -9,6 +9,8 @@ import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -137,6 +140,8 @@ import org.rhythmeta.chunithmd.ui.scorequery.ScoreQueryToolbarActions
 import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableHomeCard
 import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableScreen
 import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableToolbarActions
+import org.rhythmeta.chunithmd.ui.plate.PlateProgressHomeCard
+import org.rhythmeta.chunithmd.ui.plate.PlateProgressScreen
 import org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode
 import org.rhythmeta.chunithmd.shared.ScoreQueryFilterSettings
 import org.rhythmeta.chunithmd.shared.ScoreQuerySortMode
@@ -175,6 +180,7 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Recommendations : AppRoute
     @Serializable data object ScoreQuery : AppRoute
     @Serializable data object ConstantTable : AppRoute
+    @Serializable data object PlateProgress : AppRoute
     @Serializable data class SongDetail(val songId: String) : AppRoute
 }
 
@@ -328,6 +334,7 @@ private fun CatalogApp(
     val scoreQuerySearchFocused by scoreQuerySearchInteractionSource.collectIsFocusedAsState()
     var constantTableFilterSettings by remember { mutableStateOf(CatalogFilters()) }
     var constantTableFilterOpen by remember { mutableStateOf(false) }
+    var constantTableExportRequested by remember { mutableStateOf(false) }
     var quickEditProfile by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.UserProfile?>(null) }
     val randomSongSessionState = remember { RandomSongSessionState() }
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
@@ -414,6 +421,7 @@ private fun CatalogApp(
     val recommendationTopBarScrollBehavior = MiuixScrollBehavior()
     val scoreQueryTopBarScrollBehavior = MiuixScrollBehavior()
     val constantTableTopBarScrollBehavior = MiuixScrollBehavior()
+    val plateProgressTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -574,12 +582,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = when (page) { 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = when (page) { 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page == 4 || page == 5 || page == 6 || page == 7 || page == 8 || page == 9 || page == 10 || page == 11) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page in 4..12) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
@@ -692,7 +700,7 @@ private fun CatalogApp(
             }
             AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
             when (page) {
-                0 -> Column(Modifier.padding(padding).fillMaxSize()) {
+                0 -> Column(Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState())) {
                     CurrentProfileCard(activeProfile) { activeProfile?.let { quickEditProfile = it } }
                     BestTableHomeCard(
                         bestCount = bestTablePreferences.bestCount,
@@ -715,24 +723,27 @@ private fun CatalogApp(
                         )
                     }
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
                     ) {
                         ScoreQueryHomeCard(
                             modifier = Modifier.weight(1f),
                             onClick = { pushRoute(AppRoute.ScoreQuery) },
                         )
+                        ConstantTableHomeCard(
+                            modifier = Modifier.weight(1f).height(140.dp),
+                            onClick = { pushRoute(AppRoute.ConstantTable) },
+                        )
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
                     ) {
-                        ConstantTableHomeCard(
-                            modifier = Modifier.weight(1f).height(140.dp),
-                            onClick = { pushRoute(AppRoute.ConstantTable) },
+                        PlateProgressHomeCard(
+                            modifier = Modifier.weight(1f),
+                            onClick = { pushRoute(AppRoute.PlateProgress) },
                         )
+                        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
                     }
                 }
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
@@ -780,7 +791,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable) {
+            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail) {
                 navBackStack.removeLastOrNull()
@@ -975,8 +986,27 @@ private fun CatalogApp(
                     topBarScrollConnection = topBarScrollConnection,
                     filterSettings = constantTableFilterSettings,
                     filterOpen = constantTableFilterOpen,
+                    exportRequested = constantTableExportRequested,
                     onFilterSettingsChange = { constantTableFilterSettings = it },
                     onFilterDismiss = { constantTableFilterOpen = false },
+                    onExportRequestHandled = { constantTableExportRequested = false },
+                    onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
+                )
+            }
+        }
+        entry<AppRoute.PlateProgress>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(12, plateProgressTopBarScrollBehavior) { padding, topBarScrollConnection ->
+                PlateProgressScreen(
+                    bundle = bundle,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                    records = profileScores,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = topBarScrollConnection,
                     onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
                 )
             }

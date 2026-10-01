@@ -60,6 +60,7 @@ internal fun CatalogFilterDialog(
     settings: CatalogFilters,
     onSettingsChange: (CatalogFilters) -> Unit,
     onDismiss: () -> Unit,
+    includeDifficultyAndType: Boolean = true,
 ) {
     val darkTheme = MiuixTheme.colorScheme.background.luminance() < 0.5f
     ExpandableBottomSheet(
@@ -119,7 +120,7 @@ internal fun CatalogFilterDialog(
                     )
                 }
             }
-            item {
+            if (includeDifficultyAndType) item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     CatalogFilterSection("难度") {
                         CatalogFilterChipGroup(
@@ -197,7 +198,7 @@ internal fun CatalogFilterDialog(
                     )
                 }
             }
-            item {
+            if (includeDifficultyAndType) item {
                 CatalogFilterSection("谱面类型") {
                     CatalogFilterChipGroup(
                         values = CatalogQuery.availableTypes(bundle),
