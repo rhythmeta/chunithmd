@@ -2,7 +2,7 @@ package org.rhythmeta.chunithmd.ui.catalog
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +37,7 @@ import java.io.File
 import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.CatalogSong
+import org.rhythmeta.chunithmd.shared.CatalogSheet
 import org.rhythmeta.chunithmd.shared.VersionPalette
 import org.rhythmeta.chunithmd.shared.ScoreRecord
 import org.rhythmeta.chunithmd.shared.progressSheets
@@ -53,10 +54,13 @@ internal fun SongCard(
     localJacketPath: (String) -> String?,
     scoresBySheetKey: Map<String, ScoreRecord>,
     onClick: () -> Unit,
+    actualSheet: CatalogSheet? = null,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
-    val hasWorldsEnd = song.sheets.any { it.type.equals("we", ignoreCase = true) }
-    val highestDifficulty = song.sheets.maxByOrNull { difficultyOrder(it.difficulty) }
+    val sheets = actualSheet?.let(::listOf) ?: song.sheets
+    val hasWorldsEnd = sheets.any { it.type.equals("we", ignoreCase = true) }
+    val highestDifficulty = sheets.maxByOrNull { difficultyOrder(it.difficulty) }
     val hasUltima = !hasWorldsEnd && highestDifficulty?.difficulty.equals("ultima", ignoreCase = true)
     val accentColor = if (hasWorldsEnd) {
         difficultyColor("world's end")
@@ -73,11 +77,12 @@ internal fun SongCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(76.dp)
-            .clickable(
+            .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
                 role = Role.Button,
                 onClick = onClick,
+                onLongClick = onLongClick,
             )
             .squircleSurface(
                 color = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = if (isDark) 0.82f else 0.88f),
@@ -142,7 +147,7 @@ internal fun SongCard(
                     maxLines = 1,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val progressSheets = song.progressSheets()
+                    val progressSheets = actualSheet?.let(::listOf) ?: song.progressSheets()
                     progressSheets.forEachIndexed { index, sheet ->
                         Box(
                             Modifier

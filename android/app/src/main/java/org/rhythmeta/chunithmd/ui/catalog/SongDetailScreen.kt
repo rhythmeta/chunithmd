@@ -21,6 +21,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -32,11 +33,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -69,6 +72,7 @@ import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -121,6 +125,9 @@ import org.rhythmeta.chunithmd.shared.CatalogNoteCounts
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.worldsEndStars
 import org.rhythmeta.chunithmd.score.ScoreRepository
+import org.rhythmeta.chunithmd.collection.CollectionEntry
+import org.rhythmeta.chunithmd.collection.SongCollectionRepository
+import org.rhythmeta.chunithmd.ui.collections.CollectionPickerSheet
 import org.rhythmeta.chunithmd.shared.ClearType
 import org.rhythmeta.chunithmd.shared.FullChainType
 import org.rhythmeta.chunithmd.shared.FullComboType
@@ -147,6 +154,7 @@ import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TextField as MiuixTextField
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.window.WindowDialog
@@ -166,6 +174,7 @@ fun SongDetailScreen(
     contentTopPadding: Dp,
     topBarScrollConnection: NestedScrollConnection,
     scoreRepository: ScoreRepository,
+    collectionRepository: SongCollectionRepository,
     onBackgroundChanged: (Color?) -> Unit = {},
 ) {
     if (song == null) {
@@ -183,6 +192,7 @@ fun SongDetailScreen(
     val scoreRecords by scoreRepository.observeSongRecords(song.songId).collectAsState(initial = emptyList())
     val recordsBySheet = remember(scoreRecords) { scoreRecords.groupBy(ScoreRecord::sheetKey) }
     var scoreEntrySheetKey by rememberSaveable(song.songId) { mutableStateOf<String?>(null) }
+    var collectionSheetKey by rememberSaveable(song.songId) { mutableStateOf<String?>(null) }
     var recordToDelete by remember { mutableStateOf<ScoreRecord?>(null) }
     var scoreEntrySaving by remember { mutableStateOf(false) }
     fun showMessage(message: String) {
@@ -290,9 +300,11 @@ fun SongDetailScreen(
                         sheet = sheet,
                         surfaceColor = surfaceColor,
                         accentColor = accent,
+                        actionSurfaceColor = selectedSurfaceColor,
                         records = recordsBySheet[song.sheetKey(sheet)].orEmpty(),
                         onRecord = { scoreEntrySheetKey = song.sheetKey(sheet) },
                         onDeleteRecord = { recordToDelete = it },
+                        onAddToCollection = { collectionSheetKey = song.sheetKey(sheet) },
                     )
                 }
             }
@@ -306,6 +318,12 @@ fun SongDetailScreen(
         )
     }
 
+    CollectionPickerSheet(
+        repository = collectionRepository,
+        entry = collectionSheetKey?.let { key -> song.sheets.firstOrNull { song.sheetKey(it) == key } }
+            ?.let { CollectionEntry(song.songId, it.type, it.difficulty) },
+        onDismiss = { collectionSheetKey = null },
+    )
     val entrySheet = scoreEntrySheetKey?.let { key ->
         song.sheets.firstOrNull { song.sheetKey(it) == key }
     }
@@ -704,9 +722,11 @@ private fun ChartDetailCard(
     sheet: CatalogSheet,
     surfaceColor: Color,
     accentColor: Color,
+    actionSurfaceColor: Color,
     records: List<ScoreRecord>,
     onRecord: () -> Unit,
     onDeleteRecord: (ScoreRecord) -> Unit,
+    onAddToCollection: () -> Unit,
 ) {
     var expanded by rememberSaveable(song.songId, sheet.type, sheet.difficulty) { mutableStateOf(false) }
     val chevronRotation by animateFloatAsState(
@@ -733,31 +753,15 @@ private fun ChartDetailCard(
     DetailCard(
         color = surfaceColor,
         borderColor = chartAccent.copy(alpha = 0.58f),
-        modifier = Modifier.then(
-            if (!expanded) {
-                Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = { expanded = true },
-                )
-            } else {
-                Modifier
-            },
-        ),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(
-                    if (expanded) {
-                        Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = { expanded = false },
-                        )
-                    } else {
-                        Modifier
-                    },
+                .combinedClickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { expanded = !expanded },
+                    onLongClick = onAddToCollection,
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -847,17 +851,40 @@ private fun ChartDetailCard(
                         onDeleteRecord = onDeleteRecord,
                     )
                 }
-                MiuixButton(
-                    onClick = onRecord,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = MiuixButtonDefaults.buttonColorsPrimary(color = accentColor),
-                ) {
-                    MiuixIcon(Icons.Rounded.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    MiuixText("记录成绩")
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CollectionActionButton(onRecord, actionSurfaceColor, Modifier.weight(1f)) {
+                        MiuixIcon(Icons.Rounded.Edit, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                        MiuixText("记录成绩")
+                    }
+                    CollectionActionButton(onAddToCollection, actionSurfaceColor, Modifier.weight(1f)) {
+                        MiuixIcon(Icons.AutoMirrored.Rounded.PlaylistAdd, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                        MiuixText("加入收藏夹")
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CollectionActionButton(
+    onClick: () -> Unit,
+    surfaceColor: Color,
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit,
+) {
+    CompositionLocalProvider(LocalContentColor provides MiuixTheme.colorScheme.onSurface) {
+        Row(
+            modifier.heightIn(min = 40.dp)
+                .squircleSurface(surfaceColor, 8.dp, SquircleExtension)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            content = content,
+        )
     }
 }
 
