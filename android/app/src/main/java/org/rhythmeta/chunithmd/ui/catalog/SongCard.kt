@@ -162,7 +162,7 @@ internal val DIFFICULTIES = listOf("basic", "advanced", "expert", "master", "ult
 
 internal val ULTIMA_ACCENT_COLOR = Color(0xFFE32655)
 
-private val ULTIMA_STRIPE_STOPS = arrayOf(
+internal val ULTIMA_STRIPE_STOPS = arrayOf(
     0f to Color(0xFF09090C),
     0.2f to Color(0xFF09090C),
     0.43f to ULTIMA_ACCENT_COLOR,
