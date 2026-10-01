@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.map
 import org.rhythmeta.chunithmd.shared.PlateProgressCalculator
 import org.rhythmeta.chunithmd.shared.PlateType
 
-private val Context.plateProgressDataStore by preferencesDataStore(name = "plate_progress_preferences")
+internal val Context.plateProgressDataStore by preferencesDataStore(name = "plate_progress_preferences")
 
 data class PlateProgressPreferences(
     val selectedVersion: String? = null,

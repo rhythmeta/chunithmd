@@ -34,6 +34,8 @@ class SongCollectionRepository internal constructor(private val store: DataStore
 
     val collections = store.data.map { values -> decode(values[CollectionsKey]) }
 
+    suspend fun replaceCollections(collections: List<SongCollection>) = update { collections }
+
     suspend fun create(name: String): String = importCollection(CollectionExport(name, emptyList()))
 
     suspend fun importCollection(source: CollectionExport): String {

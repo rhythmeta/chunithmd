@@ -9,6 +9,7 @@ kotlin {
         namespace = "org.rhythmeta.chunithmd.shared"
         compileSdk = 37
         minSdk = 29
+        withHostTest { }
     }
     iosArm64()
     iosSimulatorArm64()
@@ -23,6 +24,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.11.0")
             implementation(libs.ktor.client.core)
             implementation(libs.okio)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
@@ -35,6 +37,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
         }
     }
 }

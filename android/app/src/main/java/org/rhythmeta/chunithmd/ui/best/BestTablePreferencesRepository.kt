@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 import org.rhythmeta.chunithmd.shared.BestTablePreferences
 import org.rhythmeta.chunithmd.shared.BestTablePreferencesStore
 
-private val Context.bestTablePreferencesDataStore by preferencesDataStore(name = "best_table_preferences")
+internal val Context.bestTablePreferencesDataStore by preferencesDataStore(name = "best_table_preferences")
 
 class BestTablePreferencesRepository(private val context: Context) : BestTablePreferencesStore {
     override val preferences: Flow<BestTablePreferences> = context.bestTablePreferencesDataStore.data.map { values ->

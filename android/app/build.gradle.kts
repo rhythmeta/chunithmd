@@ -37,6 +37,7 @@ val releaseSigningConfigured = listOf(
 
 android {
     namespace = "org.rhythmeta.chunithmd"
+    buildFeatures { buildConfig = true }
     compileSdk {
         version = release(37)
     }

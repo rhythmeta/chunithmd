@@ -15,7 +15,7 @@ import org.rhythmeta.chunithmd.shared.CatalogPreferencesStore
 import org.rhythmeta.chunithmd.shared.CatalogSort
 import org.rhythmeta.chunithmd.shared.isWorldsEndCategory
 
-private val Context.catalogPreferencesDataStore by preferencesDataStore(name = "catalog_preferences")
+internal val Context.catalogPreferencesDataStore by preferencesDataStore(name = "catalog_preferences")
 
 class CatalogPreferencesRepository(private val context: Context) : CatalogPreferencesStore {
     override val preferences: Flow<CatalogPreferences> = context.catalogPreferencesDataStore.data.map { values ->

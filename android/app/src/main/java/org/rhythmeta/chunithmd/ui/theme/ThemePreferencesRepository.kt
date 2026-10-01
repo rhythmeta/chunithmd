@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-private val Context.themePreferencesDataStore by preferencesDataStore(name = "theme_preferences")
+internal val Context.themePreferencesDataStore by preferencesDataStore(name = "theme_preferences")
 
 class ThemePreferencesRepository(private val context: Context) {
     val settings: Flow<AppThemeSettings> = context.themePreferencesDataStore.data.map { values ->
