@@ -67,8 +67,8 @@ When modifying an existing feature, preserve these architectural boundaries unle
 ## Online scope and deployment
 
 - Rhythmeta accounts, community aliases and manual personal-data backups are approved for both games.
-- The shared backend is https://github.com/rhythmeta/rhythmeta-backend: Hono on Cloudflare Workers with native D1 SQL and the existing public R2 bucket. This supersedes the earlier Elysia proposal.
-- The dashboard is https://github.com/rhythmeta/rhythmeta-dashboard, deployed at https://dash.rhythmeta.org.
+- The shared backend is https://github.com/rhythmeta/gekichumai-backend: Hono on Cloudflare Workers with native D1 SQL and the existing public R2 bucket. This supersedes the earlier Elysia proposal.
+- The dashboard is https://github.com/rhythmeta/gekichumai-dashboard, deployed at https://dash.rhythmeta.org.
 - APIs: https://api.rhythmeta.org/auth/v1 for accounts; `/maimaid/v1` and `/chunithmd/v1` for game-scoped resources. Legacy `/v1/*` returns 410.
 - Existing account IDs, password credentials, MFA and passkeys are preserved. Sessions were invalidated at migration. Native login uses state + PKCE S256 and exact registered callbacks.
 - Manual backups use shared `backup.proto`, gzip, SHA-256, 64 MiB compressed/512 MiB raw limits and the last three snapshots per user/game. Restore replaces personal data and uses a durable rollback journal. Static data and credentials are excluded.
