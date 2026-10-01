@@ -131,6 +131,15 @@ import org.rhythmeta.chunithmd.ui.random.RandomSongScreen
 import org.rhythmeta.chunithmd.ui.random.RandomSongSessionState
 import org.rhythmeta.chunithmd.ui.recommendation.RecommendationHomeCard
 import org.rhythmeta.chunithmd.ui.recommendation.RecommendationScreen
+import org.rhythmeta.chunithmd.ui.scorequery.ScoreQueryHomeCard
+import org.rhythmeta.chunithmd.ui.scorequery.ScoreQueryScreen
+import org.rhythmeta.chunithmd.ui.scorequery.ScoreQueryToolbarActions
+import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableHomeCard
+import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableScreen
+import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableToolbarActions
+import org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode
+import org.rhythmeta.chunithmd.shared.ScoreQueryFilterSettings
+import org.rhythmeta.chunithmd.shared.ScoreQuerySortMode
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -164,6 +173,8 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object BestTable : AppRoute
     @Serializable data object RandomSong : AppRoute
     @Serializable data object Recommendations : AppRoute
+    @Serializable data object ScoreQuery : AppRoute
+    @Serializable data object ConstantTable : AppRoute
     @Serializable data class SongDetail(val songId: String) : AppRoute
 }
 
@@ -305,6 +316,18 @@ private fun CatalogApp(
     var randomSongFilterActive by remember { mutableStateOf(false) }
     var recommendationSelectedPage by rememberSaveable { mutableIntStateOf(0) }
     var recommendationSwitcherVisible by rememberSaveable { mutableStateOf(true) }
+    var scoreQuerySearch by rememberSaveable { mutableStateOf("") }
+    var scoreQueryFilterSettings by remember { mutableStateOf(ScoreQueryFilterSettings()) }
+    var scoreQueryDisplayMode by rememberSaveable { mutableStateOf(ScoreQueryDisplayMode.List) }
+    var scoreQuerySortMode by rememberSaveable { mutableStateOf(ScoreQuerySortMode.Rating) }
+    var scoreQueryAscending by rememberSaveable { mutableStateOf(false) }
+    var scoreQueryFilterOpen by remember { mutableStateOf(false) }
+    var scoreQuerySearchVisible by remember { mutableStateOf(true) }
+    var scoreQuerySearchExpanded by remember { mutableStateOf(false) }
+    val scoreQuerySearchInteractionSource = remember { MutableInteractionSource() }
+    val scoreQuerySearchFocused by scoreQuerySearchInteractionSource.collectIsFocusedAsState()
+    var constantTableFilterSettings by remember { mutableStateOf(CatalogFilters()) }
+    var constantTableFilterOpen by remember { mutableStateOf(false) }
     var quickEditProfile by remember { mutableStateOf<org.rhythmeta.chunithmd.shared.UserProfile?>(null) }
     val randomSongSessionState = remember { RandomSongSessionState() }
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
@@ -389,6 +412,8 @@ private fun CatalogApp(
     val bestTopBarScrollBehavior = MiuixScrollBehavior()
     val randomSongTopBarScrollBehavior = MiuixScrollBehavior()
     val recommendationTopBarScrollBehavior = MiuixScrollBehavior()
+    val scoreQueryTopBarScrollBehavior = MiuixScrollBehavior()
+    val constantTableTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -414,6 +439,35 @@ private fun CatalogApp(
                         downDistance += available.y
                         if (downDistance >= 24f) {
                             searchVisible = true
+                            downDistance = 0f
+                        }
+                    }
+                }
+                return Offset.Zero
+            }
+        }
+    }
+    val scoreQuerySearchScrollConnection = remember {
+        object : NestedScrollConnection {
+            private var downDistance = 0f
+            private var upDistance = 0f
+
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (source != NestedScrollSource.UserInput) return Offset.Zero
+                when {
+                    available.y < 0f -> {
+                        downDistance = 0f
+                        upDistance -= available.y
+                        if (upDistance >= 36f) {
+                            scoreQuerySearchVisible = false
+                            upDistance = 0f
+                        }
+                    }
+                    available.y > 0f -> {
+                        upDistance = 0f
+                        downDistance += available.y
+                        if (downDistance >= 24f) {
+                            scoreQuerySearchVisible = true
                             downDistance = 0f
                         }
                     }
@@ -520,12 +574,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = when (page) { 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = when (page) { 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page == 4 || page == 5 || page == 6 || page == 7 || page == 8 || page == 9) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page == 4 || page == 5 || page == 6 || page == 7 || page == 8 || page == 9 || page == 10 || page == 11) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
@@ -569,6 +623,24 @@ private fun CatalogApp(
                         )
                     }
                 }
+                if (page == 10) {
+                    ScoreQueryToolbarActions(
+                        displayMode = scoreQueryDisplayMode,
+                        sortMode = scoreQuerySortMode,
+                        ascending = scoreQueryAscending,
+                        filterActive = !scoreQueryFilterSettings.isEmpty,
+                        onDisplayModeChange = { scoreQueryDisplayMode = it },
+                        onSortModeChange = { scoreQuerySortMode = it },
+                        onAscendingChange = { scoreQueryAscending = it },
+                        onFilter = { scoreQueryFilterOpen = true },
+                    )
+                }
+                if (page == 11) {
+                    ConstantTableToolbarActions(
+                        filterActive = constantTableFilterSettings != CatalogFilters(),
+                        onFilter = { constantTableFilterOpen = true },
+                    )
+                }
             },
             bottomContent = {
                 if (page == 2 && bundle != null) {
@@ -589,6 +661,17 @@ private fun CatalogApp(
                         onSelectedPageChange = { recommendationSelectedPage = it },
                     )
                 }
+                if (page == 10) {
+                    CatalogSearchField(
+                        search = scoreQuerySearch,
+                        onSearchChange = { scoreQuerySearch = it },
+                        visible = scoreQuerySearchVisible || scoreQuerySearchFocused,
+                        expanded = scoreQuerySearchExpanded,
+                        backEnabled = scoreQuerySearchFocused,
+                        onExpandedChange = { scoreQuerySearchExpanded = it },
+                        interactionSource = scoreQuerySearchInteractionSource,
+                    )
+                }
             },
             content = content,
         )
@@ -603,6 +686,8 @@ private fun CatalogApp(
                 2 -> catalogTopBarScrollBehavior
                 8 -> randomSongTopBarScrollBehavior
                 9 -> recommendationTopBarScrollBehavior
+                10 -> scoreQueryTopBarScrollBehavior
+                11 -> constantTableTopBarScrollBehavior
                 else -> settingsTopBarScrollBehavior
             }
             AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
@@ -627,6 +712,26 @@ private fun CatalogApp(
                         RecommendationHomeCard(
                             modifier = Modifier.weight(1f),
                             onClick = { pushRoute(AppRoute.Recommendations) },
+                        )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                    ) {
+                        ScoreQueryHomeCard(
+                            modifier = Modifier.weight(1f),
+                            onClick = { pushRoute(AppRoute.ScoreQuery) },
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                    ) {
+                        ConstantTableHomeCard(
+                            modifier = Modifier.weight(1f).height(140.dp),
+                            onClick = { pushRoute(AppRoute.ConstantTable) },
                         )
                     }
                 }
@@ -675,7 +780,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations) {
+            if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail) {
                 navBackStack.removeLastOrNull()
@@ -824,6 +929,54 @@ private fun CatalogApp(
                     topBarScrollConnection = topBarScrollConnection,
                     switcherScrollConnection = recommendationSwitcherScrollConnection,
                     selectedPage = recommendationSelectedPage,
+                    onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
+                )
+            }
+        }
+        entry<AppRoute.ScoreQuery>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(10, scoreQueryTopBarScrollBehavior) { padding, topBarScrollConnection ->
+                ScoreQueryScreen(
+                    bundle = bundle,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                    records = profileScores,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    searchScrollConnection = scoreQuerySearchScrollConnection,
+                    topBarScrollConnection = topBarScrollConnection,
+                    searchText = scoreQuerySearch,
+                    filterSettings = scoreQueryFilterSettings,
+                    displayMode = scoreQueryDisplayMode,
+                    sortMode = scoreQuerySortMode,
+                    ascending = scoreQueryAscending,
+                    filterOpen = scoreQueryFilterOpen,
+                    onFilterSettingsChange = { scoreQueryFilterSettings = it },
+                    onFilterDismiss = { scoreQueryFilterOpen = false },
+                    onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
+                )
+            }
+        }
+        entry<AppRoute.ConstantTable>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(11, constantTableTopBarScrollBehavior) { padding, topBarScrollConnection ->
+                ConstantTableScreen(
+                    bundle = bundle,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                    records = profileScores,
+                    favoriteSongIds = favoriteSongIds,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = topBarScrollConnection,
+                    filterSettings = constantTableFilterSettings,
+                    filterOpen = constantTableFilterOpen,
+                    onFilterSettingsChange = { constantTableFilterSettings = it },
+                    onFilterDismiss = { constantTableFilterOpen = false },
                     onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
                 )
             }
