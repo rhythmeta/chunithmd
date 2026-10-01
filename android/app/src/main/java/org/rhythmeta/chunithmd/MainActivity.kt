@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableIntStateOf
@@ -142,6 +143,11 @@ import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableScreen
 import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableToolbarActions
 import org.rhythmeta.chunithmd.ui.plate.PlateProgressHomeCard
 import org.rhythmeta.chunithmd.ui.plate.PlateProgressScreen
+import org.rhythmeta.chunithmd.collection.SongCollectionRepository
+import org.rhythmeta.chunithmd.ui.collections.CollectionsHomeCard
+import org.rhythmeta.chunithmd.ui.collections.SongCollectionsScreen
+import org.rhythmeta.chunithmd.ui.collections.CollectionsToolbarActions
+import org.rhythmeta.chunithmd.ui.collections.rememberCollectionsUiState
 import org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode
 import org.rhythmeta.chunithmd.shared.ScoreQueryFilterSettings
 import org.rhythmeta.chunithmd.shared.ScoreQuerySortMode
@@ -181,6 +187,8 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object ScoreQuery : AppRoute
     @Serializable data object ConstantTable : AppRoute
     @Serializable data object PlateProgress : AppRoute
+    @Serializable data object Collections : AppRoute
+    @Serializable data class CollectionDetail(val collectionId: String) : AppRoute
     @Serializable data class SongDetail(val songId: String) : AppRoute
 }
 
@@ -304,6 +312,10 @@ private fun CatalogApp(
     catalogState: CatalogStateViewModel,
 ) {
     var bundle by catalogState::bundle
+    val applicationContext = LocalContext.current.applicationContext
+    val collectionRepository = remember(applicationContext) { SongCollectionRepository(applicationContext) }
+    val collections by collectionRepository.collections.collectAsState(initial = emptyList())
+    val collectionsUiState = rememberCollectionsUiState()
     var manifest by catalogState::manifest
     var sync by catalogState::sync
     var error by catalogState::error
@@ -422,6 +434,8 @@ private fun CatalogApp(
     val scoreQueryTopBarScrollBehavior = MiuixScrollBehavior()
     val constantTableTopBarScrollBehavior = MiuixScrollBehavior()
     val plateProgressTopBarScrollBehavior = MiuixScrollBehavior()
+    val collectionsTopBarScrollBehavior = MiuixScrollBehavior()
+    val collectionDetailTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -579,19 +593,23 @@ private fun CatalogApp(
     fun AppFrame(
         page: Int,
         topBarScrollBehavior: ScrollBehavior,
+        titleOverride: String? = null,
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = when (page) { 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = titleOverride ?: when (page) { 14, 13 -> "收藏夹"; 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page in 4..12) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page in 4..14) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
             actions = {
+                if (page == 13 || page == 14) {
+                    CollectionsToolbarActions(collectionsUiState, detail = page == 14)
+                }
                 if (page == 2 && bundle != null) {
                     CatalogToolbarActions(
                         sortOpen = sortOpen,
@@ -743,7 +761,10 @@ private fun CatalogApp(
                             modifier = Modifier.weight(1f),
                             onClick = { pushRoute(AppRoute.PlateProgress) },
                         )
-                        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                        CollectionsHomeCard(
+                            modifier = Modifier.weight(1f),
+                            onClick = { pushRoute(AppRoute.Collections) },
+                        )
                     }
                 }
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
@@ -793,7 +814,7 @@ private fun CatalogApp(
         onBack = {
             if (navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
-            } else if (navBackStack.lastOrNull() is AppRoute.SongDetail) {
+            } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.size > 1) {
                 navBackStack.removeLastOrNull()
@@ -1011,6 +1032,45 @@ private fun CatalogApp(
                 )
             }
         }
+        entry<AppRoute.Collections>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(13, collectionsTopBarScrollBehavior) { padding, connection ->
+                SongCollectionsScreen(
+                    repository = collectionRepository,
+                    uiState = collectionsUiState,
+                    bundle = bundle,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = connection,
+                    onOpenCollection = { pushRoute(AppRoute.CollectionDetail(it)) },
+                    onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
+                )
+            }
+        }
+        entry<AppRoute.CollectionDetail>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) { route ->
+            AppFrame(14, collectionDetailTopBarScrollBehavior, titleOverride = collections.firstOrNull { it.id == route.collectionId }?.name) { padding, connection ->
+                SongCollectionsScreen(
+                    repository = collectionRepository,
+                    uiState = collectionsUiState,
+                    collectionId = route.collectionId,
+                    bundle = bundle,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = connection,
+                    onOpenCollection = { pushRoute(AppRoute.CollectionDetail(it)) },
+                    onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
+                )
+            }
+        }
         entry<AppRoute.SongDetail>(
             transition = SettingsDetailTransition,
             swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
@@ -1052,6 +1112,7 @@ private fun CatalogApp(
                     topBarScrollConnection = topBarScrollConnection,
                     onBackgroundChanged = { songDetailBackground = it },
                     scoreRepository = scoreRepository,
+                    collectionRepository = collectionRepository,
                 )
             }
         }
