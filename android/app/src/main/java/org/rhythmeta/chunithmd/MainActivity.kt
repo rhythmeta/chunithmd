@@ -631,7 +631,7 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = titleOverride ?: when (page) { 15 -> "Rhythmeta 账号"; 14, 13 -> "收藏夹"; 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = titleOverride ?: when (page) { 15 -> "云端账户"; 14, 13 -> "收藏夹"; 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,

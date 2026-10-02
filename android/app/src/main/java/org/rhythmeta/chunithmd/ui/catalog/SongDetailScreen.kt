@@ -638,7 +638,7 @@ private fun ExternalSearchCard(
                 contentColor = youtubeContent,
             )
             ExternalSearchButton(
-                text = "Bilibili",
+                text = "bilibili",
                 icon = Icons.Rounded.MusicNote,
                 onClick = {
                     if (!openExternalSearch(context, "bilibili://search?keyword=chunithm+$encodedTitle")) {

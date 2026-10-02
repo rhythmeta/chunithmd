@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.People
@@ -35,7 +36,6 @@ fun SettingsHome(
     ) {
         item {
             SettingsSection(title = "用户") {
-                SettingsRow(icon=Icons.Rounded.People, title="Rhythmeta 账号", summary="登录、备份与恢复", onClick=onAccount)
                 SettingsRow(
                     icon = Icons.Rounded.People,
                     title = "用户档案",
@@ -51,6 +51,12 @@ fun SettingsHome(
                     title = "静态数据",
                     summary = "更新并管理本地歌曲数据",
                     onClick = onResources,
+                )
+                SettingsRow(
+                    icon = Icons.Rounded.Cloud,
+                    title = "云端账户",
+                    summary = "登录账户并通过云端安全同步应用数据",
+                    onClick = onAccount,
                 )
             }
         }
