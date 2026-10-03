@@ -12,9 +12,21 @@ import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.People
+import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.rhythmeta.chunithmd.BuildConfig
+import org.rhythmeta.chunithmd.shared.account.RhythmetaClient
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -29,7 +41,13 @@ fun SettingsHome(
     onResources: () -> Unit,
     onProfiles: () -> Unit,
     onAccount: () -> Unit,
+    accountClient: RhythmetaClient,
+    onSendLogs: () -> Unit,
 ) {
+    var backendAvailable by remember(accountClient) { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(accountClient) {
+        backendAvailable = accountClient.isHealthy()
+    }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(top = 0.dp, bottom = 112.dp),
@@ -70,7 +88,43 @@ fun SettingsHome(
                 )
             }
         }
+        item {
+            SettingsSection(title = "关于") {
+                SettingsHealthRow(backendAvailable)
+                SettingsRow(
+                    icon = Icons.Rounded.BugReport,
+                    title = "发送日志",
+                    summary = "收集应用诊断信息并分享，用于排查问题",
+                    onClick = onSendLogs,
+                )
+                BasicComponent(
+                    title = "版本",
+                    startAction = { SettingsPreferenceIcon(Icons.Rounded.Info) },
+                    endActions = {
+                        Text(
+                            text = BuildConfig.VERSION_NAME,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                        )
+                    },
+                )
+            }
+        }
     }
+}
+
+@Composable
+private fun SettingsHealthRow(available: Boolean?) {
+    val (status, color) = when (available) {
+        null -> "检查中…" to MiuixTheme.colorScheme.onSurfaceVariantActions
+        true -> "可用" to Color(0xFF2E7D32)
+        false -> "不可用" to Color(0xFFC62828)
+    }
+    BasicComponent(
+        title = "后端状态",
+        startAction = { SettingsPreferenceIcon(Icons.Rounded.Cloud) },
+        endActions = { Text(status, style = MiuixTheme.textStyles.body2, color = color) },
+    )
 }
 
 @Composable

@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.ui.collections
 
-import android.content.ClipboardManager
 import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -68,24 +67,34 @@ fun SongCollectionsScreen(
         }
     }
     fun share(target: SongCollection) = perform {
-        val code = withContext(Dispatchers.Default) { SongCollectionCodec.encode(target) }
+        val link = withContext(Dispatchers.Default) { SongCollectionCodec.webUrl(target) }
         context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, code)
+            putExtra(Intent.EXTRA_TEXT, link)
         }, "分享收藏夹"))
     }
-    LaunchedEffect(uiState.importRequested) {
-        if (collectionId == null && uiState.importRequested) {
-            uiState.importRequested = false
-            perform {
-                val code = context.getSystemService(ClipboardManager::class.java)?.primaryClip
-                    ?.getItemAt(0)?.coerceToText(context)?.toString()
-                require(!code.isNullOrBlank()) { "剪贴板中没有收藏夹分享码" }
-                val source = withContext(Dispatchers.Default) { SongCollectionCodec.decode(code) }
-                repository.importCollection(source)
-                scope.launch { snackbar.showSnackbar("收藏夹导入成功", duration = SnackbarDuration.Short) }
-            }
-        }
+    if (collectionId == null && uiState.importRequested) {
+        LaunchedEffect(uiState.importValue) { error = null }
+        CollectionImportDialog(
+            initialValue = uiState.importValue,
+            busy = busy,
+            error = error,
+            onClearError = { error = null },
+            onDismiss = {
+                uiState.importRequested = false
+                uiState.importValue = ""
+                error = null
+            },
+            onImport = { value ->
+                perform {
+                    val source = withContext(Dispatchers.Default) { SongCollectionCodec.decode(value) }
+                    val id = repository.importCollection(source)
+                    uiState.importRequested = false
+                    uiState.importValue = ""
+                    onOpenCollection(id)
+                }
+            },
+        )
     }
     val cards = remember(collection, bundle, uiState.sort, uiState.ascending, activeServer) {
         collection?.let { collectionCards(it, bundle, uiState.sort, uiState.ascending, activeServer) }.orEmpty()
@@ -111,7 +120,7 @@ fun SongCollectionsScreen(
                         enabled = !busy,
                         onClick = { uiState.importRequested = true },
                         modifier = Modifier.weight(1f),
-                    ) { Text("从剪贴板导入") }
+                    ) { Text("导入收藏夹") }
                 }
             }
             collectionId == null -> {

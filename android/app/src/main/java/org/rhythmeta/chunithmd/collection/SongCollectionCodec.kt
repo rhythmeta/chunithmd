@@ -4,29 +4,13 @@ import java.io.ByteArrayOutputStream
 import java.util.Base64
 import java.util.zip.Deflater
 import java.util.zip.Inflater
-import kotlinx.serialization.Serializable
 import org.rhythmeta.chunithmd.sharing.SongCollectionShare
 import org.rhythmeta.chunithmd.sharing.SongCollectionEntry
 
-@Serializable
-data class CollectionExport(val name: String, val entries: List<CollectionEntry>, val version: Int = 1) {
-    fun validated(): CollectionExport {
-        require(version == 1) { "不支持的收藏夹版本" }
-        require(name.trim().isNotEmpty() && name.length <= 200) { "收藏夹名称无效" }
-        require(entries.size <= 10_000) { "收藏夹谱面数量过多" }
-        entries.forEach {
-            require(it.songId.isNotBlank() && it.songId.length <= 200) { "歌曲编号无效" }
-            require(it.chartType.isNotBlank() && it.chartType.length <= 32) { "谱面类型无效" }
-            require(it.difficulty.isNotBlank() && it.difficulty.length <= 64) { "谱面难度无效" }
-        }
-        return copy(name = name.trim().take(40), entries = entries.map { it.normalized() }.distinctBy { it.key })
-    }
-}
-
-/** An offline snapshot, deliberately separate from maimaid's song IDs and cloud links. */
+/** Offline protobuf snapshot shared by the app and dashboard. */
 object SongCollectionCodec {
-    private const val Prefix = "CHMD1."
-    private const val MaxTextSize = 200_000
+    private const val Prefix = SongCollectionLinks.Prefix
+    private const val MaxTextSize = SongCollectionLinks.MaxCodeSize
     private const val MaxRawSize = 1_000_000
 
     fun encode(collection: SongCollection): String {
@@ -47,12 +31,16 @@ object SongCollectionCodec {
         return result
     }
 
+    fun webUrl(collection: SongCollection): String = SongCollectionLinks.webUrl(encode(collection))
+
     fun decode(text: String): CollectionExport {
-        require(text.length <= MaxTextSize) { "分享码过长" }
-        val code = text.trim()
-        require(code.startsWith(Prefix)) { "请粘贴 chunithmd 离线收藏夹分享码" }
-        val compressed = Base64.getUrlDecoder().decode(code.removePrefix(Prefix))
-        val message = SongCollectionShare.parseFrom(decompress(compressed))
+        val code = SongCollectionLinks.extractCode(text)
+        val message = try {
+            val compressed = Base64.getUrlDecoder().decode(code.removePrefix(Prefix))
+            SongCollectionShare.parseFrom(decompress(compressed))
+        } catch (error: Exception) {
+            throw IllegalArgumentException("分享码不完整或已损坏", error)
+        }
         return CollectionExport(message.name, message.entriesList.map {
             CollectionEntry(it.songId, it.chartType, it.difficulty)
         }).validated()

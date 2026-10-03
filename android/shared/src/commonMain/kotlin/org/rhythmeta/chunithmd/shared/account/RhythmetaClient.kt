@@ -7,6 +7,8 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.*
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -41,6 +43,17 @@ class RhythmetaClient(private val secrets:RhythmetaSecretStore, private val clie
     private val refreshMutex=Mutex()
     private val callback="chunithmd://auth/callback"
     private fun apply(value:RhythmetaSession?) { secrets.write("session",value?.let { json.encodeToString(it) });mutableSession.value=value }
+    suspend fun isHealthy(): Boolean = withTimeoutOrNull(5_000) {
+        try {
+            request("health", authenticated = false)
+            true
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            false
+        }
+    } ?: false
+
     fun loginUrl(mode:String="login"):String {
         require(mode in setOf("login","register","forgot"))
         fun token()=secureRandomBytes(32).toByteString().base64Url().trimEnd('=')

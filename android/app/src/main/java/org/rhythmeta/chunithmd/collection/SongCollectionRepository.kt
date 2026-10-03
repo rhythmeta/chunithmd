@@ -8,22 +8,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import java.util.UUID
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-@Serializable
-data class CollectionEntry(val songId: String, val chartType: String, val difficulty: String) {
-    val key: String get() = "$songId:$chartType:$difficulty"
-    fun normalized() = copy(chartType = chartType.lowercase(), difficulty = difficulty.lowercase())
-}
-
-@Serializable
-data class SongCollection(
-    val id: String,
-    val name: String,
-    val entries: List<CollectionEntry> = emptyList(),
-)
 
 private val Context.songCollectionsDataStore by preferencesDataStore(name = "song_collections")
 internal val CollectionJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }

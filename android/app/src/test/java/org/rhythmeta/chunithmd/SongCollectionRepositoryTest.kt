@@ -133,6 +133,22 @@ class SongCollectionRepositoryTest {
         }
     }
 
+    @Test
+    fun dashboardGoldenFixtureAndBothLinkFormsImportIdentically() {
+        val code = "CHMD1.4-J9vrv5yc4Fz2ZvUng0Z4WQKBdbcX5eum6iEHNxSYoUW25icUlqEVw4CSpcmlOSmZsoJM_Fk5tZXJwJlAFJCzGVp0pxl-cX5aSoFyuk5qUAAA"
+        val expected = CollectionExport("练习曲 ✨", listOf(
+            master,
+            CollectionEntry("song-b", "std", "ultima"),
+            CollectionEntry("missing-song", "we", "world's end"),
+        ))
+        for (value in listOf(code, "https://dash.rhythmeta.org/collection/$code", "chunithmd://collection/$code")) {
+            assertEquals(expected, SongCollectionCodec.decode(value))
+        }
+        val link = SongCollectionCodec.webUrl(SongCollection("id", expected.name, expected.entries))
+        assertTrue(link.startsWith("https://dash.rhythmeta.org/collection/CHMD1."))
+        assertEquals(expected, SongCollectionCodec.decode(link))
+    }
+
     private suspend fun withRepository(block: suspend (SongCollectionRepository) -> Unit) {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         try {

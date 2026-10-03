@@ -140,6 +140,7 @@ import org.rhythmeta.chunithmd.shared.page
 import org.rhythmeta.chunithmd.shared.sheetKey
 import org.rhythmeta.chunithmd.shared.sortForHistory
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
+import org.rhythmeta.chunithmd.ui.components.dashedSquircleBorder
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
@@ -175,6 +176,9 @@ fun SongDetailScreen(
     topBarScrollConnection: NestedScrollConnection,
     scoreRepository: ScoreRepository,
     collectionRepository: SongCollectionRepository,
+    communityStore: org.rhythmeta.chunithmd.shared.community.CommunityAliasStore,
+    onOpenCommunity: () -> Unit,
+    onLogin: () -> Unit,
     onBackgroundChanged: (Color?) -> Unit = {},
 ) {
     if (song == null) {
@@ -186,6 +190,11 @@ fun SongDetailScreen(
         return
     }
 
+    val communityState by communityStore.state.collectAsState()
+    val communityAliasKeys = remember(communityState.approvedAliases, communityState.personalAliases, song.songId) {
+        (communityState.approvedAliases[song.songId].orEmpty() + communityState.personalAliases[song.songId].orEmpty())
+            .mapTo(mutableSetOf()) { it.trim().lowercase() }
+    }
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
@@ -256,6 +265,7 @@ fun SongDetailScreen(
                 SongDetailHeader(
                     song = song,
                     aliases = aliases,
+                    communityAliasKeys = communityAliasKeys,
                     coverModel = coverModel,
                     coverFile = localCover,
                     surfaceColor = surfaceColor,
@@ -265,7 +275,17 @@ fun SongDetailScreen(
                     onCoverAction = { action -> performCoverAction(context, localCover, song.title, action, ::showMessage) },
                 )
             }
-            // TODO: Connect community aliases after the shared account/community contract is available.
+            item {
+                org.rhythmeta.chunithmd.ui.community.SongCommunityAliasSection(
+                    songId = song.songId,
+                    store = communityStore,
+                    surfaceColor = surfaceColor,
+                    accentColor = accent,
+                    showMessage = ::showMessage,
+                    onOpenBoard = onOpenCommunity,
+                    onLogin = onLogin,
+                )
+            }
             item {
                 RegionAvailabilityCard(
                     song = song,
@@ -396,6 +416,7 @@ private fun DetailLoadingState() {
 private fun SongDetailHeader(
     song: CatalogSong,
     aliases: List<String>,
+    communityAliasKeys: Set<String>,
     coverModel: Any?,
     coverFile: File?,
     surfaceColor: Color,
@@ -485,11 +506,16 @@ private fun SongDetailHeader(
                     MiuixText(
                         text = alias,
                         style = MiuixTheme.textStyles.footnote2,
-                        color = accentColor,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier
+                            .clickable { onCopyText(alias) }
                             .squircleSurface(color = surfaceColor, cornerRadius = 50.dp, extension = SquircleExtension)
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                            .clickable { onCopyText(alias) },
+                            .then(
+                                if (alias.trim().lowercase() in communityAliasKeys) {
+                                    Modifier.dashedSquircleBorder(1.dp, accentColor.copy(alpha = 0.55f), 50.dp)
+                                } else Modifier,
+                            )
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
                     )
                 }
             }

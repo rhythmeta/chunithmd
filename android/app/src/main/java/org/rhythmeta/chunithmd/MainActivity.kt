@@ -2,26 +2,25 @@ package org.rhythmeta.chunithmd
 
 import android.os.Bundle
 import androidx.activity.BackEventCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.PredictiveBackHandler
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,8 +31,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.DocumentScanner
@@ -42,95 +41,98 @@ import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.IosShare
+import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.ui.unit.Density
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.cancel
-import androidx.compose.runtime.withFrameNanos
-import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.serialization.Serializable
+import androidx.lifecycle.lifecycleScope
 import androidx.navigationevent.NavigationEventDispatcher
 import androidx.navigationevent.NavigationEventDispatcherOwner
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import org.rhythmeta.chunithmd.collection.SongCollectionRepository
+import org.rhythmeta.chunithmd.profile.ProfileAvatarStore
+import org.rhythmeta.chunithmd.profile.ProfileRepository
+import org.rhythmeta.chunithmd.score.ScoreRepository
+import org.rhythmeta.chunithmd.shared.BestTablePreferences
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.CatalogFilters
 import org.rhythmeta.chunithmd.shared.CatalogJson
 import org.rhythmeta.chunithmd.shared.CatalogQuery
 import org.rhythmeta.chunithmd.shared.CatalogRepository
-import org.rhythmeta.chunithmd.shared.CatalogSort
 import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
-import org.rhythmeta.chunithmd.shared.latestPlayableVersion
+import org.rhythmeta.chunithmd.shared.CatalogSort
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
-import org.rhythmeta.chunithmd.ui.theme.ChunithmdTheme
-import org.rhythmeta.chunithmd.ui.theme.AppThemeSettings
-import org.rhythmeta.chunithmd.ui.theme.DefaultAppThemeSettings
-import org.rhythmeta.chunithmd.ui.theme.ThemePreferencesRepository
-import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBar
-import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBarBlur
-import org.rhythmeta.chunithmd.ui.theme.LocalEnableBlur
-import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
+import org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode
+import org.rhythmeta.chunithmd.shared.ScoreQueryFilterSettings
+import org.rhythmeta.chunithmd.shared.ScoreQuerySortMode
+import org.rhythmeta.chunithmd.shared.ScoreRecord
+import org.rhythmeta.chunithmd.shared.latestPlayableVersion
+import org.rhythmeta.chunithmd.ui.best.BestTableHomeCard
+import org.rhythmeta.chunithmd.ui.best.BestTableScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogFilterDialog
-import org.rhythmeta.chunithmd.ui.catalog.FavoriteSongRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogPreferencesRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
 import org.rhythmeta.chunithmd.ui.catalog.CatalogToolbarActions
+import org.rhythmeta.chunithmd.ui.catalog.FavoriteSongRepository
 import org.rhythmeta.chunithmd.ui.catalog.SongDetailScreen
+import org.rhythmeta.chunithmd.ui.collections.CollectionsHomeCard
+import org.rhythmeta.chunithmd.ui.collections.CollectionsToolbarActions
+import org.rhythmeta.chunithmd.ui.collections.SongCollectionsScreen
+import org.rhythmeta.chunithmd.ui.collections.rememberCollectionsUiState
 import org.rhythmeta.chunithmd.ui.components.AppPageScaffold
 import org.rhythmeta.chunithmd.ui.components.LiquidGlassTab
 import org.rhythmeta.chunithmd.ui.components.LiquidGlassTabBar
-import org.rhythmeta.chunithmd.ui.settings.SettingsHome
-import org.rhythmeta.chunithmd.ui.settings.ThemeSettingsScreen
-import org.rhythmeta.chunithmd.ui.settings.StaticResourcesScreen
+import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableHomeCard
+import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableScreen
+import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableToolbarActions
+import org.rhythmeta.chunithmd.ui.plate.PlateProgressHomeCard
+import org.rhythmeta.chunithmd.ui.plate.PlateProgressScreen
 import org.rhythmeta.chunithmd.ui.profile.CurrentProfileCard
 import org.rhythmeta.chunithmd.ui.profile.ProfileEditorSheet
 import org.rhythmeta.chunithmd.ui.profile.ProfileScreen
-import org.rhythmeta.chunithmd.profile.ProfileAvatarStore
-import org.rhythmeta.chunithmd.profile.ProfileRepository
-import org.rhythmeta.chunithmd.score.ScoreRepository
-import org.rhythmeta.chunithmd.shared.ScoreRecord
-import org.rhythmeta.chunithmd.shared.BestTablePreferences
-import org.rhythmeta.chunithmd.ui.best.BestTableHomeCard
-import org.rhythmeta.chunithmd.ui.best.BestTableScreen
 import org.rhythmeta.chunithmd.ui.random.RandomSongHomeCard
 import org.rhythmeta.chunithmd.ui.random.RandomSongScreen
 import org.rhythmeta.chunithmd.ui.random.RandomSongSessionState
@@ -139,39 +141,39 @@ import org.rhythmeta.chunithmd.ui.recommendation.RecommendationScreen
 import org.rhythmeta.chunithmd.ui.scorequery.ScoreQueryHomeCard
 import org.rhythmeta.chunithmd.ui.scorequery.ScoreQueryScreen
 import org.rhythmeta.chunithmd.ui.scorequery.ScoreQueryToolbarActions
-import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableHomeCard
-import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableScreen
-import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableToolbarActions
-import org.rhythmeta.chunithmd.ui.plate.PlateProgressHomeCard
-import org.rhythmeta.chunithmd.ui.plate.PlateProgressScreen
-import org.rhythmeta.chunithmd.collection.SongCollectionRepository
-import org.rhythmeta.chunithmd.ui.collections.CollectionsHomeCard
-import org.rhythmeta.chunithmd.ui.collections.SongCollectionsScreen
-import org.rhythmeta.chunithmd.ui.collections.CollectionsToolbarActions
-import org.rhythmeta.chunithmd.ui.collections.rememberCollectionsUiState
-import org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode
-import org.rhythmeta.chunithmd.shared.ScoreQueryFilterSettings
-import org.rhythmeta.chunithmd.shared.ScoreQuerySortMode
-import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
-import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
-import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import org.rhythmeta.chunithmd.ui.settings.SettingsHome
+import org.rhythmeta.chunithmd.ui.settings.StaticResourcesScreen
+import org.rhythmeta.chunithmd.ui.settings.ThemeSettingsScreen
+import org.rhythmeta.chunithmd.ui.theme.AppThemeSettings
+import org.rhythmeta.chunithmd.ui.theme.ChunithmdTheme
+import org.rhythmeta.chunithmd.ui.theme.DefaultAppThemeSettings
+import org.rhythmeta.chunithmd.ui.theme.LocalEnableBlur
+import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBar
+import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBarBlur
+import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
+import org.rhythmeta.chunithmd.ui.theme.ThemePreferencesRepository
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
-import top.yukonga.miuix.kmp.theme.MiuixTheme
-
 import top.yukonga.miuix.kmp.nav.core.NavDisplay
-import top.yukonga.miuix.kmp.nav.core.NavKey
-import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
-import top.yukonga.miuix.kmp.nav.core.rememberNavBackStack
 import top.yukonga.miuix.kmp.nav.core.NavDisplayEffects
+import top.yukonga.miuix.kmp.nav.core.NavKey
+import top.yukonga.miuix.kmp.nav.core.rememberNavBackStack
+import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
 import top.yukonga.miuix.kmp.nav.transition.NavMotion
 import top.yukonga.miuix.kmp.nav.transition.NavSettleSpec
 import top.yukonga.miuix.kmp.nav.transition.NavSwipeDirection
 import top.yukonga.miuix.kmp.nav.transition.NavTransition
 import top.yukonga.miuix.kmp.nav.transition.NavTransitions
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
+import org.rhythmeta.chunithmd.shared.community.*
+import org.rhythmeta.chunithmd.ui.community.CommunityAliasScreen
+import org.rhythmeta.chunithmd.ui.community.CommunityAliasHomeCard
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 
 @Serializable
 private sealed interface AppRoute : NavKey {
@@ -182,6 +184,7 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Theme : AppRoute
     @Serializable data object Resources : AppRoute
     @Serializable data object Account : AppRoute
+    @Serializable data object CommunityAliases : AppRoute
     @Serializable data object Profiles : AppRoute
     @Serializable data object BestTable : AppRoute
     @Serializable data object RandomSong : AppRoute
@@ -262,6 +265,38 @@ private fun NavigationEventGate(
 }
 
 class MainActivity : ComponentActivity() {
+    private var exportingLogs = false
+
+    private fun sendLogs() {
+        if (exportingLogs) return
+        exportingLogs = true
+        lifecycleScope.launch {
+            try {
+                val app = application as ChunithmdApplication
+                val uri = org.rhythmeta.chunithmd.diagnostics.LogReportExporter.export(applicationContext, app.crashLogStore)
+                val share = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    clipData = android.content.ClipData.newRawUri("chunithmd logs", uri)
+                }
+                startActivity(android.content.Intent.createChooser(share, "分享 chunithmd 日志"))
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                android.widget.Toast.makeText(this@MainActivity, "无法生成或分享日志文件", android.widget.Toast.LENGTH_LONG).show()
+            } finally {
+                exportingLogs = false
+            }
+        }
+    }
+
+    private var pendingCollectionLink by mutableStateOf<String?>(null)
+    private fun receiveCollection(intent: android.content.Intent?) {
+        val url = intent?.data?.takeIf { it.scheme == "chunithmd" && it.host == "collection" } ?: return
+        pendingCollectionLink = url.toString()
+    }
+
     private val accountClient by lazy { org.rhythmeta.chunithmd.shared.account.RhythmetaClient(org.rhythmeta.chunithmd.account.AndroidSecretStore(applicationContext)) }
     private fun receiveAuth(intent: android.content.Intent?) {
         val url = intent?.data?.takeIf { it.scheme == "chunithmd" && it.host == "auth" } ?: return
@@ -274,6 +309,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         receiveAuth(intent)
+        receiveCollection(intent)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -302,6 +338,7 @@ class MainActivity : ComponentActivity() {
         val backupCoordinator = org.rhythmeta.chunithmd.shared.backup.BackupCoordinator(accountClient,
             org.rhythmeta.chunithmd.account.AndroidSnapshotStore(applicationContext, profileRepository, scoreRepository, collectionRepository, favoriteSongRepository))
         receiveAuth(intent)
+        receiveCollection(intent)
         setContent {
             var recovered by remember { mutableStateOf(false) }
             var recoveryError by remember { mutableStateOf<String?>(null) }
@@ -323,7 +360,10 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
-                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator)
+                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator, pendingCollectionLink, ::sendLogs) {
+                        pendingCollectionLink = null
+                        intent?.data = null
+                    }
                 }
             }
         }
@@ -345,9 +385,21 @@ private fun CatalogApp(
     collectionRepository: SongCollectionRepository,
     accountClient: org.rhythmeta.chunithmd.shared.account.RhythmetaClient,
     backupCoordinator: org.rhythmeta.chunithmd.shared.backup.BackupCoordinator,
+    pendingCollectionLink: String?,
+    onSendLogs: () -> Unit,
+    onCollectionLinkConsumed: () -> Unit,
 ) {
-    var bundle by catalogState::bundle
-    val applicationContext = LocalContext.current.applicationContext
+    var catalogBundle by catalogState::bundle
+    val communityContext = LocalContext.current.applicationContext
+    val communityStore = remember(accountClient) {
+        CommunityAliasStore(RhythmetaCommunityApi(accountClient), FileCommunityAliasCache(communityContext.filesDir.absolutePath))
+    }
+    val communityState by communityStore.state.collectAsState()
+    val bundle = remember(catalogBundle, communityState.approvedAliases, communityState.personalAliases) {
+        catalogBundle?.withCommunityAliases(communityState)
+    }
+    LaunchedEffect(communityStore) { communityStore.observeAccount() }
+    LaunchedEffect(communityStore) { communityStore.syncApproved() }
     val collections by collectionRepository.collections.collectAsState(initial = emptyList())
     val collectionsUiState = rememberCollectionsUiState()
     var manifest by catalogState::manifest
@@ -470,6 +522,7 @@ private fun CatalogApp(
     val plateProgressTopBarScrollBehavior = MiuixScrollBehavior()
     val collectionsTopBarScrollBehavior = MiuixScrollBehavior()
     val collectionDetailTopBarScrollBehavior = MiuixScrollBehavior()
+    val communityTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -542,7 +595,7 @@ private fun CatalogApp(
                 }
             }.onSuccess { snapshot ->
                 manifest = snapshot.manifest
-                bundle = withContext(Dispatchers.Default) {
+                catalogBundle = withContext(Dispatchers.Default) {
                     CatalogJson.decodeBundle(snapshot.bundleJson)
                 }
             }.onFailure {
@@ -579,6 +632,14 @@ private fun CatalogApp(
         if (route == AppRoute.Recommendations) recommendationSwitcherVisible = true
         if (navBackStack.lastOrNull() != route) {
             navBackStack.add(route)
+        }
+    }
+    LaunchedEffect(pendingCollectionLink) {
+        pendingCollectionLink?.let { link ->
+            collectionsUiState.importValue = link
+            collectionsUiState.importRequested = true
+            pushRoute(AppRoute.Collections)
+            onCollectionLinkConsumed()
         }
     }
     fun navigateToTab(index: Int) {
@@ -631,12 +692,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = titleOverride ?: when (page) { 15 -> "云端账户"; 14, 13 -> "收藏夹"; 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = titleOverride ?: when (page) { 16 -> "社区别名"; 15 -> "云端账户"; 14, 13 -> "收藏夹"; 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page in 4..15) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page in 4..16) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                 }
             },
@@ -795,10 +856,20 @@ private fun CatalogApp(
                             modifier = Modifier.weight(1f),
                             onClick = { pushRoute(AppRoute.PlateProgress) },
                         )
+                        CommunityAliasHomeCard(
+                            modifier = Modifier.weight(1f),
+                            onClick = { pushRoute(AppRoute.CommunityAliases) },
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                    ) {
                         CollectionsHomeCard(
                             modifier = Modifier.weight(1f),
                             onClick = { pushRoute(AppRoute.Collections) },
                         )
+                        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
                     }
                 }
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
@@ -828,6 +899,8 @@ private fun CatalogApp(
                     { pushRoute(AppRoute.Resources) },
                     { pushRoute(AppRoute.Profiles) },
                     { pushRoute(AppRoute.Account) },
+                    accountClient = accountClient,
+                    onSendLogs = onSendLogs,
                 )
             }
         }
@@ -847,7 +920,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
+            if (navBackStack.lastOrNull() == AppRoute.CommunityAliases || navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
                 navBackStack.removeLastOrNull()
@@ -920,6 +993,23 @@ private fun CatalogApp(
                         onDownload = ::refresh,
                     )
                 }
+            }
+        }
+        entry<AppRoute.CommunityAliases>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(16, communityTopBarScrollBehavior) { padding, connection ->
+                CommunityAliasScreen(
+                    store = communityStore,
+                    songs = bundle?.catalog?.songs.orEmpty(),
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = connection,
+                    onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
+                    onLogin = { pushRoute(AppRoute.Account) },
+                )
             }
         }
         entry<AppRoute.Account>(
@@ -1153,6 +1243,9 @@ private fun CatalogApp(
                     localJacketPath = repository::localJacketPath,
                     contentTopPadding = padding.calculateTopPadding(),
                     topBarScrollConnection = topBarScrollConnection,
+                    communityStore = communityStore,
+                    onOpenCommunity = { pushRoute(AppRoute.CommunityAliases) },
+                    onLogin = { pushRoute(AppRoute.Account) },
                     onBackgroundChanged = { songDetailBackground = it },
                     scoreRepository = scoreRepository,
                     collectionRepository = collectionRepository,
@@ -1215,7 +1308,7 @@ private fun CatalogApp(
     if (bundle != null) {
         CatalogFilterDialog(
             show = filterOpen,
-            bundle = bundle!!,
+            bundle = bundle,
             settings = filters,
             onSettingsChange = {
                 filters = it
