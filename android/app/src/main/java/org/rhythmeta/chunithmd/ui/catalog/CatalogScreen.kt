@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -117,7 +119,7 @@ fun CatalogSearchField(
                     expanded = expanded,
                     onExpandedChange = onExpandedChange,
                     interactionSource = interactionSource,
-                    label = "歌曲、艺术家、别名...",
+                    label = tr("歌曲、艺术家、别名..."),
                     modifier = Modifier.fillMaxWidth(),
                 )
             },
@@ -141,7 +143,7 @@ fun CatalogToolbarActions(
     onFilter: () -> Unit,
 ) {
     MiuixIconButton(onClick = {}) {
-        MiuixIcon(Icons.Rounded.GridView, contentDescription = "网格视图")
+        MiuixIcon(Icons.Rounded.GridView, contentDescription = tr("网格视图"))
     }
     SortAction(
         expanded = sortOpen,
@@ -154,7 +156,7 @@ fun CatalogToolbarActions(
     MiuixIconButton(onClick = onFilter) {
         MiuixIcon(
             Icons.Rounded.FilterList,
-            contentDescription = "筛选",
+            contentDescription = tr("筛选"),
             tint = if (filterActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurface,
         )
     }
@@ -171,7 +173,7 @@ private fun SortAction(
 ) {
     Box {
         MiuixIconButton(onClick = onToggle) {
-            MiuixIcon(Icons.AutoMirrored.Rounded.Sort, contentDescription = "排序")
+            MiuixIcon(Icons.AutoMirrored.Rounded.Sort, contentDescription = tr("排序"))
         }
         WindowListPopup(
             show = expanded,
@@ -198,7 +200,7 @@ private fun SortAction(
                 ) {
                     MiuixText(if (ascending) "↑" else "↓", style = MiuixTheme.textStyles.title3, color = MiuixTheme.colorScheme.primary)
                     Spacer(Modifier.width(10.dp))
-                    MiuixText(if (ascending) "升序" else "降序", style = MiuixTheme.textStyles.body1)
+                    MiuixText(if (ascending) tr("升序") else tr("降序"), style = MiuixTheme.textStyles.body1)
                 }
             }
         }
@@ -233,7 +235,7 @@ private fun InitialLoad(sync: CatalogSyncState, error: String?, onRetry: () -> U
     Column(modifier.fillMaxSize().padding(28.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         MiuixText("CHUNITHM", style = MiuixTheme.textStyles.title1, color = MiuixTheme.colorScheme.onSurface)
         Spacer(Modifier.height(12.dp))
-        MiuixText(error ?: sync.message ?: "正在下载歌曲目录", style = MiuixTheme.textStyles.body1)
+        MiuixText(error ?: sync.message ?: tr("正在下载歌曲目录"), style = MiuixTheme.textStyles.body1)
         Spacer(Modifier.height(18.dp))
         if (sync.stage in setOf(CatalogSyncStage.Checking, CatalogSyncStage.Downloading, CatalogSyncStage.Validating, CatalogSyncStage.Applying)) {
             val downloadProgress = sync.progress
@@ -246,14 +248,14 @@ private fun InitialLoad(sync: CatalogSyncState, error: String?, onRetry: () -> U
                 CircularProgressIndicator()
             }
         } else {
-            MiuixButton(onClick = onRetry) { MiuixText("重试") }
+            MiuixButton(onClick = onRetry) { MiuixText(tr("重试")) }
         }
     }
 }
 
 private fun sortLabel(sort: CatalogSort) = when (sort) {
-    CatalogSort.Default -> "默认顺序"
-    CatalogSort.Title -> "标题"
-    CatalogSort.VersionDate -> "版本 / 发行日期"
-    CatalogSort.Difficulty -> "最高定数"
+    CatalogSort.Default -> tr("默认顺序")
+    CatalogSort.Title -> tr("标题")
+    CatalogSort.VersionDate -> tr("版本 / 发行日期")
+    CatalogSort.Difficulty -> tr("最高定数")
 }

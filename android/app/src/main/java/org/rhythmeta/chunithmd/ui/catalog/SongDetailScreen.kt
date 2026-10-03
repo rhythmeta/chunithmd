@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentValues
@@ -369,7 +371,7 @@ fun SongDetailScreen(
                         )
                     }
                         .onSuccess { scoreEntrySheetKey = null }
-                        .onFailure { showMessage("保存成绩失败") }
+                        .onFailure { showMessage(tr("保存成绩失败")) }
                     scoreEntrySaving = false
                 }
             }
@@ -395,7 +397,7 @@ private fun DetailEmptyState() {
     ) {
         MiuixIcon(Icons.Rounded.Info, contentDescription = null, tint = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.size(40.dp))
         Spacer(Modifier.height(12.dp))
-        MiuixText("歌曲不存在或目录尚未加载", style = MiuixTheme.textStyles.body1, textAlign = TextAlign.Center)
+        MiuixText(tr("歌曲不存在或目录尚未加载"), style = MiuixTheme.textStyles.body1, textAlign = TextAlign.Center)
     }
 }
 
@@ -408,7 +410,7 @@ private fun DetailLoadingState() {
     ) {
         CircularProgressIndicator()
         Spacer(Modifier.height(12.dp))
-        MiuixText("正在加载歌曲目录", style = MiuixTheme.textStyles.body1, textAlign = TextAlign.Center)
+        MiuixText(tr("正在加载歌曲目录"), style = MiuixTheme.textStyles.body1, textAlign = TextAlign.Center)
     }
 }
 
@@ -490,7 +492,7 @@ private fun SongDetailHeader(
             modifier = Modifier.fillMaxWidth().basicMarquee().clickable { onCopyText(CatalogSongFormatter.displayTitle(song)) },
         )
         MiuixText(
-            text = song.artist.ifBlank { "未知艺术家" },
+            text = song.artist.ifBlank { tr("未知艺术家") },
             style = MiuixTheme.textStyles.body1,
             color = accentColor,
             maxLines = 1,
@@ -538,9 +540,9 @@ private fun CoverActionMenu(
         onDismissRequest = onDismiss,
     ) {
         ListPopupColumn {
-            CoverActionMenuItem("下载封面", Icons.Rounded.Download, enabled) { onAction(CoverAction.Download) }
-            CoverActionMenuItem("复制封面", Icons.Rounded.ContentCopy, enabled) { onAction(CoverAction.Copy) }
-            CoverActionMenuItem("分享封面", Icons.Rounded.Share, enabled) { onAction(CoverAction.Share) }
+            CoverActionMenuItem(tr("下载封面"), Icons.Rounded.Download, enabled) { onAction(CoverAction.Download) }
+            CoverActionMenuItem(tr("复制封面"), Icons.Rounded.ContentCopy, enabled) { onAction(CoverAction.Copy) }
+            CoverActionMenuItem(tr("分享封面"), Icons.Rounded.Share, enabled) { onAction(CoverAction.Share) }
         }
     }
 }
@@ -622,9 +624,9 @@ private fun RegionAvailabilityCard(song: CatalogSong, surfaceColor: Color, accen
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            RegionFlag("🇯🇵", "日本", songRegionAvailable(song, "jp"), accentColor)
-            RegionFlag("🌏", "国际", songRegionAvailable(song, "intl"), accentColor)
-            RegionFlag("🇨🇳", "中国", songRegionAvailable(song, "cn"), accentColor)
+            RegionFlag("🇯🇵", tr("日本"), songRegionAvailable(song, "jp"), accentColor)
+            RegionFlag("🌏", tr("国际"), songRegionAvailable(song, "intl"), accentColor)
+            RegionFlag("🇨🇳", tr("中国"), songRegionAvailable(song, "cn"), accentColor)
             Spacer(Modifier.weight(1f))
         }
     }
@@ -650,13 +652,13 @@ private fun ExternalSearchCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            MiuixIcon(Icons.Rounded.Search, contentDescription = "外部搜索", tint = accentColor, modifier = Modifier.size(20.dp))
+            MiuixIcon(Icons.Rounded.Search, contentDescription = tr("外部搜索"), tint = accentColor, modifier = Modifier.size(20.dp))
             ExternalSearchButton(
                 text = "YouTube",
                 icon = Icons.Rounded.PlayArrow,
                 onClick = {
                     if (!openExternalSearch(context, "https://www.youtube.com/results?search_query=chunithm+$encodedTitle")) {
-                        onMessage("未找到可用的 YouTube 应用")
+                        onMessage(tr("未找到可用的 YouTube 应用"))
                     }
                 },
                 modifier = Modifier.weight(1f),
@@ -668,7 +670,7 @@ private fun ExternalSearchCard(
                 icon = Icons.Rounded.MusicNote,
                 onClick = {
                     if (!openExternalSearch(context, "bilibili://search?keyword=chunithm+$encodedTitle")) {
-                        onMessage("未找到可用的 Bilibili 应用")
+                        onMessage(tr("未找到可用的 Bilibili 应用"))
                     }
                 },
                 modifier = Modifier.weight(1f),
@@ -768,7 +770,7 @@ private fun ChartDetailCard(
         isUltima -> ultimaStripedBrush()
         else -> null
     }
-    val difficultyLabel = sheet.difficulty.trim().uppercase(Locale.ROOT).ifBlank { "未知难度" }
+    val difficultyLabel = sheet.difficulty.trim().uppercase(Locale.ROOT).ifBlank { tr("未知难度") }
     val worldsEndStars = sheet.worldsEndStars()?.coerceIn(0, 5)
     val levelLabel = if (isWorldsEnd && worldsEndStars != null) {
         "★".repeat(worldsEndStars) + "☆".repeat(5 - worldsEndStars)
@@ -843,7 +845,7 @@ private fun ChartDetailCard(
             Spacer(Modifier.width(6.dp))
             MiuixIcon(
                 Icons.Rounded.ChevronRight,
-                contentDescription = if (expanded) "收起谱面" else "展开谱面",
+                contentDescription = if (expanded) tr("收起谱面") else tr("展开谱面"),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.58f),
                 modifier = Modifier.size(18.dp).rotate(chevronRotation),
             )
@@ -881,12 +883,12 @@ private fun ChartDetailCard(
                     CollectionActionButton(onRecord, actionSurfaceColor, Modifier.weight(1f)) {
                         MiuixIcon(Icons.Rounded.Edit, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
-                        MiuixText("记录成绩")
+                        MiuixText(tr("记录成绩"))
                     }
                     CollectionActionButton(onAddToCollection, actionSurfaceColor, Modifier.weight(1f)) {
                         MiuixIcon(Icons.AutoMirrored.Rounded.PlaylistAdd, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
-                        MiuixText("加入收藏夹")
+                        MiuixText(tr("加入收藏夹"))
                     }
                 }
             }
@@ -944,7 +946,7 @@ private fun NoteCountSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             MiuixText(
-                "音符统计",
+                tr("音符统计"),
                 style = MiuixTheme.textStyles.body2,
                 fontWeight = FontWeight.Bold,
                 color = MiuixTheme.colorScheme.onSurface,
@@ -952,7 +954,7 @@ private fun NoteCountSection(
             )
             MiuixIcon(
                 Icons.Rounded.ChevronRight,
-                contentDescription = if (expanded) "收起音符统计" else "展开音符统计",
+                contentDescription = if (expanded) tr("收起音符统计") else tr("展开音符统计"),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.58f),
                 modifier = Modifier.size(16.dp).rotate(chevronRotation),
             )
@@ -1037,13 +1039,13 @@ private fun ScoreSummarySection(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             MiuixText(
-                "当前最佳",
+                tr("当前最佳"),
                 style = MiuixTheme.textStyles.footnote2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
             if (bestRecord == null) {
                 MiuixText(
-                    "暂无成绩",
+                    tr("暂无成绩"),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
@@ -1088,7 +1090,7 @@ private fun RecordStatusBadges(
     ) {
         statuses.forEach { (text, color) ->
             MiuixText(
-                text,
+                tr(text),
                 style = MiuixTheme.textStyles.footnote2,
                 fontWeight = FontWeight.Bold,
                 color = color,
@@ -1126,14 +1128,14 @@ private fun RatingTableSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             MiuixText(
-                "分数 → Rating",
+                tr("分数 → Rating"),
                 style = MiuixTheme.textStyles.body2,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
             MiuixIcon(
                 Icons.Rounded.ChevronRight,
-                contentDescription = if (expanded) "收起 Rating" else "展开 Rating",
+                contentDescription = if (expanded) tr("收起 Rating") else tr("展开 Rating"),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.58f),
                 modifier = Modifier.size(16.dp).rotate(chevronRotation),
             )
@@ -1147,14 +1149,14 @@ private fun RatingTableSection(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     MiuixText(
-                        "等级",
+                        tr("等级"),
                         style = MiuixTheme.textStyles.footnote2,
                         fontWeight = FontWeight.Bold,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier.width(42.dp),
                     )
                     MiuixText(
-                        "分数",
+                        tr("分数"),
                         style = MiuixTheme.textStyles.footnote2,
                         fontWeight = FontWeight.Bold,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
@@ -1169,7 +1171,7 @@ private fun RatingTableSection(
                         modifier = Modifier.width(64.dp),
                     )
                     MiuixText(
-                        "差值",
+                        tr("差值"),
                         style = MiuixTheme.textStyles.footnote2,
                         fontWeight = FontWeight.Bold,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
@@ -1262,26 +1264,26 @@ private fun ScoreHistorySection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             MiuixText(
-                "历史成绩",
+                tr("历史成绩"),
                 style = MiuixTheme.textStyles.body2,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
             ScoreHistorySortOption(
-                text = "时间",
+                text = tr("时间"),
                 selected = sortByTime,
                 accentColor = accentColor,
                 onClick = { sortByTime = true; page = 1 },
             )
             ScoreHistorySortOption(
-                text = "分数",
+                text = tr("分数"),
                 selected = !sortByTime,
                 accentColor = accentColor,
                 onClick = { sortByTime = false; page = 1 },
             )
             MiuixIcon(
                 Icons.Rounded.ChevronRight,
-                contentDescription = if (expanded) "收起历史成绩" else "展开历史成绩",
+                contentDescription = if (expanded) tr("收起历史成绩") else tr("展开历史成绩"),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.58f),
                 modifier = Modifier.size(16.dp).rotate(if (expanded) 90f else 0f),
             )
@@ -1306,7 +1308,7 @@ private fun ScoreHistorySection(
                         MiuixIconButton(onClick = { page = (validPage - 1).coerceAtLeast(1) }) {
                             MiuixIcon(
                                 Icons.Rounded.ChevronRight,
-                                contentDescription = "上一页",
+                                contentDescription = tr("上一页"),
                                 tint = if (validPage > 1) accentColor else MiuixTheme.colorScheme.disabledOnSecondaryVariant,
                                 modifier = Modifier.size(18.dp).rotate(180f),
                             )
@@ -1320,7 +1322,7 @@ private fun ScoreHistorySection(
                         MiuixIconButton(onClick = { page = (validPage + 1).coerceAtMost(totalPages) }) {
                             MiuixIcon(
                                 Icons.Rounded.ChevronRight,
-                                contentDescription = "下一页",
+                                contentDescription = tr("下一页"),
                                 tint = if (validPage < totalPages) accentColor else MiuixTheme.colorScheme.disabledOnSecondaryVariant,
                                 modifier = Modifier.size(18.dp),
                             )
@@ -1405,7 +1407,7 @@ private fun ScoreHistoryRow(
         MiuixIconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
             MiuixIcon(
                 Icons.Rounded.Delete,
-                contentDescription = "删除成绩记录",
+                contentDescription = tr("删除成绩记录"),
                 tint = MiuixTheme.colorScheme.error.copy(alpha = 0.65f),
                 modifier = Modifier.size(16.dp),
             )
@@ -1453,18 +1455,18 @@ private fun ScoreEntrySheet(
     ExpandableBottomSheet(
         visible = visible,
         onDismissRequest = onDismiss,
-        expandActionLabel = "展开",
-        collapseActionLabel = "收起到半屏",
-        expandedStateDescription = "已全屏展开",
-        halfExpandedStateDescription = "半屏",
+        expandActionLabel = tr("展开"),
+        collapseActionLabel = tr("收起到半屏"),
+        expandedStateDescription = tr("已全屏展开"),
+        halfExpandedStateDescription = tr("半屏"),
         header = {
             MiuixIconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterStart)) {
-                MiuixIcon(Icons.Rounded.Close, contentDescription = "取消")
+                MiuixIcon(Icons.Rounded.Close, contentDescription = tr("取消"))
             }
-            MiuixText("记录成绩", style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Center))
+            MiuixText(tr("记录成绩"), style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Center))
             if (isValid && !saving) {
                 MiuixIconButton(onClick = submit, modifier = Modifier.align(Alignment.CenterEnd)) {
-                    MiuixIcon(Icons.Rounded.Check, contentDescription = "保存", tint = MiuixTheme.colorScheme.primary)
+                    MiuixIcon(Icons.Rounded.Check, contentDescription = tr("保存"), tint = MiuixTheme.colorScheme.primary)
                 }
             }
         },
@@ -1480,7 +1482,7 @@ private fun ScoreEntrySheet(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SmallTitle(
-                        text = "成绩",
+                        text = tr("成绩"),
                         insideMargin = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
                     )
                     DetailCard(
@@ -1504,7 +1506,7 @@ private fun ScoreEntrySheet(
                                     scoreText = value
                                 }
                             },
-                            label = "分数",
+                            label = tr("分数"),
                             useLabelAsPlaceholder = true,
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
@@ -1513,7 +1515,7 @@ private fun ScoreEntrySheet(
                         }
                     }
                     SmallTitle(
-                        text = "状态",
+                        text = tr("状态"),
                         insideMargin = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
                     )
                     DetailCard(
@@ -1522,20 +1524,20 @@ private fun ScoreEntrySheet(
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             ScoreStatusDropdown(
-                                title = "CLEAR 状态",
+                                title = tr("CLEAR 状态"),
                                 items = ClearType.entries.map { it.displayName },
                                 selectedIndex = ClearType.entries.indexOf(ClearType.fromWire(clear)),
                                 onSelectedIndexChange = { index -> clear = ClearType.entries[index].wireValue },
                             )
                             ScoreStatusDropdown(
-                                title = "COMBO 状态",
-                                items = listOf("无") + FullComboType.entries.map { it.displayName },
+                                title = tr("COMBO 状态"),
+                                items = listOf(tr("无")) + FullComboType.entries.map { it.displayName },
                                 selectedIndex = fullCombo?.let { value -> FullComboType.entries.indexOf(FullComboType.fromWire(value)) + 1 } ?: 0,
                                 onSelectedIndexChange = { index -> fullCombo = FullComboType.entries.getOrNull(index - 1)?.wireValue },
                             )
                             ScoreStatusDropdown(
-                                title = "CHAIN 状态",
-                                items = listOf("无") + FullChainType.entries.map { it.displayName },
+                                title = tr("CHAIN 状态"),
+                                items = listOf(tr("无")) + FullChainType.entries.map { tr(it.displayName) },
                                 selectedIndex = fullChain?.let { value -> FullChainType.entries.indexOf(FullChainType.fromWire(value)) + 1 } ?: 0,
                                 onSelectedIndexChange = { index -> fullChain = FullChainType.entries.getOrNull(index - 1)?.wireValue },
                             )
@@ -1551,7 +1553,7 @@ private fun ScoreEntrySheet(
                         borderColor = MiuixTheme.colorScheme.outline.copy(alpha = 0.08f),
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            MiuixText("当前最佳", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                            MiuixText(tr("当前最佳"), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                                 MiuixText(formatScore(best.score), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
                                 MiuixText(best.rank, style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold, color = scoreRankColor(best.rank) ?: MiuixTheme.colorScheme.onSurfaceVariantSummary)
@@ -1570,7 +1572,7 @@ private fun ScoreEntrySheet(
                 ) {
                     MiuixIcon(if (saving) Icons.Rounded.Timer else Icons.Rounded.Save, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    MiuixText(if (saving) "保存中…" else "保存成绩")
+                    MiuixText(if (saving) tr("保存中…") else tr("保存成绩"))
                 }
             }
         }
@@ -1661,7 +1663,7 @@ private fun ScoreEntrySongCard(song: CatalogSong, sheet: CatalogSheet?) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 MiuixText(song.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                MiuixText(song.artist.ifBlank { "未知艺术家" }, style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                MiuixText(song.artist.ifBlank { tr("未知艺术家") }, style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             sheet?.let {
                 Column(horizontalAlignment = Alignment.End) {
@@ -1677,8 +1679,8 @@ private fun ScoreEntrySongCard(song: CatalogSong, sheet: CatalogSheet?) {
 private fun DeleteScoreRecordDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     WindowDialog(
         show = true,
-        title = "删除成绩记录",
-        summary = "确定删除这条历史成绩吗？",
+        title = tr("删除成绩记录"),
+        summary = tr("确定删除这条历史成绩吗？"),
         onDismissRequest = onDismiss,
         outsideMargin = DpSize(24.dp, 24.dp),
     ) {
@@ -1691,14 +1693,14 @@ private fun DeleteScoreRecordDialog(onConfirm: () -> Unit, onDismiss: () -> Unit
                 modifier = Modifier.weight(1f),
                 colors = MiuixButtonDefaults.buttonColors(),
             ) {
-                MiuixText("取消")
+                MiuixText(tr("取消"))
             }
             MiuixButton(
                 onClick = onConfirm,
                 modifier = Modifier.weight(1f),
                 colors = MiuixButtonDefaults.buttonColorsPrimary(),
             ) {
-                MiuixText("删除")
+                MiuixText(tr("删除"))
             }
         }
     }
@@ -1721,7 +1723,7 @@ private fun scoreRankColor(rank: String): Color? = when (rank.uppercase(Locale.R
 @Composable
 private fun EmptyChartState() {
     Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        MiuixText("暂无谱面数据", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        MiuixText(tr("暂无谱面数据"), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
     }
 }
 
@@ -1758,9 +1760,9 @@ private fun performCoverAction(context: Context, source: File?, title: String, a
         when (action) {
             CoverAction.Copy -> {
                 val clipboard = context.getSystemService(ClipboardManager::class.java)
-                    ?: error("Clipboard unavailable")
+                    ?: error(tr("Clipboard unavailable"))
                 clipboard.setPrimaryClip(ClipData.newUri(context.contentResolver, title, uri))
-                onMessage("已复制封面")
+                onMessage(tr("已复制封面"))
             }
             CoverAction.Share -> {
                 context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
@@ -1768,11 +1770,11 @@ private fun performCoverAction(context: Context, source: File?, title: String, a
                     putExtra(Intent.EXTRA_STREAM, uri)
                     clipData = ClipData.newUri(context.contentResolver, title, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }, "分享封面"))
+                }, tr("分享封面")))
             }
             CoverAction.Download -> downloadCover(context, source, title, onMessage)
         }
-    }.onFailure { onMessage("封面操作失败") }
+    }.onFailure { onMessage(tr("封面操作失败")) }
 }
 
 private fun prepareShareUri(context: Context, source: File, title: String): Uri {
@@ -1795,15 +1797,15 @@ private fun downloadCover(context: Context, source: File, title: String, onMessa
         put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
     }
     val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-        ?: error("Unable to create download")
+        ?: error(tr("Unable to create download"))
     context.contentResolver.openOutputStream(uri)?.use { output -> source.inputStream().use { input -> input.copyTo(output) } }
-        ?: error("Unable to write download")
-    onMessage("已保存到下载")
+        ?: error(tr("Unable to write download"))
+    onMessage(tr("已保存到下载"))
 }
 
 private fun copyText(context: Context, value: String, onMessage: (String) -> Unit) {
     context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText(value, value))
-    onMessage("已复制")
+    onMessage(tr("已复制"))
 }
 
 private fun openExternalSearch(context: Context, url: String): Boolean = runCatching {

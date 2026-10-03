@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
@@ -129,7 +131,7 @@ internal fun SongCard(
                     modifier = Modifier.fillMaxWidth().height(20.dp).basicMarquee(),
                 )
                 MiuixText(
-                    text = song.artist.ifBlank { "未知艺术家" },
+                    text = song.artist.ifBlank { tr("未知艺术家") },
                     style = MiuixTheme.textStyles.footnote1.copy(fontSize = 12.sp),
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,

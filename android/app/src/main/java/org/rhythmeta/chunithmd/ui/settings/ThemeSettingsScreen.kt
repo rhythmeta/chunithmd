@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.settings
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
@@ -93,7 +95,7 @@ fun ThemeSettingsScreen(
             ThemePreviewCard(settings)
             Spacer(Modifier.height(28.dp))
             TabRow(
-                tabs = listOf("跟随系统", "浅色", "深色"),
+                tabs = listOf(tr("跟随系统"), tr("浅色"), tr("深色")),
                 selectedTabIndex = when { settings.colorMode.isSystem -> 0; settings.colorMode.isDark -> 2; else -> 1 },
                 onTabSelected = { index ->
                     val mode = when (index) { 0 -> ColorMode.SYSTEM; 1 -> ColorMode.LIGHT; else -> ColorMode.DARK }
@@ -104,8 +106,8 @@ fun ThemeSettingsScreen(
         item {
             Card(Modifier.fillMaxWidth()) {
                 SwitchPreference(
-                    title = "Monet 动态颜色",
-                    summary = "使用系统动态色板",
+                    title = tr("Monet 动态颜色"),
+                    summary = tr("使用系统动态色板"),
                     checked = settings.colorMode.isMonet,
                     onCheckedChange = { onColorModeChange(if (it) settings.colorMode.toMonetMode() else settings.colorMode.toNonMonetMode()) },
                     startAction = { ThemeIcon(Icons.Rounded.Wallpaper) },
@@ -113,21 +115,21 @@ fun ThemeSettingsScreen(
                 AnimatedVisibility(settings.colorMode.isMonet) {
                     Column {
                         OverlayDropdownPreference(
-                            title = "种子颜色",
-                            items = listOf("壁纸取色", "红色", "粉色", "紫色", "深紫色", "靛蓝色", "蓝色", "青色", "蓝绿色", "绿色", "黄色", "琥珀色", "橙色", "棕色", "蓝灰色", "樱花色"),
+                            title = tr("种子颜色"),
+                            items = listOf(tr("壁纸取色"), tr("红色"), tr("粉色"), tr("紫色"), tr("深紫色"), tr("靛蓝色"), tr("蓝色"), tr("青色"), tr("蓝绿色"), tr("绿色"), tr("黄色"), tr("琥珀色"), tr("橙色"), tr("棕色"), tr("蓝灰色"), tr("樱花色")),
                             selectedIndex = keyColors.indexOf(settings.keyColor).coerceAtLeast(0),
                             onSelectedIndexChange = { onKeyColorChange(keyColors[it]) },
                             startAction = { ThemeIcon(Icons.Rounded.Colorize) },
                         )
                         OverlayDropdownPreference(
-                            title = "色板样式",
-                            items = PaletteStyle.entries.map { it.name },
+                            title = tr("色板样式"),
+                            items = PaletteStyle.entries.map { tr(it.name) },
                             selectedIndex = PaletteStyle.entries.indexOf(settings.paletteStyle).coerceAtLeast(0),
                             onSelectedIndexChange = { onPaletteStyleChange(PaletteStyle.entries[it]) },
                             startAction = { ThemeIcon(Icons.Rounded.Style) },
                         )
                         OverlayDropdownPreference(
-                            title = "色彩规范",
+                            title = tr("色彩规范"),
                             items = ColorSpec.SpecVersion.entries.map { it.name },
                             selectedIndex = ColorSpec.SpecVersion.entries.indexOf(settings.colorSpec).coerceAtLeast(0),
                             onSelectedIndexChange = { onColorSpecChange(ColorSpec.SpecVersion.entries[it]) },
@@ -140,20 +142,20 @@ fun ThemeSettingsScreen(
         item {
             Card(Modifier.fillMaxWidth()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    SwitchPreference(checked = settings.enableBlur, onCheckedChange = onEnableBlurChange, title = "模糊", summary = "在支持的设备上模糊顶部栏和页面", startAction = { ThemeIcon(Icons.Rounded.BlurOn) })
+                    SwitchPreference(checked = settings.enableBlur, onCheckedChange = onEnableBlurChange, title = tr("模糊"), summary = tr("在支持的设备上模糊顶部栏和页面"), startAction = { ThemeIcon(Icons.Rounded.BlurOn) })
                 }
-                SwitchPreference(checked = settings.enableFloatingBottomBar, onCheckedChange = onEnableFloatingBottomBarChange, title = "浮动底栏", summary = "使用浮动导航底栏", startAction = { ThemeIcon(Icons.Rounded.CallToAction) })
+                SwitchPreference(checked = settings.enableFloatingBottomBar, onCheckedChange = onEnableFloatingBottomBarChange, title = tr("浮动底栏"), summary = tr("使用浮动导航底栏"), startAction = { ThemeIcon(Icons.Rounded.CallToAction) })
                 AnimatedVisibility(settings.enableFloatingBottomBar && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    SwitchPreference(checked = settings.enableFloatingBottomBarBlur, onCheckedChange = onEnableFloatingBottomBarBlurChange, title = "底栏玻璃", summary = "应用液态玻璃背景效果", startAction = { ThemeIcon(Icons.Rounded.WaterDrop) })
+                    SwitchPreference(checked = settings.enableFloatingBottomBarBlur, onCheckedChange = onEnableFloatingBottomBarBlurChange, title = tr("底栏玻璃"), summary = tr("应用液态玻璃背景效果"), startAction = { ThemeIcon(Icons.Rounded.WaterDrop) })
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    SwitchPreference(checked = settings.enablePredictiveBack, onCheckedChange = onEnablePredictiveBackChange, title = "预测返回", summary = "使用系统返回手势动画", startAction = { ThemeIcon(Icons.AutoMirrored.Rounded.MenuOpen) })
+                    SwitchPreference(checked = settings.enablePredictiveBack, onCheckedChange = onEnablePredictiveBackChange, title = tr("预测返回"), summary = tr("使用系统返回手势动画"), startAction = { ThemeIcon(Icons.AutoMirrored.Rounded.MenuOpen) })
                 }
                 var showScale by rememberSaveable { mutableStateOf(false) }
                 var scale by remember(settings.pageScale) { mutableFloatStateOf(settings.pageScale) }
                 ArrowPreference(
-                    title = "页面缩放",
-                    summary = "调整页面内容大小",
+                    title = tr("页面缩放"),
+                    summary = tr("调整页面内容大小"),
                     endActions = { Text("${(scale * 100).toInt()}%") },
                     onClick = { showScale = !showScale },
                     holdDownState = showScale,
@@ -194,7 +196,7 @@ private fun ThemePreviewCard(settings: AppThemeSettings) {
         val shape = RoundedCornerShape(20.dp)
         Box(Modifier.fillMaxWidth(0.42f).aspectRatio(ratio).clip(shape).background(background).border(1.dp, colors.outline, shape)) {
             Column {
-                Text("主页", color = if (settings.colorMode.isMonet) colors.onSurface else colors.onBackground, modifier = Modifier.padding(start = 12.dp, top = 20.dp))
+                Text(tr("主页"), color = if (settings.colorMode.isMonet) colors.onSurface else colors.onBackground, modifier = Modifier.padding(start = 12.dp, top = 20.dp))
                 Box(Modifier.fillMaxWidth().height(34.dp).padding(8.dp, 4.dp).background(if (settings.colorMode.isMonet) colors.secondaryContainer else colors.surfaceVariant, RoundedCornerShape(6.dp)))
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().padding(8.dp)) {
                     val rows = if (maxHeight >= 180.dp) 4 else if (maxHeight >= 130.dp) 3 else 2
@@ -217,7 +219,7 @@ private fun ThemePreviewCard(settings: AppThemeSettings) {
 
 @Composable
 private fun PageScaleDialog(show: Boolean, currentScale: () -> Float, onChange: (Float) -> Unit, onDismiss: () -> Unit) {
-    OverlayDialog(show = show, title = "页面缩放", summary = "调整页面内容大小", onDismissRequest = onDismiss, content = {
+    OverlayDialog(show = show, title = tr("页面缩放"), summary = tr("调整页面内容大小"), onDismissRequest = onDismiss, content = {
         var value by remember(show) { mutableStateOf((currentScale() * 100).toInt().toString()) }
         top.yukonga.miuix.kmp.basic.TextField(
             value = value,
@@ -226,9 +228,9 @@ private fun PageScaleDialog(show: Boolean, currentScale: () -> Float, onChange: 
             trailingIcon = { Text("%", Modifier.padding(horizontal = 16.dp), color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(text = "取消", onClick = onDismiss, modifier = Modifier.weight(1f))
+            TextButton(text = tr("取消"), onClick = onDismiss, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(20.dp))
-            TextButton(text = "确定", onClick = { onChange((value.toIntOrNull() ?: (currentScale() * 100).toInt()).coerceIn(80, 110) / 100f); onDismiss() }, modifier = Modifier.weight(1f))
+            TextButton(text = tr("确定"), onClick = { onChange((value.toIntOrNull() ?: (currentScale() * 100).toInt()).coerceIn(80, 110) / 100f); onDismiss() }, modifier = Modifier.weight(1f))
         }
     })
 }

@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.profile
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -104,11 +106,11 @@ fun ProfileScreen(
             item {
                 Column(Modifier.fillMaxWidth().padding(top = 100.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Rounded.Person, null, Modifier.size(52.dp), tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
-                    Text("还没有用户档案", style = MiuixTheme.textStyles.title3, modifier = Modifier.padding(top = 14.dp))
-                    Text("创建档案以保存你的本地设置", color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 6.dp))
+                    Text(tr("还没有用户档案"), style = MiuixTheme.textStyles.title3, modifier = Modifier.padding(top = 14.dp))
+                    Text(tr("创建档案以保存你的本地设置"), color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 6.dp))
                     Button(onClick = { editorProfile = null; editorVisible = true }, modifier = Modifier.padding(top = 18.dp), colors = ButtonDefaults.buttonColorsPrimary()) {
                         Icon(Icons.Rounded.PersonAdd, null)
-                        Text("新建档案", Modifier.padding(start = 8.dp))
+                        Text(tr("新建档案"), Modifier.padding(start = 8.dp))
                     }
                 }
             }
@@ -139,11 +141,11 @@ fun ProfileScreen(
                 insideMargin = PaddingValues(20.dp),
             ) {
                 Icon(Icons.Rounded.Warning, null, tint = MiuixTheme.colorScheme.error)
-                Text("删除档案？", style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
-                Text("删除后本地档案信息将无法恢复。", color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 6.dp))
+                Text(tr("删除档案？"), style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+                Text(tr("删除后本地档案信息将无法恢复。"), color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 6.dp))
                 Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    TextButton(text = "取消", onClick = { deleteProfile = null }, modifier = Modifier.weight(1f))
-                    Button(onClick = { scope.launch { repository.delete(target); avatarStore.deleteStored(target.avatarPath); deleteProfile = null } }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(color = MiuixTheme.colorScheme.errorContainer, contentColor = MiuixTheme.colorScheme.onErrorContainer)) { Text("删除") }
+                    TextButton(text = tr("取消"), onClick = { deleteProfile = null }, modifier = Modifier.weight(1f))
+                    Button(onClick = { scope.launch { repository.delete(target); avatarStore.deleteStored(target.avatarPath); deleteProfile = null } }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(color = MiuixTheme.colorScheme.errorContainer, contentColor = MiuixTheme.colorScheme.onErrorContainer)) { Text(tr("删除")) }
                 }
             }
         }
@@ -171,7 +173,7 @@ private fun ProfileCard(
             Column(Modifier.weight(1f).padding(start = 14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(profile.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, false))
-                    if (profile.isActive) Icon(Icons.Rounded.CheckCircle, "当前档案", Modifier.padding(start = 6.dp).size(17.dp), tint = Color(0xFF35A854))
+                    if (profile.isActive) Icon(Icons.Rounded.CheckCircle, tr("当前档案"), Modifier.padding(start = 6.dp).size(17.dp), tint = Color(0xFF35A854))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ServerBadge(profile.server, modifier = Modifier.padding(end = 8.dp))
@@ -180,8 +182,8 @@ private fun ProfileCard(
                     }
                 }
             }
-            IconButton(onClick = onEdit) { Icon(Icons.Rounded.Edit, "编辑") }
-            if (!profile.isActive) IconButton(onClick = onDelete) { Icon(Icons.Rounded.DeleteOutline, "删除") }
+            IconButton(onClick = onEdit) { Icon(Icons.Rounded.Edit, tr("编辑")) }
+            if (!profile.isActive) IconButton(onClick = onDelete) { Icon(Icons.Rounded.DeleteOutline, tr("删除")) }
         }
     }
 }
@@ -223,7 +225,7 @@ internal fun ProfileEditorSheet(
     }
     LaunchedEffect(visible, profile?.id) {
         if (!visible) return@LaunchedEffect
-        name = profile?.name ?: "我的档案"
+        name = profile?.name ?: tr("我的档案")
         title = profile?.title.orEmpty()
         server = profile?.server ?: ProfileServer.Jp
         avatarPath = profile?.avatarPath
@@ -252,14 +254,14 @@ internal fun ProfileEditorSheet(
     ExpandableBottomSheet(
         visible = visible,
         onDismissRequest = ::dismiss,
-        expandActionLabel = "展开",
-        collapseActionLabel = "收起",
-        expandedStateDescription = "已展开",
-        halfExpandedStateDescription = "半屏",
+        expandActionLabel = tr("展开"),
+        collapseActionLabel = tr("收起"),
+        expandedStateDescription = tr("已展开"),
+        halfExpandedStateDescription = tr("半屏"),
         header = {
-            IconButton(onClick = ::dismiss, modifier = Modifier.align(Alignment.CenterStart)) { Icon(Icons.Rounded.Close, "取消") }
-            Text(if (editing) "编辑档案" else "新建档案", style = MiuixTheme.textStyles.title3, modifier = Modifier.align(Alignment.Center))
-            IconButton(onClick = ::save, modifier = Modifier.align(Alignment.CenterEnd), enabled = name.trim().isNotEmpty()) { Icon(Icons.Rounded.Check, "保存", tint = MiuixTheme.colorScheme.primary) }
+            IconButton(onClick = ::dismiss, modifier = Modifier.align(Alignment.CenterStart)) { Icon(Icons.Rounded.Close, tr("取消")) }
+            Text(if (editing) tr("编辑档案") else tr("新建档案"), style = MiuixTheme.textStyles.title3, modifier = Modifier.align(Alignment.Center))
+            IconButton(onClick = ::save, modifier = Modifier.align(Alignment.CenterEnd), enabled = name.trim().isNotEmpty()) { Icon(Icons.Rounded.Check, tr("保存"), tint = MiuixTheme.colorScheme.primary) }
         },
     ) { topInset ->
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp, topInset + 12.dp, 16.dp, 32.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -272,7 +274,7 @@ internal fun ProfileEditorSheet(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Icon(Icons.Rounded.AddPhotoAlternate, null)
-                            Text("选择图片", Modifier.padding(start = 6.dp))
+                            Text(tr("选择图片"), Modifier.padding(start = 6.dp))
                         }
                         if (avatarPath != null || stagedPath != null) {
                             Button(
@@ -281,19 +283,19 @@ internal fun ProfileEditorSheet(
                                 colors = ButtonDefaults.buttonColors(),
                             ) {
                                 Icon(Icons.Rounded.DeleteOutline, null)
-                                Text("清除头像", Modifier.padding(start = 6.dp))
+                                Text(tr("清除头像"), Modifier.padding(start = 6.dp))
                             }
                         }
                     }
                 }
             }
             item {
-                SmallTitle("基本信息", insideMargin = PaddingValues(horizontal = 0.dp, vertical = 7.dp))
+                SmallTitle(tr("基本信息"), insideMargin = PaddingValues(horizontal = 0.dp, vertical = 7.dp))
                 Card(Modifier.fillMaxWidth(), insideMargin = PaddingValues(14.dp), cornerRadius = 16.dp) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        TextField(value = name, onValueChange = { name = it }, label = "姓名", useLabelAsPlaceholder = true, singleLine = true, modifier = Modifier.fillMaxWidth())
-                        TextField(value = title, onValueChange = { title = it }, label = "称号", useLabelAsPlaceholder = true, singleLine = true, modifier = Modifier.fillMaxWidth())
-                        WindowDropdownPreference(items = listOf("日服", "国际服", "国服"), selectedIndex = ProfileServer.entries.indexOf(server), title = "服务器", onSelectedIndexChange = { server = ProfileServer.entries[it] })
+                        TextField(value = name, onValueChange = { name = it }, label = tr("姓名"), useLabelAsPlaceholder = true, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        TextField(value = title, onValueChange = { title = it }, label = tr("称号"), useLabelAsPlaceholder = true, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        WindowDropdownPreference(items = listOf(tr("日服"), tr("国际服"), tr("国服")), selectedIndex = ProfileServer.entries.indexOf(server), title = tr("服务器"), onSelectedIndexChange = { server = ProfileServer.entries[it] })
                     }
                 }
             }
@@ -313,18 +315,18 @@ internal fun CurrentProfileCard(profile: UserProfile?, onClick: () -> Unit) {
             AvatarImage(profile?.avatarPath, 58.dp)
             Column(Modifier.padding(start = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(profile?.name ?: "我的档案", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(profile?.name ?: tr("我的档案"), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     profile?.let { ServerBadge(it.server) }
                 }
                 Text(
-                    profile?.title?.takeIf(String::isNotBlank) ?: "点击编辑",
+                    profile?.title?.takeIf(String::isNotBlank) ?: tr("点击编辑"),
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Icon(Icons.Rounded.ChevronRight, "打开档案", tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
+            Icon(Icons.Rounded.ChevronRight, tr("打开档案"), tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
         }
     }
 }
@@ -355,5 +357,5 @@ private fun ServerBadge(server: ProfileServer, modifier: Modifier = Modifier) {
     )
 }
 
-private fun serverLabel(server: ProfileServer) = when (server) { ProfileServer.Jp -> "日本"; ProfileServer.Intl -> "国际"; ProfileServer.Cn -> "中国" }
+private fun serverLabel(server: ProfileServer) = when (server) { ProfileServer.Jp -> tr("日本"); ProfileServer.Intl -> tr("国际"); ProfileServer.Cn -> tr("中国") }
 private fun serverColor(server: ProfileServer) = when (server) { ProfileServer.Jp -> Color(0xFFD9535B); ProfileServer.Intl -> Color(0xFF4B84D9); ProfileServer.Cn -> Color(0xFFE98535) }

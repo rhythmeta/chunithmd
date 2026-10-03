@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 enum class CatalogSort(val wireValue: String) {
     Default("default"),
     Title("title"),
@@ -221,8 +223,8 @@ fun isWorldsEndCategory(value: String): Boolean = when (value.trim().lowercase()
 }
 
 fun requireSupportedBundle(bundle: CatalogBundle) {
-    require(bundle.schemaVersion == 1) { "Unsupported catalog schema version ${bundle.schemaVersion}." }
+    require(bundle.schemaVersion == 1) { tr("Unsupported catalog schema version {0}.", bundle.schemaVersion) }
     require(bundle.catalog.songs.all { it.songId.isNotBlank() && it.title.isNotBlank() }) {
-        "Catalog contains a song without a stable ID or title."
+        tr("Catalog contains a song without a stable ID or title.")
     }
 }

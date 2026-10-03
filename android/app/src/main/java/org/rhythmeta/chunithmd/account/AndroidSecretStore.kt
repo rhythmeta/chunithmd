@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.account
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -39,6 +41,6 @@ class AndroidSecretStore(context: Context) : RhythmetaSecretStore {
             val encrypted = cipher.doFinal(value.encodeToByteArray())
             editor.putString(key, Base64.encodeToString(cipher.iv, Base64.NO_WRAP)+":"+Base64.encodeToString(encrypted, Base64.NO_WRAP))
         }
-        check(editor.commit()) { "Could not save account credentials." }
+        check(editor.commit()) { tr("Could not save account credentials.") }
     }
 }

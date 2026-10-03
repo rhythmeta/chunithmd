@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.profile
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Context
 import androidx.room.Room
 import androidx.room.withTransaction
@@ -52,7 +54,7 @@ class ProfileRepository(context: Context) {
 
     suspend fun create(draft: ProfileDraft): UserProfile {
         val normalized = draft.normalized()
-        require(normalized.isValid()) { "Profile name cannot be empty." }
+        require(normalized.isValid()) { tr("Profile name cannot be empty.") }
         val profile = UserProfile(
             id = UUID.randomUUID().toString(),
             name = normalized.name,
@@ -67,7 +69,7 @@ class ProfileRepository(context: Context) {
 
     suspend fun update(profile: UserProfile, draft: ProfileDraft): UserProfile {
         val normalized = draft.normalized()
-        require(normalized.isValid()) { "Profile name cannot be empty." }
+        require(normalized.isValid()) { tr("Profile name cannot be empty.") }
         val updated = profile.copy(
             name = normalized.name,
             server = normalized.server,

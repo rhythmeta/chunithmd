@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.score
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.room.Room
 import androidx.room.withTransaction
 import java.util.UUID
@@ -68,8 +70,8 @@ class ScoreRepository(
         fullCombo: FullComboType?,
         fullChain: FullChainType?,
     ): ScoreRecord {
-        require(ChunithmScoreRules.isValid(score)) { "Score is out of range." }
-        val profile = requireNotNull(profileRepository.activeProfile.first()) { "No active profile." }
+        require(ChunithmScoreRules.isValid(score)) { tr("Score is out of range.") }
+        val profile = requireNotNull(profileRepository.activeProfile.first()) { tr("No active profile.") }
         val now = clock()
         val record = ScoreRecord(
             id = idFactory(),

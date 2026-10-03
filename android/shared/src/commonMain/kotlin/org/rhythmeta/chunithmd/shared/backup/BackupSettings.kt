@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared.backup
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 /** The native preference adapter must never receive a key with the wrong value type. */
 object BackupSettings {
     private val kinds = mapOf(
@@ -19,7 +21,7 @@ object BackupSettings {
     fun validate(setting: BackupSetting) {
         if (!setting.key.startsWith("android.chunithmd.")) return
         val kind = kinds[setting.key.removePrefix("android.chunithmd.")]
-        require(kind != null && setting.kind == kind) { "Unsupported personal setting: ${setting.key}" }
+        require(kind != null && setting.kind == kind) { tr("Unsupported personal setting: {0}", setting.key) }
         when (kind) {
             "int" -> require(setting.integerValue in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong())
             "float" -> require(setting.doubleValue.isFinite() && setting.doubleValue.toFloat().isFinite())

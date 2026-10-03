@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -72,7 +74,7 @@ fun ProfileDraft.isValid(): Boolean = validationErrors().isEmpty()
 
 fun defaultProfile(id: String, createdAt: Long): UserProfile = UserProfile(
     id = id,
-    name = "我的档案",
+    name = tr("我的档案"),
     server = ProfileServer.Jp,
     title = null,
     avatarPath = null,

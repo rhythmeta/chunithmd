@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.best
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -113,7 +115,7 @@ fun BestTableScreen(
         ) {
             CircularProgressIndicator()
             Spacer(Modifier.height(12.dp))
-            Text("正在加载歌曲目录", style = MiuixTheme.textStyles.body1)
+            Text(tr("正在加载歌曲目录"), style = MiuixTheme.textStyles.body1)
         }
         return
     }
@@ -139,7 +141,7 @@ fun BestTableScreen(
     val effectiveVersion = selectedVersion?.takeIf { it in versionOptions }
         ?: bundle.latestPlayableVersion(activeServer)
     val versionLabels = versionOptions.map { version ->
-        version?.let(CatalogVersionFormatter::badge) ?: "自动"
+        version?.let(CatalogVersionFormatter::badge) ?: tr("自动")
     }
     val entries by produceState<List<BestTableEntry>?>(
         null,
@@ -162,7 +164,7 @@ fun BestTableScreen(
         ) {
             CircularProgressIndicator()
             Spacer(Modifier.height(12.dp))
-            Text("正在计算 Best 表", style = MiuixTheme.textStyles.body1)
+            Text(tr("正在计算 Best 表"), style = MiuixTheme.textStyles.body1)
         }
         return
     }
@@ -204,7 +206,7 @@ fun BestTableScreen(
             newAverage = summary.new20Average,
             bestCount = bestCount,
             newCount = newCount,
-            version = effectiveVersion?.let(CatalogVersionFormatter::badge) ?: "自动",
+            version = effectiveVersion?.let(CatalogVersionFormatter::badge) ?: tr("自动"),
             userName = profileName,
             darkTheme = darkTheme,
         )
@@ -217,7 +219,7 @@ fun BestTableScreen(
                         putExtra(Intent.EXTRA_STREAM, uri)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     },
-                    "分享 Best 50",
+                    tr("分享 Best 50"),
                 ),
             )
         }
@@ -235,7 +237,7 @@ fun BestTableScreen(
         }
         item {
             SmallTitle(
-                text = "游戏版本",
+                text = tr("游戏版本"),
                 insideMargin = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
             )
             Card(
@@ -247,8 +249,8 @@ fun BestTableScreen(
                 WindowDropdownPreference(
                     items = versionLabels,
                     selectedIndex = versionOptions.indexOf(selectedVersion).coerceAtLeast(0),
-                    title = "当前版本",
-                    summary = selectedVersion?.let { "临时覆盖" },
+                    title = tr("当前版本"),
+                    summary = selectedVersion?.let { tr("临时覆盖") },
                     onSelectedIndexChange = { index ->
                         selectedVersion = versionOptions[index]
                         scope.launch { preferencesRepository.setVersion(selectedVersion) }
@@ -258,7 +260,7 @@ fun BestTableScreen(
         }
         item {
             SmallTitle(
-                text = "容量设置",
+                text = tr("容量设置"),
                 insideMargin = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
             )
             BestCapacityCard(
@@ -319,7 +321,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.bestTableSection(
                 insideMargin = PaddingValues(horizontal = 16.dp, vertical = 18.dp),
                 colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
             ) {
-                Text("暂无可计入 $title 的成绩", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                Text(tr("暂无可计入 {0} 的成绩", title), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
         }
     } else {
@@ -347,7 +349,7 @@ private fun BestRatingSummary(
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "玩家 Rating",
+                    tr("玩家 Rating"),
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
@@ -380,8 +382,8 @@ private fun BestCapacityCard(
         colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            CapacityTextField("Best 数量", bestText, onBestChange, onCommit)
-            CapacityTextField("New 数量", newText, onNewChange, onCommit)
+            CapacityTextField(tr("Best 数量"), bestText, onBestChange, onCommit)
+            CapacityTextField(tr("New 数量"), newText, onNewChange, onCommit)
         }
     }
 }
@@ -490,7 +492,7 @@ private fun BestTableEntryCard(
             }
             Column(modifier = Modifier.padding(end = 14.dp), horizontalAlignment = Alignment.End) {
                 Text(formatRating(entry.rating), style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Black, color = BestAccent)
-                Text("定数 ${formatLevel(entry.constant)}", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                Text(tr("定数 {0}", formatLevel(entry.constant)), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
         }
     }
@@ -499,7 +501,7 @@ private fun BestTableEntryCard(
 @Composable
 private fun EntryBadge(text: String, color: Color) {
     Text(
-        text,
+        tr(text),
         style = MiuixTheme.textStyles.footnote2.copy(fontSize = 9.sp),
         fontWeight = FontWeight.Bold,
         color = color,
@@ -578,16 +580,16 @@ fun BestTableHomeCard(
             )
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("查看 Best 50 成绩表", style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
+                Text(tr("查看 Best 50 成绩表"), style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
                 Text(
-                    "基于 B$bestCount + N$newCount 计算的玩家 Rating",
+                    tr("基于 B{0} + N{1} 计算的玩家 Rating", bestCount, newCount),
                     style = MiuixTheme.textStyles.footnote2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }
             Icon(
                 imageVector = Icons.Rounded.ChevronRight,
-                contentDescription = "打开 Best 50",
+                contentDescription = tr("打开 Best 50"),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
             )
         }

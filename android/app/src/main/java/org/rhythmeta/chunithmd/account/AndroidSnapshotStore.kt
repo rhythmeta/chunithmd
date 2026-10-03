@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.account
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Context
 import android.util.AtomicFile
 import androidx.datastore.core.DataStore
@@ -92,7 +94,7 @@ class AndroidSnapshotStore(
         is Float -> BackupSetting(key=key,kind="float",doubleValue=value.toDouble())
         is Double -> BackupSetting(key=key,kind="double",doubleValue=value)
         is Set<*> -> BackupSetting(key=key,kind="strings",stringValues=value.filterIsInstance<String>().sorted())
-        else -> error("Unsupported preference: $key")
+        else -> error(tr("Unsupported preference: {0}", key))
     }
     private fun set(values: MutablePreferences, key: String, item: BackupSetting) {
         when(item.kind) {
@@ -103,7 +105,7 @@ class AndroidSnapshotStore(
             "float" -> values[floatPreferencesKey(key)]=item.doubleValue.toFloat()
             "double" -> values[doublePreferencesKey(key)]=item.doubleValue
             "strings" -> values[stringSetPreferencesKey(key)]=item.stringValues.toSet()
-            else -> error("Unsupported preference type: ${item.kind}")
+            else -> error(tr("Unsupported preference type: {0}", item.kind))
         }
     }
 }

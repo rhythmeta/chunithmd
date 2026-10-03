@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.account
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Context
 import android.content.Intent
 import android.content.ActivityNotFoundException
@@ -86,7 +88,7 @@ fun RhythmetaScreen(client: RhythmetaClient, coordinator: BackupCoordinator, mod
         if (busy) return
         working = true
         scope.launch {
-            try { work() } catch (error: CancellationException) { throw error } catch (error: Exception) { message(error.localizedMessage ?: "备份失败") }
+            try { work() } catch (error: CancellationException) { throw error } catch (error: Exception) { message(error.localizedMessage ?: tr("备份失败")) }
             finally { working = false }
         }
     }
@@ -99,24 +101,24 @@ fun RhythmetaScreen(client: RhythmetaClient, coordinator: BackupCoordinator, mod
             item { AccountSummaryCard(session?.user) }
             if (session?.user == null) {
                 item { CloudSection("Rhythmeta") {
-                    CloudActionRow(Icons.AutoMirrored.Rounded.Login, "登录", !busy) { openWebAuth(context, client, "login", ::message) }
-                    CloudActionRow(Icons.Rounded.AddCircleOutline, "注册", !busy) { openWebAuth(context, client, "register", ::message) }
-                    CloudActionRow(Icons.Rounded.Key, "忘记密码", !busy) { openWebAuth(context, client, "forgot", ::message) }
+                    CloudActionRow(Icons.AutoMirrored.Rounded.Login, tr("登录"), !busy) { openWebAuth(context, client, "login", ::message) }
+                    CloudActionRow(Icons.Rounded.AddCircleOutline, tr("注册"), !busy) { openWebAuth(context, client, "register", ::message) }
+                    CloudActionRow(Icons.Rounded.Key, tr("忘记密码"), !busy) { openWebAuth(context, client, "forgot", ::message) }
                 } }
             } else {
-                item { CloudSection("数据同步") {
-                    CloudActionRow(Icons.Rounded.CloudUpload, "备份到云端", !busy) {
-                        run { coordinator.backup("${Build.MANUFACTURER} ${Build.MODEL}"); snapshots = client.listBackups(); message("云端备份完成") }
+                item { CloudSection(tr("数据同步")) {
+                    CloudActionRow(Icons.Rounded.CloudUpload, tr("备份到云端"), !busy) {
+                        run { coordinator.backup("${Build.MANUFACTURER} ${Build.MODEL}"); snapshots = client.listBackups(); message(tr("云端备份完成")) }
                     }
-                    CloudActionRow(Icons.Rounded.Sync, "刷新备份列表", !busy) { run { snapshots = client.listBackups() } }
-                    Text("手动创建备份，保留最近三份。持有下载链接的人可读取备份，请勿分享。", modifier = Modifier.padding(16.dp), style = MiuixTheme.textStyles.footnote1)
+                    CloudActionRow(Icons.Rounded.Sync, tr("刷新备份列表"), !busy) { run { snapshots = client.listBackups() } }
+                    Text(tr("手动创建备份，保留最近三份。持有下载链接的人可读取备份，请勿分享。"), modifier = Modifier.padding(16.dp), style = MiuixTheme.textStyles.footnote1)
                     if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 } }
-                if (snapshots.isEmpty()) item { Text("暂无云备份。", modifier = Modifier.padding(16.dp)) }
+                if (snapshots.isEmpty()) item { Text(tr("暂无云备份。"), modifier = Modifier.padding(16.dp)) }
                 snapshots.forEach { snapshot -> item(key = snapshot.id) {
                     CloudSection(formatBackupDate(snapshot.committedAt)) {
-                        CloudValueRow(snapshot.deviceName, "${snapshot.profileCount} 个档案")
-                        CloudActionRow(Icons.Rounded.CloudDownload, "从云端恢复", !busy) { restoreTarget = snapshot }
+                        CloudValueRow(snapshot.deviceName, tr("{0} 个档案", snapshot.profileCount))
+                        CloudActionRow(Icons.Rounded.CloudDownload, tr("从云端恢复"), !busy) { restoreTarget = snapshot }
                     }
                 } }
                 item { LogoutButton(enabled = !busy) { run { client.logout() } } }
@@ -126,18 +128,18 @@ fun RhythmetaScreen(client: RhythmetaClient, coordinator: BackupCoordinator, mod
     }
     if (busy && restoreTarget == null) WindowDialog(
         show = true,
-        title = "数据同步",
+        title = tr("数据同步"),
         onDismissRequest = {},
     ) { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
     restoreTarget?.let { snapshot -> WindowDialog(
         show = true,
-        title = "从云端恢复",
-        summary = "这将替换本机该游戏的全部个人数据。恢复前会保存本地回滚副本。",
+        title = tr("从云端恢复"),
+        summary = tr("这将替换本机该游戏的全部个人数据。恢复前会保存本地回滚副本。"),
         onDismissRequest = { if (!busy) restoreTarget = null },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { restoreTarget = null }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("取消") }
-            Button(onClick = { run { coordinator.restore(snapshot); restoreTarget = null; message("云端恢复完成") } }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("从云端恢复") }
+            Button(onClick = { restoreTarget = null }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(tr("取消")) }
+            Button(onClick = { run { coordinator.restore(snapshot); restoreTarget = null; message(tr("云端恢复完成")) } }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(tr("从云端恢复")) }
         }
     } }
 }
@@ -160,14 +162,14 @@ private fun AccountSummaryCard(user: RhythmetaUser?) {
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = user?.handle ?: "登录云端",
+                    text = user?.handle ?: tr("登录云端"),
                     style = MiuixTheme.textStyles.title3,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = user?.email ?: "通过邮箱登录以启用安全的云端同步",
+                    text = user?.email ?: tr("通过邮箱登录以启用安全的云端同步"),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
@@ -183,7 +185,7 @@ private fun AccountSummaryCard(user: RhythmetaUser?) {
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                text = "账户信息用于启用云端同步，令牌会加密存储在本机。",
+                text = tr("账户信息用于启用云端同步，令牌会加密存储在本机。"),
                 style = MiuixTheme.textStyles.footnote1,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
@@ -259,7 +261,7 @@ private fun openWebAuth(
     try {
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(client.loginUrl(mode))))
     } catch (_: ActivityNotFoundException) {
-        onError("未找到可用的浏览器")
+        onError(tr("未找到可用的浏览器"))
     }
 }
 
@@ -286,7 +288,7 @@ private fun LogoutButton(enabled: Boolean, onClick: () -> Unit) {
                 tint = MiuixTheme.colorScheme.error,
             )
             Text(
-                text = "退出登录",
+                text = tr("退出登录"),
                 color = MiuixTheme.colorScheme.error,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )

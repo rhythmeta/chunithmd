@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.best
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -104,7 +106,7 @@ internal object BestTableImageExporter {
                 drawText(canvas, name, SECTION_PADDING.toFloat(), 64f, 24f, palette.primary, true)
                 95f
             } else 72f
-            drawText(canvas, "玩家 Rating", SECTION_PADDING.toFloat(), labelY, 14f, palette.secondary)
+            drawText(canvas, tr("玩家 Rating"), SECTION_PADDING.toFloat(), labelY, 14f, palette.secondary)
             drawRating(canvas, rating)
             var left = SECTION_PADDING.toFloat()
             left += drawSummaryPill(canvas, left, "N$newCount", newAverage, NewAccent) + 12f
@@ -175,7 +177,7 @@ internal object BestTableImageExporter {
                 badgeLeft += drawBadge(canvas, comboBadgeText(value), badgeLeft, top + 55f, comboColor(value)) + 3f
             }
             entry.fullChain?.takeIf(String::isNotBlank)?.let { value ->
-                drawBadge(canvas, FullChainType.displayName(value) ?: value.uppercase(), badgeLeft, top + 55f, chainColor(value))
+                drawBadge(canvas, tr(FullChainType.displayName(value) ?: value.uppercase()), badgeLeft, top + 55f, chainColor(value))
             }
         }
 

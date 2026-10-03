@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.profile
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -77,9 +79,9 @@ internal fun AvatarCropEditor(
                     .align(Alignment.TopStart)
                     .statusBarsPadding()
                     .padding(top = 12.dp, start = 12.dp),
-            ) { Icon(Icons.Rounded.Close, contentDescription = "取消") }
+            ) { Icon(Icons.Rounded.Close, contentDescription = tr("取消")) }
             Text(
-                "裁剪头像",
+                tr("裁剪头像"),
                 style = MiuixTheme.textStyles.title3,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
@@ -127,7 +129,7 @@ private fun AvatarCropContent(bitmap: Bitmap, onApply: (Bitmap) -> Unit, modifie
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Text("拖动、缩放以调整头像", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+            Text(tr("拖动、缩放以调整头像"), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             Spacer(Modifier.height(18.dp))
             Box(
                 modifier = Modifier
@@ -165,7 +167,7 @@ private fun AvatarCropContent(bitmap: Bitmap, onApply: (Bitmap) -> Unit, modifie
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 TextButton(
-                    text = "重置",
+                    text = tr("重置"),
                     modifier = Modifier.weight(1f),
                     onClick = {
                         scope.launch {
@@ -194,7 +196,7 @@ private fun AvatarCropContent(bitmap: Bitmap, onApply: (Bitmap) -> Unit, modifie
                     colors = ButtonDefaults.buttonColorsPrimary(),
                 ) {
                     Icon(Icons.Rounded.Check, contentDescription = null)
-                    Text("使用头像", modifier = Modifier.padding(start = 8.dp))
+                    Text(tr("使用头像"), modifier = Modifier.padding(start = 8.dp))
                 }
             }
         }

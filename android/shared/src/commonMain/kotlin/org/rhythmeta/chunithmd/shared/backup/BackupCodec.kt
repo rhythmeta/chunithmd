@@ -1,6 +1,8 @@
 @file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package org.rhythmeta.chunithmd.shared.backup
 
+import org.rhythmeta.chunithmd.shared.localization.tr
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.decodeFromByteArray
@@ -18,19 +20,19 @@ object BackupCodec {
     fun decode(bytes: ByteArray, expectedSize: Long? = null): BackupSnapshot {
         require(bytes.size <= MAX_COMPRESSED)
         val raw = gzipBackup(bytes, false)
-        require(raw.size <= MAX_RAW && (expectedSize == null || raw.size.toLong() == expectedSize)) { "Backup size does not match." }
+        require(raw.size <= MAX_RAW && (expectedSize == null || raw.size.toLong() == expectedSize)) { tr("Backup size does not match.") }
         return format.decodeFromByteArray<BackupSnapshot>(raw).also(::validate)
     }
     fun sha256(bytes: ByteArray): String = bytes.toByteString().sha256().hex()
     fun validate(snapshot: BackupSnapshot) {
-        require(snapshot.magic == "RHYTHMETA_BACKUP" && snapshot.formatVersion == 1 && snapshot.game == "chunithmd") { "Unsupported backup format or game." }
+        require(snapshot.magic == "RHYTHMETA_BACKUP" && snapshot.formatVersion == 1 && snapshot.game == "chunithmd") { tr("Unsupported backup format or game.") }
         require(snapshot.profiles.size in 1..10000 && snapshot.playRecords.size <= 2_000_000)
         val uuid = Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
-        fun ids(values: List<String>) { require(values.toSet().size == values.size && values.all(uuid::matches)) { "Invalid record IDs." } }
+        fun ids(values: List<String>) { require(values.toSet().size == values.size && values.all(uuid::matches)) { tr("Invalid record IDs.") } }
         ids(snapshot.profiles.map { it.id }); require(snapshot.profiles.count { it.active } == 1)
         require(snapshot.profiles.all { it.avatar.size <= 16 * 1024 * 1024 })
         val profileIds = snapshot.profiles.map { it.id }.toSet()
-        fun score(value: BackupScore) { require(value.profileId in profileIds && value.score in 0..1_010_000 && value.chartKey.isNotBlank() && value.songId.isNotBlank()) { "Invalid score reference." } }
+        fun score(value: BackupScore) { require(value.profileId in profileIds && value.score in 0..1_010_000 && value.chartKey.isNotBlank() && value.songId.isNotBlank()) { tr("Invalid score reference.") } }
         snapshot.scores.forEach(::score); snapshot.playRecords.forEach { score(it.result) }; ids(snapshot.playRecords.map { it.id })
         ids(snapshot.collections.map { it.id }); ids(snapshot.collectionItems.map { it.id })
         val collectionIds = snapshot.collections.map { it.id }.toSet()

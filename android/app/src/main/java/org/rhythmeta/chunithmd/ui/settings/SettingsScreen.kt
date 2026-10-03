@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.settings
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,52 +55,52 @@ fun SettingsHome(
         contentPadding = PaddingValues(top = 0.dp, bottom = 112.dp),
     ) {
         item {
-            SettingsSection(title = "用户") {
+            SettingsSection(title = tr("用户")) {
                 SettingsRow(
                     icon = Icons.Rounded.People,
-                    title = "用户档案",
-                    summary = "管理本地档案、头像和地区",
+                    title = tr("用户档案"),
+                    summary = tr("管理本地档案、头像和地区"),
                     onClick = onProfiles,
                 )
             }
         }
         item {
-            SettingsSection(title = "数据同步") {
+            SettingsSection(title = tr("数据同步")) {
                 SettingsRow(
                     icon = Icons.Rounded.Download,
-                    title = "静态数据",
-                    summary = "更新并管理本地歌曲数据",
+                    title = tr("静态数据"),
+                    summary = tr("更新并管理本地歌曲数据"),
                     onClick = onResources,
                 )
                 SettingsRow(
                     icon = Icons.Rounded.Cloud,
-                    title = "云端账户",
-                    summary = "登录账户并通过云端安全同步应用数据",
+                    title = tr("云端账户"),
+                    summary = tr("登录账户并通过云端安全同步应用数据"),
                     onClick = onAccount,
                 )
             }
         }
         item {
-            SettingsSection(title = "主题") {
+            SettingsSection(title = tr("主题")) {
                 SettingsRow(
                     icon = Icons.Rounded.ColorLens,
-                    title = "主题",
-                    summary = "自定义更多主题选项",
+                    title = tr("主题"),
+                    summary = tr("自定义更多主题选项"),
                     onClick = onAppearance,
                 )
             }
         }
         item {
-            SettingsSection(title = "关于") {
+            SettingsSection(title = tr("关于")) {
                 SettingsHealthRow(backendAvailable)
                 SettingsRow(
                     icon = Icons.Rounded.BugReport,
-                    title = "发送日志",
-                    summary = "收集应用诊断信息并分享，用于排查问题",
+                    title = tr("发送日志"),
+                    summary = tr("收集应用诊断信息并分享，用于排查问题"),
                     onClick = onSendLogs,
                 )
                 BasicComponent(
-                    title = "版本",
+                    title = tr("版本"),
                     startAction = { SettingsPreferenceIcon(Icons.Rounded.Info) },
                     endActions = {
                         Text(
@@ -116,12 +118,12 @@ fun SettingsHome(
 @Composable
 private fun SettingsHealthRow(available: Boolean?) {
     val (status, color) = when (available) {
-        null -> "检查中…" to MiuixTheme.colorScheme.onSurfaceVariantActions
-        true -> "可用" to Color(0xFF2E7D32)
-        false -> "不可用" to Color(0xFFC62828)
+        null -> tr("检查中…") to MiuixTheme.colorScheme.onSurfaceVariantActions
+        true -> tr("可用") to Color(0xFF2E7D32)
+        false -> tr("不可用") to Color(0xFFC62828)
     }
     BasicComponent(
-        title = "后端状态",
+        title = tr("后端状态"),
         startAction = { SettingsPreferenceIcon(Icons.Rounded.Cloud) },
         endActions = { Text(status, style = MiuixTheme.textStyles.body2, color = color) },
     )

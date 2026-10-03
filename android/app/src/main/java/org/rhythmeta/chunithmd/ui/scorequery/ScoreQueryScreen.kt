@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.scorequery
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -156,20 +158,20 @@ fun ScoreQueryToolbarActions(
     }) {
         Icon(
             if (displayMode == org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode.Grid) Icons.AutoMirrored.Rounded.ViewList else Icons.Rounded.GridView,
-            contentDescription = if (displayMode == org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode.Grid) "列表视图" else "网格视图",
+            contentDescription = if (displayMode == org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode.Grid) tr("列表视图") else tr("网格视图"),
         )
     }
     var sortOpen by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { sortOpen = !sortOpen }) { Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = "排序") }
+        IconButton(onClick = { sortOpen = !sortOpen }) { Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = tr("排序")) }
         WindowListPopup(show = sortOpen, alignment = PopupPositionProvider.Align.End, enableWindowDim = true, onDismissRequest = { sortOpen = false }) {
             ListPopupColumn {
                 ScoreQuerySortMode.entries.forEachIndexed { index, option ->
                     DropdownImpl(
                         text = when (option) {
                             ScoreQuerySortMode.Rating -> "Rating"
-                            ScoreQuerySortMode.Score -> "分数"
-                            ScoreQuerySortMode.Level -> "定数"
+                            ScoreQuerySortMode.Score -> tr("分数")
+                            ScoreQuerySortMode.Level -> tr("定数")
                         },
                         optionSize = ScoreQuerySortMode.entries.size,
                         isSelected = option == sortMode,
@@ -183,13 +185,13 @@ fun ScoreQueryToolbarActions(
                 }.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(if (ascending) "↑" else "↓", style = MiuixTheme.textStyles.title3, color = MiuixTheme.colorScheme.primary)
                     Spacer(Modifier.width(10.dp))
-                    Text(if (ascending) "升序" else "降序", style = MiuixTheme.textStyles.body1)
+                    Text(if (ascending) tr("升序") else tr("降序"), style = MiuixTheme.textStyles.body1)
                 }
             }
         }
     }
     IconButton(onClick = onFilter) {
-        Icon(Icons.Rounded.FilterList, contentDescription = "筛选", tint = if (filterActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurface)
+        Icon(Icons.Rounded.FilterList, contentDescription = tr("筛选"), tint = if (filterActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurface)
     }
 }
 
@@ -266,7 +268,7 @@ private fun ScoreQueryGridCell(
 @Composable
 private fun ScoreBadge(text: String, color: Color, small: Boolean = false) {
     Text(
-        text = text,
+        text = tr(text),
         fontSize = if (small) 6.sp else 8.sp,
         fontWeight = FontWeight.Black,
         color = Color.White,
@@ -311,8 +313,8 @@ private fun ScoreQueryStatsHeader(stats: ScoreQueryStats) {
     Card(Modifier.fillMaxWidth(), cornerRadius = 16.dp, insideMargin = PaddingValues(horizontal = 14.dp, vertical = 12.dp), colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth()) {
-                ScoreStat(stats.chartCount.toString(), "谱面")
-                ScoreStat(stats.songCount.toString(), "歌曲")
+                ScoreStat(stats.chartCount.toString(), tr("谱面"))
+                ScoreStat(stats.songCount.toString(), tr("歌曲"))
                 ScoreStat(stats.sssPlusCount.toString(), "SSS+")
                 ScoreStat(stats.sssCount.toString(), "SSS")
             }
@@ -395,7 +397,7 @@ private fun ScoreQueryListRow(
 @Composable
 private fun ScoreTintBadge(text: String, color: Color, compact: Boolean = false, brush: Brush? = null) {
     Text(
-        text = text,
+        text = tr(text),
         style = MiuixTheme.textStyles.footnote2.copy(fontSize = if (compact) 8.sp else 9.sp, fontWeight = FontWeight.Bold),
         color = color,
         maxLines = 1,
@@ -425,7 +427,7 @@ private fun scoreDifficultyTintBrush(entry: ScoreQueryEntry): Brush? = scoreDiff
 @Composable
 private fun ScoreQueryEmpty() {
     Box(Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
-        Text("没有符合条件的成绩", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        Text(tr("没有符合条件的成绩"), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
     }
 }
 
@@ -439,21 +441,21 @@ private fun ScoreQueryFilterSheet(
     ExpandableBottomSheet(
         visible = visible,
         onDismissRequest = onDismiss,
-        expandActionLabel = "展开",
-        collapseActionLabel = "收起到半屏",
-        expandedStateDescription = "已全屏展开",
-        halfExpandedStateDescription = "半屏",
+        expandActionLabel = tr("展开"),
+        collapseActionLabel = tr("收起到半屏"),
+        expandedStateDescription = tr("已全屏展开"),
+        halfExpandedStateDescription = tr("半屏"),
         header = {
-            IconButton(onClick = { onSettingsChange(ScoreQueryFilterSettings()) }, modifier = Modifier.align(Alignment.CenterStart)) { Icon(Icons.Rounded.RestartAlt, contentDescription = "重置筛选") }
-            Text("筛选", style = MiuixTheme.textStyles.title3, modifier = Modifier.align(Alignment.Center))
-            IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterEnd)) { Icon(Icons.Rounded.Check, contentDescription = "完成", tint = MiuixTheme.colorScheme.primary) }
+            IconButton(onClick = { onSettingsChange(ScoreQueryFilterSettings()) }, modifier = Modifier.align(Alignment.CenterStart)) { Icon(Icons.Rounded.RestartAlt, contentDescription = tr("重置筛选")) }
+            Text(tr("筛选"), style = MiuixTheme.textStyles.title3, modifier = Modifier.align(Alignment.Center))
+            IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterEnd)) { Icon(Icons.Rounded.Check, contentDescription = tr("完成"), tint = MiuixTheme.colorScheme.primary) }
         },
     ) { topInset ->
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 20.dp, top = topInset + 12.dp, end = 20.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            item { ScoreFilterGroup("难度", DifficultyOptions, settings.difficulties, ::difficultyChipColor, uppercaseOptions = true) { onSettingsChange(settings.copy(difficulties = settings.difficulties.toggle(it))) } }
-            item { ScoreFilterGroup("段位", RankOptions, settings.ranks, ::rankColor) { onSettingsChange(settings.copy(ranks = settings.ranks.toggle(it))) } }
-            item { ScoreFilterGroup("Full Combo", ComboOptions, settings.fullCombos, ::comboColor) { onSettingsChange(settings.copy(fullCombos = settings.fullCombos.toggle(it))) } }
-            item { ScoreFilterGroup("Full Chain", ChainOptions, settings.fullChains, ::chainColor) { onSettingsChange(settings.copy(fullChains = settings.fullChains.toggle(it))) } }
+            item { ScoreFilterGroup(tr("难度"), DifficultyOptions, settings.difficulties, ::difficultyChipColor, uppercaseOptions = true) { onSettingsChange(settings.copy(difficulties = settings.difficulties.toggle(it))) } }
+            item { ScoreFilterGroup(tr("段位"), RankOptions, settings.ranks, ::rankColor) { onSettingsChange(settings.copy(ranks = settings.ranks.toggle(it))) } }
+            item { ScoreFilterGroup(tr("Full Combo"), ComboOptions, settings.fullCombos, ::comboColor) { onSettingsChange(settings.copy(fullCombos = settings.fullCombos.toggle(it))) } }
+            item { ScoreFilterGroup(tr("Full Chain"), ChainOptions, settings.fullChains, ::chainColor) { onSettingsChange(settings.copy(fullChains = settings.fullChains.toggle(it))) } }
         }
     }
 }
@@ -474,7 +476,7 @@ private fun ScoreFilterGroup(
             FlowRow(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                 options.forEach { option ->
                     ScoreFilterChip(
-                        title = if (uppercaseOptions) option.uppercase(Locale.ROOT) else option,
+                        title = if (uppercaseOptions) option.uppercase(Locale.ROOT) else tr(option),
                         selected = option in selected,
                         color = colorFor(option),
                         rainbow = option.equals("world's end", ignoreCase = true),
@@ -525,8 +527,8 @@ fun ScoreQueryHomeCard(modifier: androidx.compose.ui.Modifier = androidx.compose
         Icon(Icons.AutoMirrored.Rounded.ViewList, contentDescription = null, modifier = Modifier.size(30.dp), tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
         Spacer(Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("成绩查询", style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
-            Text("查询歌曲成绩", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 2)
+            Text(tr("成绩查询"), style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
+            Text(tr("查询歌曲成绩"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 2)
         }
     }
 }

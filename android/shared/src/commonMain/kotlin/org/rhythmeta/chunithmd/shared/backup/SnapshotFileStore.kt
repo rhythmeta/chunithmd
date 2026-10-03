@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared.backup
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import kotlin.time.Clock
 
 /** The iOS catalog shell has no personal database yet. Retain every portable field durably. */
@@ -28,6 +30,6 @@ class SnapshotFileStore(private val files: SnapshotFiles, private val clientVers
         val id = "${hex.take(8)}-${hex.substring(8,12)}-${hex.substring(12,16)}-${hex.substring(16,20)}-${hex.substring(20)}"
         val now = Clock.System.now().toEpochMilliseconds()
         return BackupSnapshot(magic="RHYTHMETA_BACKUP",formatVersion=1,game="chunithmd",createdAt=now,clientVersion=clientVersion,
-            profiles=listOf(BackupProfile(id=id,name="我的档案",server="jp",active=true,createdAt=now)))
+            profiles=listOf(BackupProfile(id=id,name=tr("我的档案"),server="jp",active=true,createdAt=now)))
     }
 }

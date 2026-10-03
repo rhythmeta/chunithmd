@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.os.Bundle
 import androidx.activity.BackEventCompat
 import androidx.activity.ComponentActivity
@@ -61,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -265,6 +268,10 @@ private fun NavigationEventGate(
 }
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(org.rhythmeta.chunithmd.localization.AndroidAppLanguage.localizedContext(newBase))
+    }
+
     private var exportingLogs = false
 
     private fun sendLogs() {
@@ -280,11 +287,11 @@ class MainActivity : ComponentActivity() {
                     addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     clipData = android.content.ClipData.newRawUri("chunithmd logs", uri)
                 }
-                startActivity(android.content.Intent.createChooser(share, "分享 chunithmd 日志"))
+                startActivity(android.content.Intent.createChooser(share, tr("分享 chunithmd 日志")))
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                android.widget.Toast.makeText(this@MainActivity, "无法生成或分享日志文件", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(this@MainActivity, tr("无法生成或分享日志文件"), android.widget.Toast.LENGTH_LONG).show()
             } finally {
                 exportingLogs = false
             }
@@ -302,7 +309,7 @@ class MainActivity : ComponentActivity() {
         val url = intent?.data?.takeIf { it.scheme == "chunithmd" && it.host == "auth" } ?: return
         lifecycleScope.launch {
             try { accountClient.handleCallback(url.toString()) }
-            catch(error: Exception) { android.widget.Toast.makeText(this@MainActivity, error.message ?: "登录失败", android.widget.Toast.LENGTH_LONG).show() }
+            catch(error: Exception) { android.widget.Toast.makeText(this@MainActivity, error.message ?: tr("登录失败"), android.widget.Toast.LENGTH_LONG).show() }
         }
     }
     override fun onNewIntent(intent: android.content.Intent) {
@@ -348,7 +355,7 @@ class MainActivity : ComponentActivity() {
             }
             if (!recovered) {
                 ChunithmdTheme(DefaultAppThemeSettings) {
-                    top.yukonga.miuix.kmp.basic.Text(recoveryError ?: "正在恢复本地数据…", modifier=Modifier.padding(32.dp))
+                    top.yukonga.miuix.kmp.basic.Text(recoveryError ?: tr("正在恢复本地数据…"), modifier=Modifier.padding(32.dp))
                 }
                 return@setContent
             }
@@ -509,6 +516,8 @@ private fun CatalogApp(
         drawContent()
     }
     val homeTopBarScrollBehavior = MiuixScrollBehavior()
+    var navigationBarHeightPx by remember { mutableIntStateOf(0) }
+    val navigationBarBottomSpace = with(LocalDensity.current) { navigationBarHeightPx.toDp() } + 16.dp
     val scanTopBarScrollBehavior = MiuixScrollBehavior()
     val catalogTopBarScrollBehavior = MiuixScrollBehavior()
     val settingsTopBarScrollBehavior = MiuixScrollBehavior()
@@ -599,7 +608,7 @@ private fun CatalogApp(
                     CatalogJson.decodeBundle(snapshot.bundleJson)
                 }
             }.onFailure {
-                error = it.message ?: "资源同步失败"
+                error = it.message ?: tr("资源同步失败")
                 sync = CatalogSyncState(CatalogSyncStage.Failed, error)
             }
         }
@@ -692,13 +701,13 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = titleOverride ?: when (page) { 16 -> "社区别名"; 15 -> "云端账户"; 14, 13 -> "收藏夹"; 12 -> "牌子进度"; 11 -> "定数表"; 10 -> "成绩查询"; 9 -> "吃分推荐"; 8 -> "随机歌曲"; 7 -> "Best 表"; 6 -> "用户档案"; 5 -> "静态数据"; 4 -> "主题"; 3 -> "设置"; 0 -> "主页"; 1 -> "扫描"; else -> "歌曲" },
+            title = titleOverride ?: when (page) { 16 -> tr("社区别名"); 15 -> tr("云端账户"); 14, 13 -> tr("收藏夹"); 12 -> tr("牌子进度"); 11 -> tr("定数表"); 10 -> tr("成绩查询"); 9 -> tr("吃分推荐"); 8 -> tr("随机歌曲"); 7 -> tr("Best 表"); 6 -> tr("用户档案"); 5 -> tr("静态数据"); 4 -> tr("主题"); 3 -> tr("设置"); 0 -> tr("主页"); 1 -> tr("扫描"); else -> tr("歌曲") },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
                 if (page in 4..16) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
-                    MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                    MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = tr("返回"))
                 }
             },
             actions = {
@@ -727,19 +736,19 @@ private fun CatalogApp(
                 }
                 if (page == 6) {
                     MiuixIconButton(onClick = { profileCreateRequested = true }) {
-                        MiuixIcon(Icons.Rounded.PersonAdd, contentDescription = "新建档案")
+                        MiuixIcon(Icons.Rounded.PersonAdd, contentDescription = tr("新建档案"))
                     }
                 }
                 if (page == 7) {
                     MiuixIconButton(onClick = { bestTableShareRequested = true }) {
-                        MiuixIcon(Icons.Rounded.IosShare, contentDescription = "分享 Best Table")
+                        MiuixIcon(Icons.Rounded.IosShare, contentDescription = tr("分享 Best Table"))
                     }
                 }
                 if (page == 8) {
                     MiuixIconButton(onClick = { randomSongFilterRequested = true }) {
                         MiuixIcon(
                             Icons.Rounded.FilterList,
-                            contentDescription = "筛选",
+                            contentDescription = tr("筛选"),
                             tint = if (randomSongFilterActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurface,
                         )
                     }
@@ -813,7 +822,13 @@ private fun CatalogApp(
             }
             AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
             when (page) {
-                0 -> Column(Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState())) {
+                0 -> Column(
+                    Modifier.padding(padding)
+                        .fillMaxSize()
+                        .nestedScroll(topBarScrollConnection)
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = navigationBarBottomSpace),
+                ) {
                     CurrentProfileCard(activeProfile) { activeProfile?.let { quickEditProfile = it } }
                     BestTableHomeCard(
                         bestCount = bestTablePreferences.bestCount,
@@ -961,6 +976,7 @@ private fun CatalogApp(
                 Box(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface)) {
                     StaticResourcesScreen(
                         modifier = Modifier.padding(padding).nestedScroll(topBarScrollConnection),
+                        topAppBarScrollBehavior = resourcesTopBarScrollBehavior,
                         manifest = manifest,
                         sync = sync,
                         error = error,
@@ -980,7 +996,8 @@ private fun CatalogApp(
                                         .onSuccess { check ->
                                             sync = CatalogSyncState(
                                                 CatalogSyncStage.Idle,
-                                                if (check.updateAvailable) "发现可用更新" else "已是最新静态数据",
+                                                if (check.updateAvailable) tr("发现可用更新") else tr("已是最新静态数据"),
+                                                updateAvailable = check.updateAvailable,
                                             )
                                         }
                                         .onFailure {
@@ -1210,14 +1227,14 @@ private fun CatalogApp(
         ) { route ->
             val song = bundle?.catalog?.songs?.firstOrNull { it.songId == route.songId }
             AppPageScaffold(
-                title = song?.let(CatalogSongFormatter::displayTitle) ?: "歌曲详情",
+                title = song?.let(CatalogSongFormatter::displayTitle) ?: tr("歌曲详情"),
                 pageBackground = songDetailBackground ?: pageBackground,
                 blurEnabled = enableBlur,
                 largeTitle = false,
                 topBarScrollBehavior = MiuixScrollBehavior(),
                 navigationIcon = {
                     MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
-                        MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                        MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = tr("返回"))
                     }
                 },
                 actions = {
@@ -1228,7 +1245,7 @@ private fun CatalogApp(
                         }) {
                             MiuixIcon(
                                 if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                                contentDescription = if (isFavorite) "取消喜爱" else "添加到喜爱",
+                                contentDescription = if (isFavorite) tr("取消喜爱") else tr("添加到喜爱"),
                                 tint = if (isFavorite) Color(0xFFE85D5D) else MiuixTheme.colorScheme.onSurface,
                             )
                         }
@@ -1298,7 +1315,8 @@ private fun CatalogApp(
                     onSelected = { index -> if (index != selectedTab) navigateToTab(index) },
                     blurEnabled = LocalEnableFloatingBottomBarBlur.current,
                     floating = LocalEnableFloatingBottomBar.current,
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                        .onSizeChanged { navigationBarHeightPx = it.height },
                 )
             }
         }
@@ -1338,10 +1356,10 @@ private fun AppNavigationBar(
     modifier: Modifier = Modifier,
 ) {
     val tabs = listOf(
-        LiquidGlassTab(Icons.Rounded.Home, "主页"),
-        LiquidGlassTab(Icons.Rounded.DocumentScanner, "扫描"),
-        LiquidGlassTab(Icons.Rounded.Search, "歌曲"),
-        LiquidGlassTab(Icons.Rounded.Settings, "设置"),
+        LiquidGlassTab(Icons.Rounded.Home, tr("主页")),
+        LiquidGlassTab(Icons.Rounded.DocumentScanner, tr("扫描")),
+        LiquidGlassTab(Icons.Rounded.Search, tr("歌曲")),
+        LiquidGlassTab(Icons.Rounded.Settings, tr("设置")),
     )
     if (floating) {
         // The full-width parent is only a transparent positioning surface. The
@@ -1383,5 +1401,14 @@ private fun RowScope.NavigationItem(
 
 @Composable
 private fun BlankDestination(modifier: Modifier) {
-    Box(modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface))
+    Box(
+        modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface),
+        contentAlignment = Alignment.Center,
+    ) {
+        top.yukonga.miuix.kmp.basic.Text(
+            "Working in progress",
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        )
+    }
 }

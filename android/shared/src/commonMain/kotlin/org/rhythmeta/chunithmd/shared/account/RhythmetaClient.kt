@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared.account
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import io.ktor.client.HttpClient
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
@@ -65,12 +67,12 @@ class RhythmetaClient(private val secrets:RhythmetaSecretStore, private val clie
     suspend fun handleCallback(value:String) {
         val url=Url(value)
         require(url.protocol.name=="chunithmd"&&url.host=="auth"&&url.encodedPath=="/callback"&&url.fragment.isEmpty())
-        val pending=json.decodeFromString<PendingLogin>(secrets.read("pending").value?:error("Login request expired."))
+        val pending=json.decodeFromString<PendingLogin>(secrets.read("pending").value?:error(tr("Login request expired.")))
         val age=Clock.System.now().toEpochMilliseconds()-pending.createdAt
-        require(age in 0..1_800_000&&url.parameters.getAll("state")==listOf(pending.state)&&url.parameters["result"]=="success") { "Login request does not match." }
+        require(age in 0..1_800_000&&url.parameters.getAll("state")==listOf(pending.state)&&url.parameters["result"]=="success") { tr("Login request does not match.") }
         secrets.write("pending",null)
         val payload=request("auth/v1/session:exchange","POST",buildJsonObject {
-            put("sessionCode",url.parameters["sessionCode"]?:error("Missing login code."));put("clientId","chunithmd");put("redirectUri",callback);put("codeVerifier",pending.verifier)
+            put("sessionCode",url.parameters["sessionCode"]?:error(tr("Missing login code.")));put("clientId","chunithmd");put("redirectUri",callback);put("codeVerifier",pending.verifier)
         },authenticated=false)
         apply(json.decodeFromJsonElement(payload))
     }
@@ -86,7 +88,7 @@ class RhythmetaClient(private val secrets:RhythmetaSecretStore, private val clie
     }
     suspend fun request(path:String,method:String="GET",body:JsonElement?=null,authenticated:Boolean=true):JsonElement {
         val current=session.value
-        if(authenticated&&current==null)throw RhythmetaApiError(401,"Sign in with your Rhythmeta account.")
+        if(authenticated&&current==null)throw RhythmetaApiError(401,tr("Sign in with your Rhythmeta account."))
         try { return send(path,method,body,if(authenticated)current?.accessToken else null) }
         catch(error:RhythmetaApiError) {
             if(!authenticated||error.status!=401||current==null)throw error
@@ -107,7 +109,7 @@ class RhythmetaClient(private val secrets:RhythmetaSecretStore, private val clie
         }
         val text=response.bodyAsText()
         val payload=runCatching { json.parseToJsonElement(text) }.getOrElse { JsonObject(emptyMap()) }
-        if(!response.status.isSuccess())throw RhythmetaApiError(response.status.value,(payload as? JsonObject)?.get("message")?.jsonPrimitive?.content?:"Request failed (${response.status.value}).")
+        if(!response.status.isSuccess())throw RhythmetaApiError(response.status.value,(payload as? JsonObject)?.get("message")?.jsonPrimitive?.content?:tr("Request failed ({0}).", response.status.value))
         return payload
     }
     suspend fun listBackups():List<CloudBackup> = json.decodeFromJsonElement<BackupList>(request("chunithmd/v1/backups")).backups
@@ -119,21 +121,21 @@ class RhythmetaClient(private val secrets:RhythmetaSecretStore, private val clie
         }))
         require(Url(upload.uploadUrl).protocol==URLProtocol.HTTPS)
         val response=client.put(upload.uploadUrl) { upload.headers.forEach { (key,value)->header(key,value) };setBody(bytes) }
-        if(!response.status.isSuccess())throw RhythmetaApiError(response.status.value,"Backup upload failed.")
+        if(!response.status.isSuccess())throw RhythmetaApiError(response.status.value,tr("Backup upload failed."))
         request("chunithmd/v1/backups/${upload.id}/commit","POST")
     }
     override suspend fun download(backup:CloudBackup):BackupSnapshot {
         require(backup.game=="chunithmd"&&backup.formatVersion==1&&backup.size in 1..BackupCodec.MAX_COMPRESSED.toLong()&&Url(backup.downloadUrl).protocol==URLProtocol.HTTPS)
         val response=client.get(backup.downloadUrl){header(HttpHeaders.AcceptEncoding,"identity")}
-        if(response.status!=HttpStatusCode.OK)throw RhythmetaApiError(response.status.value,"Backup download failed.")
+        if(response.status!=HttpStatusCode.OK)throw RhythmetaApiError(response.status.value,tr("Backup download failed."))
         val channel=response.bodyAsChannel();val output=Buffer();val buffer=ByteArray(65536)
         while(true) {
             val count=channel.readAvailable(buffer);if(count<0)break
-            if(output.size+count>backup.size){channel.cancel(null);error("Backup exceeds expected size.")}
+            if(output.size+count>backup.size){channel.cancel(null);error(tr("Backup exceeds expected size."))}
             output.write(buffer,0,count)
         }
         val bytes=output.readByteArray()
-        require(bytes.size.toLong()==backup.size&&BackupCodec.sha256(bytes)==backup.sha256){"Backup checksum does not match."}
+        require(bytes.size.toLong()==backup.size&&BackupCodec.sha256(bytes)==backup.sha256){tr("Backup checksum does not match.")}
         return withContext(Dispatchers.Default){BackupCodec.decode(bytes,backup.uncompressedSize)}
     }
 }

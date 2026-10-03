@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.constanttable
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -69,8 +71,8 @@ internal object ConstantTableImageExporter {
             val bitmap = createBitmap(width, height)
             val canvas = Canvas(bitmap)
             canvas.drawColor(background)
-            drawText(canvas, "定数表  $baseLevelLabel", horizontalPadding.toFloat(), 62f, 42f, foreground, true)
-            drawText(canvas, "${sections.size} 个定数 · ${sections.sumOf { it.entries.size }} 张谱面", horizontalPadding.toFloat(), 96f, 18f, secondary)
+            drawText(canvas, tr("定数表  {0}", baseLevelLabel), horizontalPadding.toFloat(), 62f, 42f, foreground, true)
+            drawText(canvas, tr("{0} 个定数 · {1} 张谱面", sections.size, sections.sumOf { it.entries.size }), horizontalPadding.toFloat(), 96f, 18f, secondary)
             var top = 130
             sections.forEachIndexed { index, section ->
                 drawSection(canvas, section, index, top)
@@ -84,7 +86,7 @@ internal object ConstantTableImageExporter {
             drawText(canvas, section.constantLabel, horizontalPadding.toFloat(), top + 42f, 30f, levelColor(section.constantLabel, index), true)
             setText(30f, levelColor(section.constantLabel, index), true)
             val constantWidth = paint.measureText(section.constantLabel)
-            drawText(canvas, "${section.entries.size} 张谱面", horizontalPadding + constantWidth + 12f, top + 42f, 16f, secondary)
+            drawText(canvas, tr("{0} 张谱面", section.entries.size), horizontalPadding + constantWidth + 12f, top + 42f, 16f, secondary)
             val gridTop = top + sectionHeader
             section.entries.forEachIndexed { entryIndex, entry ->
                 val left = horizontalPadding + (entryIndex % columns) * (jacketSize + spacing)
@@ -128,13 +130,14 @@ internal object ConstantTableImageExporter {
         private fun drawBadges(canvas: Canvas, rank: String?, combo: String?, chain: String?, left: Int, top: Int) {
             val values = listOfNotNull(rank, combo, chain)
             values.asReversed().forEachIndexed { index, value ->
+                val label = tr(value)
                 setText(14f, Color.WHITE, true)
-                val badgeWidth = paint.measureText(value) + 12f
+                val badgeWidth = paint.measureText(label) + 12f
                 val badgeTop = top + jacketSize - 22f - index * 25f
                 val badgeLeft = left + jacketSize - badgeWidth - 5f
                 paint.color = statusColor(value)
                 canvas.drawRoundRect(RectF(badgeLeft, badgeTop, badgeLeft + badgeWidth, badgeTop + 20f), 5f, 5f, paint)
-                drawText(canvas, value, badgeLeft + 6f, badgeTop + 15f, 14f, Color.WHITE, true)
+                drawText(canvas, label, badgeLeft + 6f, badgeTop + 15f, 14f, Color.WHITE, true)
             }
         }
 

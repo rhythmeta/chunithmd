@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.collection
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 /** The game prefix keeps maimaid and CHUNITHM song identifiers separate. */
 object SongCollectionLinks {
     const val Prefix = "CHMD1."
@@ -13,14 +15,14 @@ object SongCollectionLinks {
     )
 
     fun extractCode(value: String): String {
-        require(value.length <= MaxInputSize) { "收藏夹链接或分享码过长" }
+        require(value.length <= MaxInputSize) { tr("收藏夹链接或分享码过长") }
         val input = value.trim()
         val code = if (input.startsWith(Prefix)) input else {
             linkPattern.matchEntire(input)?.groupValues?.get(1)
-                ?: throw IllegalArgumentException("请输入 chunithmd 收藏夹链接或 CHMD1 分享码")
+                ?: throw IllegalArgumentException(tr("请输入 chunithmd 收藏夹链接或 CHMD1 分享码"))
         }
-        require(code.length <= MaxCodeSize) { "分享码过长" }
-        require(codePattern.matches(code)) { "请输入有效的 chunithmd 收藏夹链接或 CHMD1 分享码" }
+        require(code.length <= MaxCodeSize) { tr("分享码过长") }
+        require(codePattern.matches(code)) { tr("请输入有效的 chunithmd 收藏夹链接或 CHMD1 分享码") }
         return code
     }
 

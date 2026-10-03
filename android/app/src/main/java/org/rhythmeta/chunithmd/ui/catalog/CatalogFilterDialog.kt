@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -66,19 +68,19 @@ internal fun CatalogFilterDialog(
     ExpandableBottomSheet(
         visible = show,
         onDismissRequest = onDismiss,
-        expandActionLabel = "展开",
-        collapseActionLabel = "收起到半屏",
-        expandedStateDescription = "已全屏展开",
-        halfExpandedStateDescription = "半屏",
+        expandActionLabel = tr("展开"),
+        collapseActionLabel = tr("收起到半屏"),
+        expandedStateDescription = tr("已全屏展开"),
+        halfExpandedStateDescription = tr("半屏"),
         header = {
             IconButton(
                 onClick = { onSettingsChange(CatalogFilters()) },
                 modifier = Modifier.align(Alignment.CenterStart),
             ) {
-                Icon(Icons.Rounded.RestartAlt, contentDescription = "重置筛选")
+                Icon(Icons.Rounded.RestartAlt, contentDescription = tr("重置筛选"))
             }
             Text(
-                text = "筛选",
+                text = tr("筛选"),
                 style = MiuixTheme.textStyles.title3,
                 modifier = Modifier.align(Alignment.Center),
                 maxLines = 1,
@@ -89,7 +91,7 @@ internal fun CatalogFilterDialog(
                 },
                 modifier = Modifier.align(Alignment.CenterEnd),
             ) {
-                Icon(Icons.Rounded.Check, contentDescription = "完成", tint = MiuixTheme.colorScheme.primary)
+                Icon(Icons.Rounded.Check, contentDescription = tr("完成"), tint = MiuixTheme.colorScheme.primary)
             }
         },
     ) { topInset ->
@@ -99,22 +101,22 @@ internal fun CatalogFilterDialog(
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             item {
-                CatalogFilterSection("快速筛选") {
+                CatalogFilterSection(tr("快速筛选")) {
                     CatalogFilterToggleRow(
                         icon = Icons.Rounded.FavoriteBorder,
-                        title = "仅显示喜爱歌曲",
+                        title = tr("仅显示喜爱歌曲"),
                         checked = settings.favoritesOnly,
                         onCheckedChange = { onSettingsChange(settings.copy(favoritesOnly = it)) },
                     )
                     CatalogFilterToggleRow(
                         icon = Icons.Rounded.PlayCircle,
-                        title = "仅显示可玩歌曲",
+                        title = tr("仅显示可玩歌曲"),
                         checked = settings.playableOnly,
                         onCheckedChange = { onSettingsChange(settings.copy(playableOnly = it)) },
                     )
                     CatalogFilterToggleRow(
                         icon = Icons.Rounded.VisibilityOff,
-                        title = "隐藏删除曲",
+                        title = tr("隐藏删除曲"),
                         checked = settings.hideDeleted,
                         onCheckedChange = { onSettingsChange(settings.copy(hideDeleted = it)) },
                     )
@@ -122,7 +124,7 @@ internal fun CatalogFilterDialog(
             }
             if (includeDifficultyAndType) item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CatalogFilterSection("难度") {
+                    CatalogFilterSection(tr("难度")) {
                         CatalogFilterChipGroup(
                             values = DIFFICULTIES,
                             selectedValues = settings.difficulties,
@@ -138,7 +140,7 @@ internal fun CatalogFilterDialog(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = "定数区间",
+                                text = tr("定数区间"),
                                 style = MiuixTheme.textStyles.footnote1,
                                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             )
@@ -170,7 +172,7 @@ internal fun CatalogFilterDialog(
                         )
                     }
                     Text(
-                        text = "必须选择至少一个参考难度。系统将筛选出包含该难度、且该难度定数在下方区间内的歌曲。",
+                        text = tr("必须选择至少一个参考难度。系统将筛选出包含该难度、且该难度定数在下方区间内的歌曲。"),
                         style = MiuixTheme.textStyles.footnote2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier.padding(horizontal = 4.dp),
@@ -178,7 +180,7 @@ internal fun CatalogFilterDialog(
                 }
             }
             item {
-                CatalogFilterSection("分类") {
+                CatalogFilterSection(tr("分类")) {
                     CatalogFilterChipGroup(
                         values = CatalogQuery.availableCategories(bundle),
                         selectedValues = settings.categories,
@@ -188,7 +190,7 @@ internal fun CatalogFilterDialog(
                 }
             }
             item {
-                CatalogFilterSection("版本") {
+                CatalogFilterSection(tr("版本")) {
                     CatalogFilterChipGroup(
                         values = CatalogQuery.availableVersions(bundle),
                         selectedValues = settings.versions,
@@ -199,7 +201,7 @@ internal fun CatalogFilterDialog(
                 }
             }
             if (includeDifficultyAndType) item {
-                CatalogFilterSection("谱面类型") {
+                CatalogFilterSection(tr("谱面类型")) {
                     CatalogFilterChipGroup(
                         values = CatalogQuery.availableTypes(bundle),
                         selectedValues = settings.types,

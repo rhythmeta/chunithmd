@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared.community
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,7 +77,7 @@ class CommunityAliasStore(
             val snapshot = json.decodeFromJsonElement<CommunityAliasSnapshot>(
                 api.request("$Base/aliases:sync", authenticated = false),
             )
-            check(snapshot.complete) { "社区别名同步不完整，请重试。" }
+            check(snapshot.complete) { tr("社区别名同步不完整，请重试。") }
             val aliases = snapshot.rows.filter { it.status == "approved" }
                 .groupBy { it.songIdentifier }.mapValues { (_, rows) -> rows.map { it.aliasText } }
                 .let { mergeCommunityAliases(it) }
@@ -127,14 +129,14 @@ class CommunityAliasStore(
         val current = state.value
         if (current.song(songId).submitting || current.song(songId).loading) return
         if (owner.id == null) {
-            updateSong(songId) { it.copy(error = "请先登录 Rhythmeta 账户。") }; return
+            updateSong(songId) { it.copy(error = tr("请先登录 Rhythmeta 账户。")) }; return
         }
         val draft = current.song(songId).draft.trim()
         if (songId.isBlank() || draft.length !in 1..CommunityAliasMaxLength) {
-            updateSong(songId) { it.copy(error = "请输入 1–64 个字符的有效别名。") }; return
+            updateSong(songId) { it.copy(error = tr("请输入 1–64 个字符的有效别名。")) }; return
         }
         if ((current.dailyUsed ?: 0) >= CommunityAliasDailyQuota) {
-            updateSong(songId) { it.copy(error = "今日投稿次数已用完，请明天再试。") }; return
+            updateSong(songId) { it.copy(error = tr("今日投稿次数已用完，请明天再试。")) }; return
         }
         updateSong(songId) { it.copy(submitting = true, message = null, error = null) }
         try {
@@ -149,7 +151,7 @@ class CommunityAliasStore(
             mutableState.update { it.copy(dailyUsed = result.quotaRemaining?.let { remaining ->
                 (CommunityAliasDailyQuota - remaining).coerceIn(0, CommunityAliasDailyQuota)
             } ?: if (result.status == "quota_exceeded") CommunityAliasDailyQuota else it.dailyUsed) }
-            val detail = result.similarAliases.takeIf { it.isNotEmpty() }?.joinToString("、", prefix = "\n相似别名：").orEmpty()
+            val detail = result.similarAliases.takeIf { it.isNotEmpty() }?.joinToString("、", prefix = tr("\n相似别名：")).orEmpty()
             updateSong(songId) { it.copy(
                 draft = if (result.status == "created") "" else it.draft,
                 message = if (result.status == "created") result.displayMessage else null,
@@ -181,7 +183,7 @@ class CommunityAliasStore(
     suspend fun vote(candidateId: String, support: Boolean) {
         val owner = account()
         if (owner.id == null) {
-            mutableState.update { it.copy(boardError = "请先登录 Rhythmeta 账户。") }; return
+            mutableState.update { it.copy(boardError = tr("请先登录 Rhythmeta 账户。")) }; return
         }
         if (state.value.votingId != null || state.value.boardLoading) return
         mutableState.update { it.copy(votingId = candidateId, boardError = null) }
@@ -204,13 +206,13 @@ class CommunityAliasStore(
 
     private fun errorMessage(error: Exception): String = when (error) {
         is RhythmetaApiError -> when (error.status) {
-            401 -> "登录已失效，请重新登录 Rhythmeta 账户。"
-            404 -> "歌曲或候选别名已不存在，请刷新后重试。"
-            429 -> "操作过于频繁，请稍后再试。"
-            in 500..599 -> "社区服务暂时不可用，请稍后重试。"
-            else -> error.message ?: "操作失败，请刷新后重试。"
+            401 -> tr("登录已失效，请重新登录 Rhythmeta 账户。")
+            404 -> tr("歌曲或候选别名已不存在，请刷新后重试。")
+            429 -> tr("操作过于频繁，请稍后再试。")
+            in 500..599 -> tr("社区服务暂时不可用，请稍后重试。")
+            else -> error.message ?: tr("操作失败，请刷新后重试。")
         }
-        else -> "无法加载社区数据，请检查网络后重试。"
+        else -> tr("无法加载社区数据，请检查网络后重试。")
     }
 
     private companion object {

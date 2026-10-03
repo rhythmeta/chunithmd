@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
@@ -50,6 +52,7 @@ data class CatalogSyncState(
     val downloadedBytes: Long = 0L,
     val totalBytes: Long? = null,
     val bytesPerSecond: Long = 0L,
+    val updateAvailable: Boolean = false,
 )
 
 private class DownloadSpeedTracker {
@@ -112,7 +115,7 @@ class CatalogRepository(
         if (!fileSystem.exists(snapshotPath)) return null
         val snapshot = CatalogJson.decodeSnapshot(fileSystem.read(snapshotPath) { readUtf8() })
         val bytes = snapshot.bundleJson.encodeUtf8().toByteArray()
-        require(sha256(bytes) == snapshot.manifest.sha256) { "Cached catalog hash does not match its manifest." }
+        require(sha256(bytes) == snapshot.manifest.sha256) { tr("Cached catalog hash does not match its manifest.") }
         val bundle = CatalogJson.decodeBundle(snapshot.bundleJson)
         requireSupportedBundle(bundle)
         jacketNames(bundle)
@@ -127,7 +130,7 @@ class CatalogRepository(
 
     suspend fun checkForUpdate(): CatalogUpdateCheck {
         val response = client.get(manifestUrl)
-        check(response.status.isSuccess()) { "Manifest request failed: HTTP ${response.status.value}." }
+        check(response.status.isSuccess()) { tr("Manifest request failed: HTTP {0}.", response.status.value) }
         val manifest = CatalogJson.decodeManifest(response.bodyAsText())
         validateManifest(manifest)
         val cached = runCatching { loadLocal()?.manifest }.getOrNull()
@@ -138,11 +141,11 @@ class CatalogRepository(
         onState(CatalogSyncState(CatalogSyncStage.Checking))
         val check = checkForUpdate()
         val response = client.get(StaticBaseUrl + check.manifest.bundle)
-        check(response.status.isSuccess()) { "Bundle request failed: HTTP ${response.status.value}." }
+        check(response.status.isSuccess()) { tr("Bundle request failed: HTTP {0}.", response.status.value) }
         val bundleReporter = DownloadProgressReporter(
             stage = CatalogSyncStage.Downloading,
             totalItems = 1,
-            message = "正在下载静态数据",
+            message = tr("正在下载静态数据"),
             progressByBytes = true,
             overallStart = 0f,
             overallEnd = 0.35f,
@@ -153,7 +156,7 @@ class CatalogRepository(
         bundleReporter.onItemCompleted()
         bundleReporter.complete()
         onState(CatalogSyncState(CatalogSyncStage.Validating))
-        require(sha256(bytes) == check.manifest.sha256) { "Downloaded catalog hash does not match its manifest." }
+        require(sha256(bytes) == check.manifest.sha256) { tr("Downloaded catalog hash does not match its manifest.") }
         val bundleJson = bytes.decodeToString()
         val bundle = CatalogJson.decodeBundle(bundleJson)
         requireSupportedBundle(bundle)
@@ -222,7 +225,7 @@ class CatalogRepository(
         }
 
         private fun progressMessage(): String {
-            val speed = if (bytesPerSecond > 0L) "${formatCatalogBytes(bytesPerSecond)}/s" else "计算速度中"
+            val speed = if (bytesPerSecond > 0L) "${formatCatalogBytes(bytesPerSecond)}/s" else tr("计算速度中")
             val bytes = totalBytes.takeIf { it > 0L }?.let { "${formatCatalogBytes(downloadedBytes)} / ${formatCatalogBytes(it)}" }
                 ?: formatCatalogBytes(downloadedBytes)
             return "$message ($completedItems/$totalItems) · $bytes · $speed"
@@ -248,7 +251,7 @@ class CatalogRepository(
             onState(
                 CatalogSyncState(
                     stage = CatalogSyncStage.Downloading,
-                    message = "封面已是最新",
+                    message = tr("封面已是最新"),
                     progress = 0.95f,
                 ),
             )
@@ -256,13 +259,13 @@ class CatalogRepository(
         }
         val baseUrl = jacketBaseUrl.trimEnd('/')
         require(baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
-            "Manifest has an invalid jacket base URL."
+            tr("Manifest has an invalid jacket base URL.")
         }
         fileSystem.createDirectories(jacketDirectory)
         val reporter = DownloadProgressReporter(
             stage = CatalogSyncStage.Downloading,
             totalItems = missingNames.size,
-            message = "正在下载封面",
+            message = tr("正在下载封面"),
             overallStart = 0.35f,
             overallEnd = 0.95f,
             onState = onState,
@@ -275,14 +278,14 @@ class CatalogRepository(
                     limiter.withPermit {
                         val response = client.get("$baseUrl/$imageName")
                         check(response.status.isSuccess()) {
-                            "Jacket request failed for $imageName: HTTP ${response.status.value}."
+                            tr("Jacket request failed for {0}: HTTP {1}.", imageName, response.status.value)
                         }
                         val contentType = response.headers[HttpHeaders.ContentType].orEmpty()
                         require(contentType.isEmpty() || contentType.startsWith("image/", ignoreCase = true)) {
-                            "Jacket request for $imageName returned non-image content type ${contentType.ifEmpty { "unknown" }}."
+                            tr("Jacket request for {0} returned non-image content type {1}.", imageName, contentType.ifEmpty { "unknown" })
                         }
                         val bytes = readResponseBytes(response, reporter::onTransfer)
-                        require(bytes.isNotEmpty()) { "Jacket request for $imageName returned an empty image." }
+                        require(bytes.isNotEmpty()) { tr("Jacket request for {0} returned an empty image.", imageName) }
                         val destination = jacketPath(imageName)!!
                         val temporary = (destination.toString() + ".tmp").toPath()
                         fileSystem.write(temporary) { write(bytes) }
@@ -334,15 +337,15 @@ class CatalogRepository(
             imageName != "." && imageName != ".." &&
                 '/' !in imageName && '\\' !in imageName &&
                 !imageName.startsWith("/"),
-        ) { "Catalog contains an invalid jacket path: $imageName" }
+        ) { tr("Catalog contains an invalid jacket path: {0}", imageName) }
     }
 
     private fun validateManifest(manifest: StaticManifest) {
-        require(manifest.schemaVersion == 1) { "Unsupported manifest schema version ${manifest.schemaVersion}." }
-        require(manifest.product == "chunithmd") { "Manifest is for ${manifest.product}, not chunithmd." }
-        require(manifest.sha256.matches(Regex("[a-fA-F0-9]{64}"))) { "Manifest has an invalid SHA-256 hash." }
+        require(manifest.schemaVersion == 1) { tr("Unsupported manifest schema version {0}.", manifest.schemaVersion) }
+        require(manifest.product == "chunithmd") { tr("Manifest is for {0}, not chunithmd.", manifest.product) }
+        require(manifest.sha256.matches(Regex("[a-fA-F0-9]{64}"))) { tr("Manifest has an invalid SHA-256 hash.") }
         require(manifest.bundle.startsWith("/bundles/") && manifest.bundle.endsWith(".json")) {
-            "Manifest has an invalid bundle path."
+            tr("Manifest has an invalid bundle path.")
         }
     }
 
@@ -390,7 +393,7 @@ class CatalogBridge(cacheDirectory: String) {
                 }
             }
                 .onSuccess { completion(CatalogJson.encodeBundle(CatalogJson.decodeBundle(it.bundleJson)), null) }
-                .onFailure { completion(null, it.message ?: "Catalog update failed.") }
+                .onFailure { completion(null, it.message ?: tr("Catalog update failed.")) }
         }
     }
 
@@ -398,7 +401,7 @@ class CatalogBridge(cacheDirectory: String) {
         scope.launch {
             runCatching { repository.checkForUpdate() }
                 .onSuccess { completion(CatalogJson.codec.encodeToString(it), null) }
-                .onFailure { completion(null, it.message ?: "Could not check for updates.") }
+                .onFailure { completion(null, it.message ?: tr("Could not check for updates.")) }
         }
     }
 }

@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.community
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -74,16 +76,16 @@ fun CommunityAliasScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 if (!state.authenticated) item("login") {
-                    CommunityMessageCard("需要登录", "登录后可以投稿和参与社区别名投票。", "登录 Rhythmeta", onLogin)
+                    CommunityMessageCard(tr("需要登录"), tr("登录后可以投稿和参与社区别名投票。"), tr("登录 Rhythmeta"), onLogin)
                 }
                 state.boardError?.takeIf { state.board.isEmpty() }?.let { message -> item("error") {
-                    CommunityMessageCard("加载或投票失败", message, "重试", ::refresh)
+                    CommunityMessageCard(tr("加载或投票失败"), message, tr("重试"), ::refresh)
                 } }
                 state.syncError?.let { message -> item("sync-error") {
-                    CommunityMessageCard("别名同步失败", "$message\n已有的本地别名仍可使用。", "重新同步") { scope.launch { store.syncApproved(force = true) } }
+                    CommunityMessageCard(tr("别名同步失败"), tr("{0}\n已有的本地别名仍可使用。", message), tr("重新同步")) { scope.launch { store.syncApproved(force = true) } }
                 } }
                 if (state.authenticated && !state.boardLoading && state.board.isEmpty() && state.boardError == null) item("empty") {
-                    CommunityMessageCard("当前没有投票中的候选别名", "新的候选别名会在公示期显示于此。")
+                    CommunityMessageCard(tr("当前没有投票中的候选别名"), tr("新的候选别名会在公示期显示于此。"))
                 }
                 groups.forEach { (songId, candidates) ->
                     item("song:$songId") {
@@ -94,7 +96,7 @@ fun CommunityAliasScreen(
                             support -> scope.launch {
                                 store.vote(candidate.candidateId, support)
                                 if (store.state.value.accountId == state.accountId && store.state.value.boardError == null) {
-                                    snackbar.showSnackbar("投票已更新", duration = SnackbarDuration.Short)
+                                    snackbar.showSnackbar(tr("投票已更新"), duration = SnackbarDuration.Short)
                                 }
                             }
                         }
@@ -102,7 +104,7 @@ fun CommunityAliasScreen(
                 }
                 if (state.boardHasMore && state.board.isNotEmpty()) item("more") {
                     Button(enabled = !state.boardLoading && state.votingId == null, onClick = { scope.launch { store.refreshBoard(loadMore = true) } }, modifier = Modifier.fillMaxWidth()) {
-                        Text(if (state.boardLoading) "正在加载…" else "加载更多")
+                        Text(if (state.boardLoading) tr("正在加载…") else tr("加载更多"))
                     }
                 }
             }
@@ -149,7 +151,7 @@ private fun CommunitySongHeader(
                 overflow = TextOverflow.Clip,
                 modifier = Modifier.fillMaxWidth().basicMarquee(),
             )
-            Text("$count 个候选别名", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+            Text(tr("{0} 个候选别名", count), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
         }
     }
 }
@@ -163,7 +165,7 @@ private fun CommunityCandidateCard(candidate: CommunityCandidate, enabled: Boole
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Text(candidate.aliasText, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Text("截止 ${formatCommunityDeadline(candidate.voteCloseAt)}", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                Text(tr("截止 {0}", formatCommunityDeadline(candidate.voteCloseAt)), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 VoteButton(true, candidate.supportCount, candidate.myVote == 1, enabled) { onVote(true) }
@@ -188,7 +190,13 @@ private fun VoteButton(support: Boolean, count: Int, selected: Boolean, enabled:
     ) {
         Icon(if (support) Icons.Rounded.ThumbUp else Icons.Rounded.ThumbDown, null, Modifier.size(17.dp))
         Spacer(Modifier.width(5.dp))
-        Text("${if (selected) "取消" else ""}${if (support) "支持" else "反对"} $count")
+        val label = when {
+            selected && support -> tr("取消支持")
+            selected -> tr("取消反对")
+            support -> tr("支持")
+            else -> tr("反对")
+        }
+        Text("$label $count")
     }
 }
 

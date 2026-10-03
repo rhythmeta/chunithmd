@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.community
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -60,16 +62,16 @@ fun SongCommunityAliasSection(
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("社区别名", style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
+                Text(tr("社区别名"), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
                 val approvedCount = state.approvedAliases[songId].orEmpty().size
                 Text(
-                    if (approvedCount == 0) "暂无已通过的别名" else "$approvedCount 个已通过别名",
+                    if (approvedCount == 0) tr("暂无已通过的别名") else tr("{0} 个已通过别名", approvedCount),
                     style = MiuixTheme.textStyles.footnote2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }
             Text(
-                "公示投票",
+                tr("公示投票"),
                 style = MiuixTheme.textStyles.footnote1,
                 color = accentColor,
                 fontWeight = FontWeight.Bold,
@@ -79,14 +81,14 @@ fun SongCommunityAliasSection(
         Spacer(Modifier.height(12.dp))
         if (!state.authenticated) {
             Text(
-                "登录后可以投稿和参与社区别名投票",
+                tr("登录后可以投稿和参与社区别名投票"),
                 style = MiuixTheme.textStyles.footnote1,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 modifier = Modifier.clickable(role = Role.Button, onClick = onLogin),
             )
         } else {
             Text(
-                "今日已投稿：${state.dailyUsed?.toString() ?: "—"}/$CommunityAliasDailyQuota",
+                tr("今日已投稿：{0}/{1}", state.dailyUsed?.toString() ?: "—", CommunityAliasDailyQuota),
                 style = MiuixTheme.textStyles.footnote2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
@@ -113,7 +115,7 @@ fun SongCommunityAliasSection(
                         labelColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         borderColor = accentColor,
                     ),
-                    label = "输入新别名",
+                    label = tr("输入新别名"),
                     useLabelAsPlaceholder = true,
                     singleLine = true,
                     enabled = !songState.submitting,
@@ -137,7 +139,7 @@ fun SongCommunityAliasSection(
                     if (songState.submitting) {
                         CircularProgressIndicator(size = 18.dp, strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.AutoMirrored.Rounded.Send, "提交别名", modifier = Modifier.size(18.dp))
+                        Icon(Icons.AutoMirrored.Rounded.Send, tr("提交别名"), modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -145,7 +147,7 @@ fun SongCommunityAliasSection(
         if (songState.candidates.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
             Text(
-                "我的投稿",
+                tr("我的投稿"),
                 style = MiuixTheme.textStyles.footnote1,
                 fontWeight = FontWeight.Bold,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
@@ -164,7 +166,7 @@ fun SongCommunityAliasSection(
             }
             if (songState.candidates.size > 4) {
                 Text(
-                    if (showAll) "收起" else "查看全部 ${songState.candidates.size} 条",
+                    if (showAll) tr("收起") else tr("查看全部 {0} 条", songState.candidates.size),
                     color = accentColor,
                     style = MiuixTheme.textStyles.footnote2,
                     modifier = Modifier.padding(top = 6.dp).clickable(role = Role.Button) { showAll = !showAll },
@@ -174,7 +176,7 @@ fun SongCommunityAliasSection(
         if (state.syncError != null) {
             Spacer(Modifier.height(8.dp))
             Text(
-                "社区别名同步失败，点击重试",
+                tr("社区别名同步失败，点击重试"),
                 style = MiuixTheme.textStyles.footnote2,
                 color = MiuixTheme.colorScheme.error,
                 modifier = Modifier.clickable(role = Role.Button) {
@@ -192,8 +194,8 @@ private fun quotaColor(used: Int): Color = when {
 }
 
 private fun candidateStatus(status: String): Pair<String, Color> = when (status) {
-    "pool_private", "voting" -> "投票中" to Color(0xFF4385D8)
-    "approved" -> "已通过" to Color(0xFF36A65C)
-    "rejected" -> "已拒绝" to Color(0xFFD65C5C)
-    else -> "未知" to Color.Gray
+    "pool_private", "voting" -> tr("投票中") to Color(0xFF4385D8)
+    "approved" -> tr("已通过") to Color(0xFF36A65C)
+    "rejected" -> tr("已拒绝") to Color(0xFFD65C5C)
+    else -> tr("未知") to Color.Gray
 }

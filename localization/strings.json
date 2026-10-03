@@ -1,0 +1,2684 @@
+{
+  "\n相似别名：": {
+    "en": "\nSimilar aliases: ",
+    "ja": "\n類似する別名：",
+    "zh-Hans": "\n相似别名：",
+    "zh-Hant": "\n相似別名："
+  },
+  " · 已筛选": {
+    "en": " · Filtered",
+    "ja": " · 絞り込み中",
+    "zh-Hans": " · 已筛选",
+    "zh-Hant": " · 已篩選"
+  },
+  "{0}\n已有的本地别名仍可使用。": {
+    "en": "{0}\nYour existing local aliases are still available.",
+    "ja": "{0}\n保存済みの別名は引き続き利用できます。",
+    "zh-Hans": "{0}\n已有的本地别名仍可使用。",
+    "zh-Hant": "{0}\n已儲存在裝置上的別名仍可使用。"
+  },
+  "{0} / {1} 已完成": {
+    "en": "{0} / {1} completed",
+    "ja": "{0} / {1} 達成",
+    "zh-Hans": "{0} / {1} 已完成",
+    "zh-Hant": "{0} / {1} 已完成"
+  },
+  "{0} 个候选别名": {
+    "en": "{0} candidate aliases",
+    "ja": "候補の別名 {0} 件",
+    "zh-Hans": "{0} 个候选别名",
+    "zh-Hant": "{0} 個候選別名"
+  },
+  "{0} 个定数 · {1} 张谱面": {
+    "en": "{0} constants · {1} charts",
+    "ja": "{0} 定数 · {1} 譜面",
+    "zh-Hans": "{0} 个定数 · {1} 张谱面",
+    "zh-Hant": "{0} 個定數 · {1} 張譜面"
+  },
+  "{0} 个已通过别名": {
+    "en": "{0} approved aliases",
+    "ja": "承認済みの別名 {0} 件",
+    "zh-Hans": "{0} 个已通过别名",
+    "zh-Hant": "{0} 個已核准的別名"
+  },
+  "{0} 个档案": {
+    "en": "{0} profiles",
+    "ja": "{0} プロフィール",
+    "zh-Hans": "{0} 个档案",
+    "zh-Hant": "{0} 份個人檔案"
+  },
+  "{0} 张谱面": {
+    "en": "{0} charts",
+    "ja": "{0} 譜面",
+    "zh-Hans": "{0} 张谱面",
+    "zh-Hant": "{0} 張譜面"
+  },
+  "{0} 张谱面 · {1} 个定数{2}": {
+    "en": "{0} charts · {1} constants{2}",
+    "ja": "{0} 譜面 · {1} 定数{2}",
+    "zh-Hans": "{0} 张谱面 · {1} 个定数{2}",
+    "zh-Hant": "{0} 張譜面 · {1} 個定數{2}"
+  },
+  "{0} 谱面": {
+    "en": "{0} charts",
+    "ja": "{0} 譜面",
+    "zh-Hans": "{0} 谱面",
+    "zh-Hant": "{0} 譜面"
+  },
+  "Backup checksum does not match.": {
+    "en": "Backup checksum does not match.",
+    "ja": "バックアップの検証に失敗しました。",
+    "zh-Hans": "备份校验失败。",
+    "zh-Hant": "備份檢查碼不符。"
+  },
+  "Backup download failed.": {
+    "en": "Backup download failed.",
+    "ja": "バックアップのダウンロードに失敗しました。",
+    "zh-Hans": "备份下载失败。",
+    "zh-Hant": "備份下載失敗。"
+  },
+  "Backup exceeds expected size.": {
+    "en": "Backup exceeds expected size.",
+    "ja": "バックアップが想定サイズを超えています。",
+    "zh-Hans": "备份超过预期大小。",
+    "zh-Hant": "備份超過預期大小。"
+  },
+  "Backup size does not match.": {
+    "en": "Backup size does not match.",
+    "ja": "バックアップのサイズが一致しません。",
+    "zh-Hans": "备份大小不匹配。",
+    "zh-Hant": "備份大小不符。"
+  },
+  "Backup upload failed.": {
+    "en": "Backup upload failed.",
+    "ja": "バックアップのアップロードに失敗しました。",
+    "zh-Hans": "备份上传失败。",
+    "zh-Hant": "備份上傳失敗。"
+  },
+  "Best 数量": {
+    "en": "Best count",
+    "ja": "Best の件数",
+    "zh-Hans": "Best 数量",
+    "zh-Hant": "Best 數量"
+  },
+  "Best 表": {
+    "en": "Best table",
+    "ja": "ベスト表",
+    "zh-Hans": "Best 表",
+    "zh-Hant": "Best 表"
+  },
+  "Bundle request failed: HTTP {0}.": {
+    "en": "Bundle request failed: HTTP {0}.",
+    "ja": "データパッケージの取得に失敗しました：HTTP {0}。",
+    "zh-Hans": "下载数据包失败：HTTP {0}。",
+    "zh-Hant": "下載資料套件失敗：HTTP {0}。"
+  },
+  "Cached catalog hash does not match its manifest.": {
+    "en": "Cached catalog hash does not match its manifest.",
+    "ja": "キャッシュ済み楽曲データの検証に失敗しました。",
+    "zh-Hans": "缓存歌曲目录校验失败。",
+    "zh-Hant": "快取中的歌曲目錄未通過驗證。"
+  },
+  "Catalog contains a song without a stable ID or title.": {
+    "en": "Catalog contains a song without a stable ID or title.",
+    "ja": "楽曲データに ID またはタイトルのない曲があります。",
+    "zh-Hans": "歌曲目录中有歌曲缺少编号或标题。",
+    "zh-Hant": "歌曲目錄中有歌曲缺少編號或標題。"
+  },
+  "Catalog contains an invalid jacket path: {0}": {
+    "en": "Catalog contains an invalid jacket path: {0}",
+    "ja": "楽曲データのジャケットパスが無効です：{0}",
+    "zh-Hans": "歌曲目录中的封面路径无效：{0}",
+    "zh-Hant": "歌曲目錄中的封面路徑無效：{0}"
+  },
+  "Catalog update failed.": {
+    "en": "Catalog update failed.",
+    "ja": "楽曲データの更新に失敗しました。",
+    "zh-Hans": "歌曲目录更新失败。",
+    "zh-Hant": "歌曲目錄更新失敗。"
+  },
+  "CHAIN 状态": {
+    "en": "Chain status",
+    "ja": "チェイン状態",
+    "zh-Hans": "CHAIN 状态",
+    "zh-Hant": "CHAIN 狀態"
+  },
+  "CLEAR 状态": {
+    "en": "Clear status",
+    "ja": "クリア状態",
+    "zh-Hans": "CLEAR 状态",
+    "zh-Hant": "CLEAR 狀態"
+  },
+  "Clipboard unavailable": {
+    "en": "Clipboard unavailable",
+    "ja": "クリップボードを利用できません",
+    "zh-Hans": "剪贴板不可用",
+    "zh-Hant": "剪貼簿不可用"
+  },
+  "COMBO 状态": {
+    "en": "Combo status",
+    "ja": "コンボ状態",
+    "zh-Hans": "COMBO 状态",
+    "zh-Hant": "COMBO 狀態"
+  },
+  "Content": {
+    "en": "Content",
+    "ja": "コンテンツ",
+    "zh-Hans": "内容",
+    "zh-Hant": "內容"
+  },
+  "Could not check for updates.": {
+    "en": "Could not check for updates.",
+    "ja": "更新を確認できません。",
+    "zh-Hans": "无法检查更新。",
+    "zh-Hant": "無法檢查更新。"
+  },
+  "Could not save account credentials.": {
+    "en": "Could not save account credentials.",
+    "ja": "アカウント認証情報を保存できません。",
+    "zh-Hans": "无法保存账户凭据。",
+    "zh-Hant": "無法儲存帳號驗證資訊。"
+  },
+  "Downloaded catalog hash does not match its manifest.": {
+    "en": "Downloaded catalog hash does not match its manifest.",
+    "ja": "ダウンロードした楽曲データの検証に失敗しました。",
+    "zh-Hans": "下载的歌曲目录校验失败。",
+    "zh-Hant": "下載的歌曲目錄未通過驗證。"
+  },
+  "Expressive": {
+    "en": "Expressive",
+    "ja": "エクスプレッシブ",
+    "zh-Hans": "表现力",
+    "zh-Hant": "生動"
+  },
+  "Fidelity": {
+    "en": "Fidelity",
+    "ja": "忠実",
+    "zh-Hans": "保真",
+    "zh-Hant": "忠實原色"
+  },
+  "FruitSalad": {
+    "en": "Fruit salad",
+    "ja": "フルーツサラダ",
+    "zh-Hans": "缤纷",
+    "zh-Hant": "繽紛"
+  },
+  "Full Chain": {
+    "en": "Chain status",
+    "ja": "チェイン状態",
+    "zh-Hans": "合奏状态",
+    "zh-Hant": "合奏狀態"
+  },
+  "Full Combo": {
+    "en": "Combo status",
+    "ja": "コンボ状態",
+    "zh-Hans": "连击状态",
+    "zh-Hant": "連擊狀態"
+  },
+  "Invalid record IDs.": {
+    "en": "Invalid record IDs.",
+    "ja": "記録 ID が無効です。",
+    "zh-Hans": "记录编号无效。",
+    "zh-Hant": "記錄編號無效。"
+  },
+  "Invalid score reference.": {
+    "en": "Invalid score reference.",
+    "ja": "スコアの参照先が無効です。",
+    "zh-Hans": "成绩引用无效。",
+    "zh-Hant": "成績的關聯資料無效。"
+  },
+  "Jacket request failed for {0}: HTTP {1}.": {
+    "en": "Jacket request failed for {0}: HTTP {1}.",
+    "ja": "ジャケット {0} の取得に失敗しました：HTTP {1}。",
+    "zh-Hans": "封面 {0} 下载失败：HTTP {1}。",
+    "zh-Hant": "封面 {0} 下載失敗：HTTP {1}。"
+  },
+  "Jacket request for {0} returned an empty image.": {
+    "en": "Jacket request for {0} returned an empty image.",
+    "ja": "ジャケット {0} の画像データが空です。",
+    "zh-Hans": "封面 {0} 返回了空图片。",
+    "zh-Hant": "封面 {0} 的回應沒有圖片資料。"
+  },
+  "Jacket request for {0} returned non-image content type {1}.": {
+    "en": "Jacket request for {0} returned non-image content type {1}.",
+    "ja": "ジャケット {0} の応答が画像形式ではありません：{1}。",
+    "zh-Hans": "封面 {0} 返回了非图片类型 {1}。",
+    "zh-Hant": "封面 {0} 的回應不是圖片，而是 {1} 類型。"
+  },
+  "Login request does not match.": {
+    "en": "Login request does not match.",
+    "ja": "ログイン要求が一致しません。",
+    "zh-Hans": "登录请求不匹配。",
+    "zh-Hant": "登入要求不符。"
+  },
+  "Login request expired.": {
+    "en": "Login request expired.",
+    "ja": "ログイン要求の有効期限が切れました。",
+    "zh-Hans": "登录请求已过期。",
+    "zh-Hant": "登入要求已過期。"
+  },
+  "Manifest has an invalid bundle path.": {
+    "en": "Manifest has an invalid bundle path.",
+    "ja": "データ一覧のパッケージパスが無効です。",
+    "zh-Hans": "数据清单中的数据包路径无效。",
+    "zh-Hant": "資料清單中的套件路徑無效。"
+  },
+  "Manifest has an invalid jacket base URL.": {
+    "en": "Manifest has an invalid jacket base URL.",
+    "ja": "一覧内のジャケット URL が無効です。",
+    "zh-Hans": "清单中的封面地址无效。",
+    "zh-Hant": "資料清單中的封面網址無效。"
+  },
+  "Manifest has an invalid SHA-256 hash.": {
+    "en": "Manifest has an invalid SHA-256 hash.",
+    "ja": "データ一覧の SHA-256 ハッシュが無効です。",
+    "zh-Hans": "数据清单的 SHA-256 校验值无效。",
+    "zh-Hant": "資料清單的 SHA-256 檢查碼無效。"
+  },
+  "Manifest is for {0}, not chunithmd.": {
+    "en": "Manifest is for {0}, not chunithmd.",
+    "ja": "このデータ一覧は {0} 用で、chunithmd には対応していません。",
+    "zh-Hans": "数据清单属于 {0}，不适用于 chunithmd。",
+    "zh-Hant": "資料清單屬於 {0}，不適用於 chunithmd。"
+  },
+  "Manifest request failed: HTTP {0}.": {
+    "en": "Manifest request failed: HTTP {0}.",
+    "ja": "データ一覧の取得に失敗しました：HTTP {0}。",
+    "zh-Hans": "获取数据清单失败：HTTP {0}。",
+    "zh-Hant": "取得資料清單失敗：HTTP {0}。"
+  },
+  "Missing login code.": {
+    "en": "Missing login code.",
+    "ja": "ログインコードがありません。",
+    "zh-Hans": "缺少登录代码。",
+    "zh-Hant": "缺少登入驗證碼。"
+  },
+  "Monet 动态颜色": {
+    "en": "Monet dynamic colors",
+    "ja": "Monet ダイナミックカラー",
+    "zh-Hans": "Monet 动态颜色",
+    "zh-Hant": "Monet 動態配色"
+  },
+  "Monochrome": {
+    "en": "Monochrome",
+    "ja": "モノクロ",
+    "zh-Hans": "单色",
+    "zh-Hant": "單色"
+  },
+  "Neutral": {
+    "en": "Neutral",
+    "ja": "ニュートラル",
+    "zh-Hans": "中性",
+    "zh-Hant": "中性"
+  },
+  "New 数量": {
+    "en": "New count",
+    "ja": "New の件数",
+    "zh-Hans": "New 数量",
+    "zh-Hant": "New 數量"
+  },
+  "No active profile.": {
+    "en": "No active profile.",
+    "ja": "現在のプロフィールが選択されていません。",
+    "zh-Hans": "未选择当前档案。",
+    "zh-Hant": "尚未選取使用中的個人檔案。"
+  },
+  "Profile name cannot be empty.": {
+    "en": "Profile name cannot be empty.",
+    "ja": "プロフィール名を入力してください。",
+    "zh-Hans": "档案名称不能为空。",
+    "zh-Hant": "個人檔案名稱不可留空。"
+  },
+  "Rainbow": {
+    "en": "Rainbow",
+    "ja": "レインボー",
+    "zh-Hans": "彩虹",
+    "zh-Hant": "彩虹"
+  },
+  "Request failed ({0}).": {
+    "en": "Request failed ({0}).",
+    "ja": "リクエストに失敗しました（{0}）。",
+    "zh-Hans": "请求失败（{0}）。",
+    "zh-Hant": "要求失敗（{0}）。"
+  },
+  "Score is out of range.": {
+    "en": "Score is out of range.",
+    "ja": "スコアが有効範囲外です。",
+    "zh-Hans": "分数超出有效范围。",
+    "zh-Hant": "分數超出有效範圍。"
+  },
+  "Sign in with your Rhythmeta account.": {
+    "en": "Sign in with your Rhythmeta account.",
+    "ja": "Rhythmeta アカウントでログインしてください。",
+    "zh-Hans": "请登录 Rhythmeta 账户。",
+    "zh-Hant": "請登入 Rhythmeta 帳號。"
+  },
+  "TonalSpot": {
+    "en": "Tonal spot",
+    "ja": "トーナルスポット",
+    "zh-Hans": "柔和色调",
+    "zh-Hant": "柔和色調"
+  },
+  "Unable to create download": {
+    "en": "Unable to create download",
+    "ja": "ダウンロードファイルを作成できません",
+    "zh-Hans": "无法创建下载文件",
+    "zh-Hant": "無法建立下載檔案"
+  },
+  "Unable to write download": {
+    "en": "Unable to write download",
+    "ja": "ダウンロードファイルに書き込めません",
+    "zh-Hans": "无法写入下载文件",
+    "zh-Hant": "無法寫入下載檔案"
+  },
+  "Unsupported backup format or game.": {
+    "en": "Unsupported backup format or game.",
+    "ja": "未対応のバックアップ形式またはゲームです。",
+    "zh-Hans": "不支持的备份格式或游戏。",
+    "zh-Hant": "不支援此備份格式或遊戲。"
+  },
+  "Unsupported catalog schema version {0}.": {
+    "en": "Unsupported catalog schema version {0}.",
+    "ja": "楽曲データの形式バージョン {0} は未対応です。",
+    "zh-Hans": "不支持的歌曲目录格式版本 {0}。",
+    "zh-Hant": "不支援歌曲目錄格式版本 {0}。"
+  },
+  "Unsupported manifest schema version {0}.": {
+    "en": "Unsupported manifest schema version {0}.",
+    "ja": "データ一覧の形式バージョン {0} は未対応です。",
+    "zh-Hans": "不支持的数据清单格式版本 {0}。",
+    "zh-Hant": "不支援資料清單格式版本 {0}。"
+  },
+  "Unsupported personal setting: {0}": {
+    "en": "Unsupported personal setting: {0}",
+    "ja": "未対応の個人設定：{0}",
+    "zh-Hans": "不支持的个人设置：{0}",
+    "zh-Hant": "不支援的個人設定：{0}"
+  },
+  "Unsupported preference type: {0}": {
+    "en": "Unsupported preference type: {0}",
+    "ja": "未対応の設定タイプ：{0}",
+    "zh-Hans": "不支持的设置类型：{0}",
+    "zh-Hant": "不支援的設定類型：{0}"
+  },
+  "Unsupported preference: {0}": {
+    "en": "Unsupported preference: {0}",
+    "ja": "未対応の設定：{0}",
+    "zh-Hans": "不支持的设置：{0}",
+    "zh-Hant": "不支援的設定：{0}"
+  },
+  "Vibrant": {
+    "en": "Vibrant",
+    "ja": "鮮やか",
+    "zh-Hans": "鲜明",
+    "zh-Hant": "鮮明"
+  },
+  "WE 谱面不纳入统计": {
+    "en": "WE charts are excluded",
+    "ja": "WE 譜面は集計対象外です",
+    "zh-Hans": "WE 谱面不纳入统计",
+    "zh-Hant": "WE 譜面不納入統計"
+  },
+  "Working in progress": {
+    "en": "Working in progress",
+    "ja": "Working in progress",
+    "zh-Hans": "Working in progress",
+    "zh-Hant": "Working in progress"
+  },
+  "一次 3 首": {
+    "en": "3 songs at a time",
+    "ja": "3曲ずつ",
+    "zh-Hans": "一次 3 首",
+    "zh-Hant": "一次 3 首"
+  },
+  "一次 4 首": {
+    "en": "4 songs at a time",
+    "ja": "4曲ずつ",
+    "zh-Hans": "一次 4 首",
+    "zh-Hant": "一次 4 首"
+  },
+  "上一页": {
+    "en": "Previous page",
+    "ja": "前のページ",
+    "zh-Hans": "上一页",
+    "zh-Hant": "上一頁"
+  },
+  "下一页": {
+    "en": "Next page",
+    "ja": "次のページ",
+    "zh-Hans": "下一页",
+    "zh-Hant": "下一頁"
+  },
+  "下载封面": {
+    "en": "Download jacket",
+    "ja": "ジャケットをダウンロード",
+    "zh-Hans": "下载封面",
+    "zh-Hant": "下載封面"
+  },
+  "下载并更新": {
+    "en": "Download and update",
+    "ja": "ダウンロードして更新",
+    "zh-Hans": "下载并更新",
+    "zh-Hant": "下載並更新"
+  },
+  "不可用": {
+    "en": "Unavailable",
+    "ja": "利用不可",
+    "zh-Hans": "不可用",
+    "zh-Hant": "無法使用"
+  },
+  "不支持的收藏夹版本": {
+    "en": "Unsupported collection version",
+    "ja": "未対応のコレクションバージョンです",
+    "zh-Hans": "不支持的收藏夹版本",
+    "zh-Hant": "不支援的收藏集版本"
+  },
+  "中国": {
+    "en": "China",
+    "ja": "中国",
+    "zh-Hans": "中国",
+    "zh-Hant": "中國"
+  },
+  "临时覆盖": {
+    "en": "Temporary override",
+    "ja": "一時的な設定",
+    "zh-Hans": "临时覆盖",
+    "zh-Hant": "暫時套用"
+  },
+  "主页": {
+    "en": "Home",
+    "ja": "ホーム",
+    "zh-Hans": "主页",
+    "zh-Hant": "首頁"
+  },
+  "主题": {
+    "en": "Theme",
+    "ja": "テーマ",
+    "zh-Hans": "主题",
+    "zh-Hant": "主題"
+  },
+  "云端备份完成": {
+    "en": "Cloud backup complete",
+    "ja": "クラウドへのバックアップが完了しました",
+    "zh-Hans": "云端备份完成",
+    "zh-Hant": "雲端備份完成"
+  },
+  "云端恢复完成": {
+    "en": "Cloud restore complete",
+    "ja": "クラウドからの復元が完了しました",
+    "zh-Hans": "云端恢复完成",
+    "zh-Hant": "雲端還原完成"
+  },
+  "云端账户": {
+    "en": "Cloud account",
+    "ja": "クラウドアカウント",
+    "zh-Hans": "云端账户",
+    "zh-Hant": "雲端帳號"
+  },
+  "仅显示可玩歌曲": {
+    "en": "Playable songs only",
+    "ja": "プレイ可能な楽曲のみ",
+    "zh-Hans": "仅显示可玩歌曲",
+    "zh-Hant": "只顯示可遊玩的歌曲"
+  },
+  "仅显示喜爱歌曲": {
+    "en": "Favorites only",
+    "ja": "お気に入りのみ",
+    "zh-Hans": "仅显示喜爱歌曲",
+    "zh-Hant": "只顯示最愛歌曲"
+  },
+  "今日已投稿：{0}/{1}": {
+    "en": "Submitted today: {0}/{1}",
+    "ja": "本日の投稿：{0}/{1}",
+    "zh-Hans": "今日已投稿：{0}/{1}",
+    "zh-Hant": "今日已投稿：{0}/{1}"
+  },
+  "今日投稿次数已用完，请明天再试。": {
+    "en": "Daily submission limit reached. Try again tomorrow.",
+    "ja": "本日の投稿上限に達しました。明日再度お試しください。",
+    "zh-Hans": "今日投稿次数已用完，请明天再试。",
+    "zh-Hant": "今日投稿次數已用完，請明天再試。"
+  },
+  "从云端恢复": {
+    "en": "Restore from cloud",
+    "ja": "クラウドから復元",
+    "zh-Hans": "从云端恢复",
+    "zh-Hant": "從雲端還原"
+  },
+  "从剪贴板粘贴": {
+    "en": "Paste from clipboard",
+    "ja": "クリップボードから貼り付け",
+    "zh-Hans": "从剪贴板粘贴",
+    "zh-Hant": "從剪貼簿貼上"
+  },
+  "从第一个收藏夹开始": {
+    "en": "Start your first collection",
+    "ja": "最初のコレクションを作成",
+    "zh-Hans": "从第一个收藏夹开始",
+    "zh-Hant": "建立你的第一個收藏集"
+  },
+  "使用头像": {
+    "en": "Use avatar",
+    "ja": "このアイコンを使用",
+    "zh-Hans": "使用头像",
+    "zh-Hant": "使用頭像"
+  },
+  "使用浮动导航底栏": {
+    "en": "Use a floating bottom navigation bar",
+    "ja": "フローティング下部ナビゲーションを使用",
+    "zh-Hans": "使用浮动导航底栏",
+    "zh-Hant": "使用浮動式底部導覽列"
+  },
+  "使用系统动态色板": {
+    "en": "Use the system color palette",
+    "ja": "システムのカラーパレットを使用",
+    "zh-Hans": "使用系统动态色板",
+    "zh-Hant": "使用系統動態調色盤"
+  },
+  "使用系统返回手势动画": {
+    "en": "Use system back gesture animations",
+    "ja": "システムの戻るジェスチャーアニメーションを使用",
+    "zh-Hans": "使用系统返回手势动画",
+    "zh-Hant": "使用系統的返回手勢動畫"
+  },
+  "保存": {
+    "en": "Save",
+    "ja": "保存",
+    "zh-Hans": "保存",
+    "zh-Hant": "儲存"
+  },
+  "保存中…": {
+    "en": "Saving…",
+    "ja": "保存中…",
+    "zh-Hans": "保存中…",
+    "zh-Hant": "儲存中…"
+  },
+  "保存失败，请重试": {
+    "en": "Save failed. Please try again.",
+    "ja": "保存に失敗しました。再試行してください。",
+    "zh-Hans": "保存失败，请重试",
+    "zh-Hant": "儲存失敗，請再試一次"
+  },
+  "保存成绩": {
+    "en": "Save score",
+    "ja": "スコアを保存",
+    "zh-Hans": "保存成绩",
+    "zh-Hant": "儲存成績"
+  },
+  "保存成绩失败": {
+    "en": "Failed to save score",
+    "ja": "スコアの保存に失敗しました",
+    "zh-Hans": "保存成绩失败",
+    "zh-Hant": "儲存成績失敗"
+  },
+  "先录入成绩，或提高当前谱面的分数": {
+    "en": "Record scores or improve your current scores",
+    "ja": "スコアを記録するか、現在のスコアを伸ばしてください",
+    "zh-Hans": "先录入成绩，或提高当前谱面的分数",
+    "zh-Hant": "先輸入成績，或挑戰更高的譜面分數"
+  },
+  "全部难度": {
+    "en": "All difficulties",
+    "ja": "すべての難易度",
+    "zh-Hans": "全部难度",
+    "zh-Hant": "全部難度"
+  },
+  "公示投票": {
+    "en": "Public voting",
+    "ja": "公開投票",
+    "zh-Hans": "公示投票",
+    "zh-Hant": "公開投票"
+  },
+  "关于": {
+    "en": "About",
+    "ja": "このアプリについて",
+    "zh-Hans": "关于",
+    "zh-Hant": "關於"
+  },
+  "最高定数": {
+    "en": "Highest constant",
+    "ja": "最高定数",
+    "zh-Hans": "最高定数",
+    "zh-Hant": "最高定數"
+  },
+  "准备好了吗？": {
+    "en": "Ready?",
+    "ja": "準備はいいですか？",
+    "zh-Hans": "准备好了吗？",
+    "zh-Hant": "準備好了嗎？"
+  },
+  "准备检查更新": {
+    "en": "Ready to check for updates",
+    "ja": "更新を確認できます",
+    "zh-Hans": "准备检查更新",
+    "zh-Hant": "準備檢查更新"
+  },
+  "分享 Best 50": {
+    "en": "Share Best 50",
+    "ja": "Best 50 を共有",
+    "zh-Hans": "分享 Best 50",
+    "zh-Hant": "分享 Best 50"
+  },
+  "分享 Best Table": {
+    "en": "Share Best table",
+    "ja": "ベスト表を共有",
+    "zh-Hans": "分享 Best Table",
+    "zh-Hant": "分享 Best Table"
+  },
+  "分享 chunithmd 日志": {
+    "en": "Share chunithmd logs",
+    "ja": "chunithmd のログを共有",
+    "zh-Hans": "分享 chunithmd 日志",
+    "zh-Hant": "分享 chunithmd 診斷紀錄"
+  },
+  "分享定数表": {
+    "en": "Share chart constants",
+    "ja": "譜面定数表を共有",
+    "zh-Hans": "分享定数表",
+    "zh-Hant": "分享定數表"
+  },
+  "分享封面": {
+    "en": "Share jacket",
+    "ja": "ジャケットを共有",
+    "zh-Hans": "分享封面",
+    "zh-Hant": "分享封面"
+  },
+  "分享收藏夹": {
+    "en": "Share collection",
+    "ja": "コレクションを共有",
+    "zh-Hans": "分享收藏夹",
+    "zh-Hant": "分享收藏集"
+  },
+  "分享码不完整或已损坏": {
+    "en": "Share code is incomplete or damaged",
+    "ja": "共有コードが不完全か破損しています",
+    "zh-Hans": "分享码不完整或已损坏",
+    "zh-Hant": "分享碼不完整或已損壞"
+  },
+  "分享码含有多余数据": {
+    "en": "Share code contains extra data",
+    "ja": "共有コードに余分なデータが含まれています",
+    "zh-Hans": "分享码含有多余数据",
+    "zh-Hant": "分享碼含有多餘的資料"
+  },
+  "分享码过长": {
+    "en": "Share code is too long",
+    "ja": "共有コードが長すぎます",
+    "zh-Hans": "分享码过长",
+    "zh-Hant": "分享碼過長"
+  },
+  "分数": {
+    "en": "Score",
+    "ja": "スコア",
+    "zh-Hans": "分数",
+    "zh-Hant": "分數"
+  },
+  "分数 → Rating": {
+    "en": "Score → Rating",
+    "ja": "スコア → レーティング",
+    "zh-Hans": "分数 → Rating",
+    "zh-Hant": "分數 → Rating"
+  },
+  "分类": {
+    "en": "Category",
+    "ja": "カテゴリ",
+    "zh-Hans": "分类",
+    "zh-Hant": "分類"
+  },
+  "切换列表": {
+    "en": "Switch to list",
+    "ja": "リスト表示に切り替え",
+    "zh-Hans": "切换列表",
+    "zh-Hant": "切換為清單"
+  },
+  "切换网格": {
+    "en": "Switch to grid",
+    "ja": "グリッド表示に切り替え",
+    "zh-Hans": "切换网格",
+    "zh-Hant": "切換為格狀檢視"
+  },
+  "列表视图": {
+    "en": "List view",
+    "ja": "リスト表示",
+    "zh-Hans": "列表视图",
+    "zh-Hant": "清單檢視"
+  },
+  "创建档案以保存你的本地设置": {
+    "en": "Create a profile to save local settings",
+    "ja": "プロフィールを作成して設定を保存",
+    "zh-Hans": "创建档案以保存你的本地设置",
+    "zh-Hant": "建立個人檔案，儲存此裝置的設定"
+  },
+  "删除": {
+    "en": "Delete",
+    "ja": "削除",
+    "zh-Hans": "删除",
+    "zh-Hant": "刪除"
+  },
+  "删除后本地档案信息将无法恢复。": {
+    "en": "Deleted local profile information cannot be recovered.",
+    "ja": "削除したローカルプロフィールは復元できません。",
+    "zh-Hans": "删除后本地档案信息将无法恢复。",
+    "zh-Hant": "刪除後將無法還原此裝置上的個人檔案。"
+  },
+  "删除成绩记录": {
+    "en": "Delete score record",
+    "ja": "スコア記録を削除",
+    "zh-Hans": "删除成绩记录",
+    "zh-Hant": "刪除成績記錄"
+  },
+  "删除收藏夹": {
+    "en": "Delete collection",
+    "ja": "コレクションを削除",
+    "zh-Hans": "删除收藏夹",
+    "zh-Hant": "刪除收藏集"
+  },
+  "删除档案？": {
+    "en": "Delete profile?",
+    "ja": "プロフィールを削除しますか？",
+    "zh-Hans": "删除档案？",
+    "zh-Hant": "刪除個人檔案？"
+  },
+  "别名同步失败": {
+    "en": "Alias sync failed",
+    "ja": "別名の同期に失敗しました",
+    "zh-Hans": "别名同步失败",
+    "zh-Hant": "別名同步失敗"
+  },
+  "刷新备份列表": {
+    "en": "Refresh backup list",
+    "ja": "バックアップ一覧を更新",
+    "zh-Hans": "刷新备份列表",
+    "zh-Hant": "重新整理備份清單"
+  },
+  "前往主页的「收藏夹」新建一个，再回来收下这张谱面。": {
+    "en": "Create one in Collections on the home page, then come back to add this chart.",
+    "ja": "ホームの「コレクション」で作成してから、この譜面を追加してください。",
+    "zh-Hans": "前往主页的「收藏夹」新建一个，再回来收下这张谱面。",
+    "zh-Hant": "先到首頁的「收藏集」建立收藏集，再回來加入這張譜面。"
+  },
+  "剪贴板为空，请输入链接或分享码": {
+    "en": "Clipboard is empty. Enter a link or share code.",
+    "ja": "クリップボードが空です。リンクまたは共有コードを入力してください。",
+    "zh-Hans": "剪贴板为空，请输入链接或分享码",
+    "zh-Hant": "剪貼簿沒有內容，請輸入連結或分享碼"
+  },
+  "加入收藏夹": {
+    "en": "Add to collection",
+    "ja": "コレクションに追加",
+    "zh-Hans": "加入收藏夹",
+    "zh-Hant": "加入收藏集"
+  },
+  "加载或投票失败": {
+    "en": "Loading or voting failed",
+    "ja": "読み込みまたは投票に失敗しました",
+    "zh-Hans": "加载或投票失败",
+    "zh-Hant": "載入或投票失敗"
+  },
+  "加载更多": {
+    "en": "Load more",
+    "ja": "さらに読み込む",
+    "zh-Hans": "加载更多",
+    "zh-Hant": "載入更多"
+  },
+  "升序": {
+    "en": "Ascending",
+    "ja": "昇順",
+    "zh-Hans": "升序",
+    "zh-Hant": "遞增排序"
+  },
+  "半屏": {
+    "en": "Half screen",
+    "ja": "半画面",
+    "zh-Hans": "半屏",
+    "zh-Hant": "半螢幕"
+  },
+  "历史成绩": {
+    "en": "Score history",
+    "ja": "スコア履歴",
+    "zh-Hans": "历史成绩",
+    "zh-Hant": "歷史成績"
+  },
+  "反对": {
+    "en": "Oppose",
+    "ja": "反対",
+    "zh-Hans": "反对",
+    "zh-Hant": "反對"
+  },
+  "发现可用更新": {
+    "en": "Update available",
+    "ja": "更新があります",
+    "zh-Hans": "发现可用更新",
+    "zh-Hant": "有可用的更新"
+  },
+  "发送日志": {
+    "en": "Send logs",
+    "ja": "ログを送信",
+    "zh-Hans": "发送日志",
+    "zh-Hant": "傳送診斷紀錄"
+  },
+  "取消": {
+    "en": "Cancel",
+    "ja": "キャンセル",
+    "zh-Hans": "取消",
+    "zh-Hant": "取消"
+  },
+  "取消反对": {
+    "en": "Undo opposition",
+    "ja": "反対を取り消す",
+    "zh-Hans": "取消反对",
+    "zh-Hant": "取消反對"
+  },
+  "取消喜爱": {
+    "en": "Remove from favorites",
+    "ja": "お気に入りから削除",
+    "zh-Hans": "取消喜爱",
+    "zh-Hant": "從最愛移除"
+  },
+  "取消支持": {
+    "en": "Undo support",
+    "ja": "賛成を取り消す",
+    "zh-Hans": "取消支持",
+    "zh-Hant": "取消支持"
+  },
+  "只看未完成": {
+    "en": "Incomplete only",
+    "ja": "未達成のみ",
+    "zh-Hans": "只看未完成",
+    "zh-Hant": "只看未完成"
+  },
+  "可用": {
+    "en": "Available",
+    "ja": "利用可能",
+    "zh-Hans": "可用",
+    "zh-Hant": "可正常使用"
+  },
+  "吃分推荐": {
+    "en": "Recommendations",
+    "ja": "おすすめ",
+    "zh-Hans": "吃分推荐",
+    "zh-Hant": "吃分推薦"
+  },
+  "后端状态": {
+    "en": "Backend status",
+    "ja": "サーバー状態",
+    "zh-Hans": "后端状态",
+    "zh-Hant": "伺服器狀態"
+  },
+  "国服": {
+    "en": "China",
+    "ja": "中国版",
+    "zh-Hans": "国服",
+    "zh-Hant": "中國版"
+  },
+  "国际": {
+    "en": "International",
+    "ja": "海外",
+    "zh-Hans": "国际",
+    "zh-Hant": "國際"
+  },
+  "国际服": {
+    "en": "International",
+    "ja": "海外版",
+    "zh-Hans": "国际服",
+    "zh-Hant": "國際版"
+  },
+  "在支持的设备上模糊顶部栏和页面": {
+    "en": "Blur app bars and pages on supported devices",
+    "ja": "対応端末でアプリバーとページにぼかしを適用",
+    "zh-Hans": "在支持的设备上模糊顶部栏和页面",
+    "zh-Hant": "在支援的裝置上模糊頂端列與頁面"
+  },
+  "在曲绘上显示 Rank、FC/AJ/AJC 和金 FC/铂 FC": {
+    "en": "Show Rank, FC/AJ/AJC, and Gold FC/Platinum FC on jackets",
+    "ja": "ジャケットにランク、FC/AJ/AJC、金 FC/プラチナ FC を表示",
+    "zh-Hans": "在曲绘上显示 Rank、FC/AJ/AJC 和金 FC/铂 FC",
+    "zh-Hant": "在曲繪上顯示 Rank、FC/AJ/AJC 與金 FC／鉑 FC"
+  },
+  "在歌曲详情中长按谱面标题，选择这个收藏夹，即可加入。": {
+    "en": "Long-press a chart heading in song details and select this collection to add it.",
+    "ja": "楽曲詳細で譜面の見出しを長押しし、このコレクションを選ぶと追加できます。",
+    "zh-Hans": "在歌曲详情中长按谱面标题，选择这个收藏夹，即可加入。",
+    "zh-Hant": "在歌曲詳細資訊中長按譜面標題，再選擇這個收藏集即可加入。"
+  },
+  "基于 B{0} + N{1} 计算的玩家 Rating": {
+    "en": "Player rating based on B{0} + N{1}",
+    "ja": "B{0} + N{1} に基づくプレイヤーレーティング",
+    "zh-Hans": "基于 B{0} + N{1} 计算的玩家 Rating",
+    "zh-Hant": "依 B{0} + N{1} 計算的玩家 Rating"
+  },
+  "基本信息": {
+    "en": "Basic information",
+    "ja": "基本情報",
+    "zh-Hans": "基本信息",
+    "zh-Hant": "基本資料"
+  },
+  "壁纸取色": {
+    "en": "From wallpaper",
+    "ja": "壁紙から抽出",
+    "zh-Hans": "壁纸取色",
+    "zh-Hant": "桌布取色"
+  },
+  "备份到云端": {
+    "en": "Back up to cloud",
+    "ja": "クラウドにバックアップ",
+    "zh-Hans": "备份到云端",
+    "zh-Hant": "備份到雲端"
+  },
+  "备份失败": {
+    "en": "Backup failed",
+    "ja": "バックアップに失敗しました",
+    "zh-Hans": "备份失败",
+    "zh-Hant": "備份失敗"
+  },
+  "复制封面": {
+    "en": "Copy jacket",
+    "ja": "ジャケットをコピー",
+    "zh-Hans": "复制封面",
+    "zh-Hant": "複製封面"
+  },
+  "外部搜索": {
+    "en": "Search externally",
+    "ja": "外部検索",
+    "zh-Hans": "外部搜索",
+    "zh-Hant": "外部搜尋"
+  },
+  "姓名": {
+    "en": "Name",
+    "ja": "名前",
+    "zh-Hans": "姓名",
+    "zh-Hant": "姓名"
+  },
+  "完成": {
+    "en": "Done",
+    "ja": "完了",
+    "zh-Hans": "完成",
+    "zh-Hant": "完成"
+  },
+  "定数": {
+    "en": "Constant",
+    "ja": "定数",
+    "zh-Hans": "定数",
+    "zh-Hant": "定數"
+  },
+  "定数 {0}": {
+    "en": "Constant {0}",
+    "ja": "定数 {0}",
+    "zh-Hans": "定数 {0}",
+    "zh-Hant": "定數 {0}"
+  },
+  "定数区间": {
+    "en": "Chart constant range",
+    "ja": "譜面定数の範囲",
+    "zh-Hans": "定数区间",
+    "zh-Hant": "定數區間"
+  },
+  "定数拟合分析": {
+    "en": "Recommendations based on chart constants",
+    "ja": "譜面定数に基づく分析",
+    "zh-Hans": "定数拟合分析",
+    "zh-Hant": "定數擬合分析"
+  },
+  "定数档位": {
+    "en": "Constant levels",
+    "ja": "定数の段階",
+    "zh-Hans": "定数档位",
+    "zh-Hant": "定數分級"
+  },
+  "定数范围": {
+    "en": "Constant range",
+    "ja": "定数範囲",
+    "zh-Hans": "定数范围",
+    "zh-Hant": "定數範圍"
+  },
+  "定数表": {
+    "en": "Chart constants",
+    "ja": "譜面定数表",
+    "zh-Hans": "定数表",
+    "zh-Hant": "定數表"
+  },
+  "定数表  {0}": {
+    "en": "Chart constants  {0}",
+    "ja": "譜面定数表  {0}",
+    "zh-Hans": "定数表  {0}",
+    "zh-Hant": "定數表  {0}"
+  },
+  "容量设置": {
+    "en": "Table size",
+    "ja": "表示件数",
+    "zh-Hans": "容量设置",
+    "zh-Hant": "顯示數量設定"
+  },
+  "导入": {
+    "en": "Import",
+    "ja": "インポート",
+    "zh-Hans": "导入",
+    "zh-Hant": "匯入"
+  },
+  "导入收藏夹": {
+    "en": "Import collection",
+    "ja": "コレクションをインポート",
+    "zh-Hans": "导入收藏夹",
+    "zh-Hant": "匯入收藏集"
+  },
+  "导出定数表图片": {
+    "en": "Export chart constants image",
+    "ja": "譜面定数表を画像で出力",
+    "zh-Hans": "导出定数表图片",
+    "zh-Hant": "匯出定數表圖片"
+  },
+  "封面已是最新": {
+    "en": "Jackets are up to date",
+    "ja": "ジャケットは最新です",
+    "zh-Hans": "封面已是最新",
+    "zh-Hant": "封面已是最新版本"
+  },
+  "封面操作失败": {
+    "en": "Jacket action failed",
+    "ja": "ジャケットの操作に失敗しました",
+    "zh-Hans": "封面操作失败",
+    "zh-Hant": "封面操作失敗"
+  },
+  "展开": {
+    "en": "Expand",
+    "ja": "展開",
+    "zh-Hans": "展开",
+    "zh-Hant": "展開"
+  },
+  "展开 Rating": {
+    "en": "Expand rating",
+    "ja": "レーティングを展開",
+    "zh-Hans": "展开 Rating",
+    "zh-Hant": "展開 Rating"
+  },
+  "展开历史成绩": {
+    "en": "Expand score history",
+    "ja": "スコア履歴を展開",
+    "zh-Hans": "展开历史成绩",
+    "zh-Hant": "展開歷史成績"
+  },
+  "展开收藏夹列表": {
+    "en": "Expand collection list",
+    "ja": "コレクション一覧を展開",
+    "zh-Hans": "展开收藏夹列表",
+    "zh-Hant": "展開收藏集清單"
+  },
+  "展开谱面": {
+    "en": "Expand chart",
+    "ja": "譜面を展開",
+    "zh-Hans": "展开谱面",
+    "zh-Hant": "展開譜面"
+  },
+  "展开音符统计": {
+    "en": "Expand note counts",
+    "ja": "ノーツ数を展開",
+    "zh-Hans": "展开音符统计",
+    "zh-Hant": "展開音符統計"
+  },
+  "展示难度": {
+    "en": "Displayed difficulty",
+    "ja": "表示する難易度",
+    "zh-Hans": "展示难度",
+    "zh-Hant": "顯示難度"
+  },
+  "差值": {
+    "en": "Difference",
+    "ja": "差分",
+    "zh-Hans": "差值",
+    "zh-Hant": "差值"
+  },
+  "已保存到下载": {
+    "en": "Saved to Downloads",
+    "ja": "ダウンロードに保存しました",
+    "zh-Hans": "已保存到下载",
+    "zh-Hant": "已儲存至「下載」資料夾"
+  },
+  "已全屏展开": {
+    "en": "Fully expanded",
+    "ja": "全画面表示中",
+    "zh-Hans": "已全屏展开",
+    "zh-Hant": "已展開為全螢幕"
+  },
+  "已复制": {
+    "en": "Copied",
+    "ja": "コピーしました",
+    "zh-Hans": "已复制",
+    "zh-Hant": "已複製"
+  },
+  "已复制封面": {
+    "en": "Jacket copied",
+    "ja": "ジャケットをコピーしました",
+    "zh-Hans": "已复制封面",
+    "zh-Hant": "已複製封面"
+  },
+  "已完成": {
+    "en": "Completed",
+    "ja": "達成済み",
+    "zh-Hans": "已完成",
+    "zh-Hant": "已完成"
+  },
+  "已展开": {
+    "en": "Expanded",
+    "ja": "展開中",
+    "zh-Hans": "已展开",
+    "zh-Hant": "已展開"
+  },
+  "已拒绝": {
+    "en": "Rejected",
+    "ja": "却下",
+    "zh-Hans": "已拒绝",
+    "zh-Hant": "未通過"
+  },
+  "已是最新静态数据": {
+    "en": "Static data is up to date",
+    "ja": "楽曲データは最新です",
+    "zh-Hans": "已是最新静态数据",
+    "zh-Hant": "已是最新靜態資料"
+  },
+  "已通过": {
+    "en": "Approved",
+    "ja": "承認済み",
+    "zh-Hans": "已通过",
+    "zh-Hant": "已核准"
+  },
+  "应用液态玻璃背景效果": {
+    "en": "Apply a liquid glass background",
+    "ja": "リキッドガラス背景を適用",
+    "zh-Hans": "应用液态玻璃背景效果",
+    "zh-Hant": "套用液態玻璃背景效果"
+  },
+  "底栏玻璃": {
+    "en": "Glass navigation bar",
+    "ja": "ガラス調ナビゲーションバー",
+    "zh-Hans": "底栏玻璃",
+    "zh-Hant": "底部導覽列玻璃效果"
+  },
+  "当前最佳": {
+    "en": "Personal best",
+    "ja": "自己ベスト",
+    "zh-Hans": "当前最佳",
+    "zh-Hant": "個人最佳成績"
+  },
+  "当前展示范围内没有未完成谱面。": {
+    "en": "No incomplete charts in the current selection.",
+    "ja": "現在の表示範囲に未達成の譜面はありません。",
+    "zh-Hans": "当前展示范围内没有未完成谱面。",
+    "zh-Hant": "目前顯示範圍內的譜面皆已完成。"
+  },
+  "当前服务器没有可用的 BASIC～MASTER 谱面。": {
+    "en": "No BASIC–MASTER charts are available on this server.",
+    "ja": "このサーバーには BASIC～MASTER の対象譜面がありません。",
+    "zh-Hans": "当前服务器没有可用的 BASIC～MASTER 谱面。",
+    "zh-Hant": "目前選擇的伺服器沒有可用的 BASIC～MASTER 譜面。"
+  },
+  "当前本地数据与服务端最新版本一致。": {
+    "en": "Your local data matches the latest server version.",
+    "ja": "端末のデータはサーバーの最新バージョンと一致しています。",
+    "zh-Hans": "当前本地数据与服务端最新版本一致。",
+    "zh-Hant": "此裝置的資料已與伺服器的最新版本一致。"
+  },
+  "当前档案": {
+    "en": "Current profile",
+    "ja": "現在のプロフィール",
+    "zh-Hans": "当前档案",
+    "zh-Hant": "使用中的個人檔案"
+  },
+  "当前没有投票中的候选别名": {
+    "en": "No aliases are currently open for voting",
+    "ja": "投票受付中の別名はありません",
+    "zh-Hans": "当前没有投票中的候选别名",
+    "zh-Hant": "目前沒有投票中的候選別名"
+  },
+  "当前版本": {
+    "en": "Current version",
+    "ja": "現在のバージョン",
+    "zh-Hans": "当前版本",
+    "zh-Hant": "目前版本"
+  },
+  "必须选择至少一个参考难度。系统将筛选出包含该难度、且该难度定数在下方区间内的歌曲。": {
+    "en": "Select at least one difficulty. Songs must have a chart of that difficulty within the range below.",
+    "ja": "難易度を1つ以上選んでください。選択した難易度の定数が以下の範囲内にある楽曲を表示します。",
+    "zh-Hans": "必须选择至少一个参考难度。系统将筛选出包含该难度、且该难度定数在下方区间内的歌曲。",
+    "zh-Hant": "請至少選擇一個參考難度。系統會顯示具有該難度譜面，且定數符合下方範圍的歌曲。"
+  },
+  "忘记密码": {
+    "en": "Forgot password",
+    "ja": "パスワードを忘れた場合",
+    "zh-Hans": "忘记密码",
+    "zh-Hant": "忘記密碼"
+  },
+  "快速筛选": {
+    "en": "Quick filters",
+    "ja": "クイック絞り込み",
+    "zh-Hans": "快速筛选",
+    "zh-Hant": "快速篩選"
+  },
+  "总谱面": {
+    "en": "Total charts",
+    "ja": "総譜面数",
+    "zh-Hans": "总谱面",
+    "zh-Hant": "譜面總數"
+  },
+  "成绩": {
+    "en": "Scores",
+    "ja": "スコア",
+    "zh-Hans": "成绩",
+    "zh-Hant": "成績"
+  },
+  "成绩查询": {
+    "en": "Score search",
+    "ja": "スコア検索",
+    "zh-Hans": "成绩查询",
+    "zh-Hant": "成績查詢"
+  },
+  "我的投稿": {
+    "en": "My submissions",
+    "ja": "自分の投稿",
+    "zh-Hans": "我的投稿",
+    "zh-Hant": "我的投稿"
+  },
+  "我的档案": {
+    "en": "My profile",
+    "ja": "マイプロフィール",
+    "zh-Hans": "我的档案",
+    "zh-Hant": "我的個人檔案"
+  },
+  "截止 {0}": {
+    "en": "Closes {0}",
+    "ja": "締切 {0}",
+    "zh-Hans": "截止 {0}",
+    "zh-Hant": "截止 {0}"
+  },
+  "手动创建备份，保留最近三份。持有下载链接的人可读取备份，请勿分享。": {
+    "en": "Create backups manually; the three latest are kept. Anyone with a download link can read the backup. Do not share it.",
+    "ja": "手動で作成した最新3件のバックアップを保持します。ダウンロードリンクを知る人は内容を閲覧できるため、共有しないでください。",
+    "zh-Hans": "手动创建备份，保留最近三份。持有下载链接的人可读取备份，请勿分享。",
+    "zh-Hant": "手動建立備份，保留最近三份。任何持有下載連結的人都能讀取備份，請勿分享連結。"
+  },
+  "打开 Best 50": {
+    "en": "Open Best 50",
+    "ja": "Best 50 を開く",
+    "zh-Hans": "打开 Best 50",
+    "zh-Hant": "開啟 Best 50"
+  },
+  "打开档案": {
+    "en": "Open profile",
+    "ja": "プロフィールを開く",
+    "zh-Hans": "打开档案",
+    "zh-Hant": "開啟個人檔案"
+  },
+  "扫描": {
+    "en": "Scan",
+    "ja": "スキャン",
+    "zh-Hans": "扫描",
+    "zh-Hant": "掃描"
+  },
+  "把喜欢的谱面、练习目标整理在一起，随时回来查看。": {
+    "en": "Organize favorite charts and practice goals in one place.",
+    "ja": "お気に入りの譜面や練習目標をまとめて、いつでも確認できます。",
+    "zh-Hans": "把喜欢的谱面、练习目标整理在一起，随时回来查看。",
+    "zh-Hant": "把喜歡的譜面、練習目標整理在一起，隨時回來查看。"
+  },
+  "投票中": {
+    "en": "Voting",
+    "ja": "投票中",
+    "zh-Hans": "投票中",
+    "zh-Hant": "投票中"
+  },
+  "投票已更新": {
+    "en": "Vote updated",
+    "ja": "投票を更新しました",
+    "zh-Hans": "投票已更新",
+    "zh-Hant": "投票已更新"
+  },
+  "投稿失败，请稍后重试。": {
+    "en": "Submission failed. Try again later.",
+    "ja": "投稿に失敗しました。しばらくしてから再試行してください。",
+    "zh-Hans": "投稿失败，请稍后重试。",
+    "zh-Hant": "投稿失敗，請稍後再試。"
+  },
+  "投稿成功，已进入社区投票；你现在可以用这个别名搜索歌曲。": {
+    "en": "Submitted for community voting. You can already search using this alias.",
+    "ja": "投稿が完了し、コミュニティ投票に入りました。この別名は今すぐ検索に使えます。",
+    "zh-Hans": "投稿成功，已进入社区投票；你现在可以用这个别名搜索歌曲。",
+    "zh-Hant": "投稿成功，已開始社群投票；現在即可用這個別名搜尋歌曲。"
+  },
+  "抽选结果": {
+    "en": "Selected songs",
+    "ja": "抽選結果",
+    "zh-Hans": "抽选结果",
+    "zh-Hant": "抽選結果"
+  },
+  "拖动、缩放以调整头像": {
+    "en": "Drag and zoom to adjust your avatar",
+    "ja": "ドラッグとズームでアイコンを調整",
+    "zh-Hans": "拖动、缩放以调整头像",
+    "zh-Hant": "拖曳及縮放以調整頭像"
+  },
+  "按定数查看全部谱面": {
+    "en": "Browse all charts by constant",
+    "ja": "定数ごとにすべての譜面を表示",
+    "zh-Hans": "按定数查看全部谱面",
+    "zh-Hant": "按定數查看全部譜面"
+  },
+  "排序": {
+    "en": "Sort",
+    "ja": "並べ替え",
+    "zh-Hans": "排序",
+    "zh-Hant": "排序"
+  },
+  "提交别名": {
+    "en": "Submit alias",
+    "ja": "別名を投稿",
+    "zh-Hans": "提交别名",
+    "zh-Hant": "送出別名"
+  },
+  "操作失败": {
+    "en": "Action failed",
+    "ja": "操作に失敗しました",
+    "zh-Hans": "操作失败",
+    "zh-Hant": "操作失敗"
+  },
+  "操作失败，请刷新后重试。": {
+    "en": "Action failed. Refresh and try again.",
+    "ja": "操作に失敗しました。更新して再試行してください。",
+    "zh-Hans": "操作失败，请刷新后重试。",
+    "zh-Hant": "操作失敗，請重新整理後再試。"
+  },
+  "操作失败，请重试": {
+    "en": "Action failed. Please try again.",
+    "ja": "操作に失敗しました。再試行してください。",
+    "zh-Hans": "操作失败，请重试",
+    "zh-Hant": "操作失敗，請再試一次"
+  },
+  "操作过于频繁，请稍后再试。": {
+    "en": "Too many requests. Try again later.",
+    "ja": "操作が多すぎます。しばらくしてから再試行してください。",
+    "zh-Hans": "操作过于频繁，请稍后再试。",
+    "zh-Hant": "操作太頻繁，請稍後再試。"
+  },
+  "支持": {
+    "en": "Support",
+    "ja": "賛成",
+    "zh-Hans": "支持",
+    "zh-Hant": "支持"
+  },
+  "收藏夹": {
+    "en": "Collections",
+    "ja": "コレクション",
+    "zh-Hans": "收藏夹",
+    "zh-Hant": "收藏集"
+  },
+  "收藏夹列表半展开": {
+    "en": "Collection list half expanded",
+    "ja": "コレクション一覧を半画面表示中",
+    "zh-Hans": "收藏夹列表半展开",
+    "zh-Hant": "收藏集清單已展開至半螢幕"
+  },
+  "收藏夹列表已展开": {
+    "en": "Collection list expanded",
+    "ja": "コレクション一覧を展開中",
+    "zh-Hans": "收藏夹列表已展开",
+    "zh-Hant": "收藏集清單已展開"
+  },
+  "收藏夹名称": {
+    "en": "Collection name",
+    "ja": "コレクション名",
+    "zh-Hans": "收藏夹名称",
+    "zh-Hant": "收藏集名稱"
+  },
+  "收藏夹名称无效": {
+    "en": "Invalid collection name",
+    "ja": "コレクション名が無効です",
+    "zh-Hans": "收藏夹名称无效",
+    "zh-Hant": "收藏集名稱無效"
+  },
+  "收藏夹已不存在": {
+    "en": "Collection no longer exists",
+    "ja": "コレクションが存在しません",
+    "zh-Hans": "收藏夹已不存在",
+    "zh-Hant": "收藏集已不存在"
+  },
+  "收藏夹数据过大": {
+    "en": "Collection data is too large",
+    "ja": "コレクションのデータが大きすぎます",
+    "zh-Hans": "收藏夹数据过大",
+    "zh-Hant": "收藏集的資料量過大"
+  },
+  "收藏夹谱面数量过多": {
+    "en": "Collection has too many charts",
+    "ja": "コレクションの譜面数が上限を超えています",
+    "zh-Hans": "收藏夹谱面数量过多",
+    "zh-Hant": "收藏集的譜面數量超過上限"
+  },
+  "收藏夹过大，无法生成分享码": {
+    "en": "Collection is too large to create a share code",
+    "ja": "コレクションが大きすぎるため共有コードを作成できません",
+    "zh-Hans": "收藏夹过大，无法生成分享码",
+    "zh-Hant": "收藏集的資料量過大，無法產生分享碼"
+  },
+  "收藏夹链接或分享码": {
+    "en": "Collection link or share code",
+    "ja": "コレクションのリンクまたは共有コード",
+    "zh-Hans": "收藏夹链接或分享码",
+    "zh-Hant": "收藏集連結或分享碼"
+  },
+  "收藏夹链接或分享码过长": {
+    "en": "Collection link or share code is too long",
+    "ja": "コレクションのリンクまたは共有コードが長すぎます",
+    "zh-Hans": "收藏夹链接或分享码过长",
+    "zh-Hant": "收藏集連結或分享碼過長"
+  },
+  "收起": {
+    "en": "Collapse",
+    "ja": "折りたたむ",
+    "zh-Hans": "收起",
+    "zh-Hant": "收合"
+  },
+  "收起 Rating": {
+    "en": "Collapse rating",
+    "ja": "レーティングを折りたたむ",
+    "zh-Hans": "收起 Rating",
+    "zh-Hant": "收合 Rating"
+  },
+  "收起到半屏": {
+    "en": "Collapse to half screen",
+    "ja": "半画面に戻す",
+    "zh-Hans": "收起到半屏",
+    "zh-Hant": "收合至半螢幕"
+  },
+  "收起历史成绩": {
+    "en": "Collapse score history",
+    "ja": "スコア履歴を折りたたむ",
+    "zh-Hans": "收起历史成绩",
+    "zh-Hant": "收合歷史成績"
+  },
+  "收起收藏夹列表": {
+    "en": "Collapse collection list",
+    "ja": "コレクション一覧を折りたたむ",
+    "zh-Hans": "收起收藏夹列表",
+    "zh-Hant": "收合收藏集清單"
+  },
+  "收起谱面": {
+    "en": "Collapse chart",
+    "ja": "譜面を折りたたむ",
+    "zh-Hans": "收起谱面",
+    "zh-Hant": "收合譜面"
+  },
+  "收起音符统计": {
+    "en": "Collapse note counts",
+    "ja": "ノーツ数を折りたたむ",
+    "zh-Hans": "收起音符统计",
+    "zh-Hant": "收合音符統計"
+  },
+  "收集应用诊断信息并分享，用于排查问题": {
+    "en": "Collect and share diagnostics for troubleshooting",
+    "ja": "問題調査用の診断情報を収集して共有",
+    "zh-Hans": "收集应用诊断信息并分享，用于排查问题",
+    "zh-Hant": "收集並分享應用程式的診斷資訊，協助排解問題"
+  },
+  "数据同步": {
+    "en": "Data sync",
+    "ja": "データ同期",
+    "zh-Hans": "数据同步",
+    "zh-Hant": "資料同步"
+  },
+  "整理喜爱的歌曲谱面": {
+    "en": "Organize your favorite charts",
+    "ja": "お気に入りの譜面を整理",
+    "zh-Hans": "整理喜爱的歌曲谱面",
+    "zh-Hant": "整理喜愛的歌曲譜面"
+  },
+  "新建收藏夹": {
+    "en": "Create collection",
+    "ja": "コレクションを作成",
+    "zh-Hans": "新建收藏夹",
+    "zh-Hant": "新增收藏集"
+  },
+  "新建档案": {
+    "en": "Create profile",
+    "ja": "プロフィールを作成",
+    "zh-Hans": "新建档案",
+    "zh-Hant": "新增個人檔案"
+  },
+  "新曲推荐": {
+    "en": "New songs",
+    "ja": "新曲のおすすめ",
+    "zh-Hans": "新曲推荐",
+    "zh-Hant": "新曲推薦"
+  },
+  "新的候选别名会在公示期显示于此。": {
+    "en": "New alias submissions appear here during voting.",
+    "ja": "投票期間中の新しい別名がここに表示されます。",
+    "zh-Hans": "新的候选别名会在公示期显示于此。",
+    "zh-Hant": "新的候選別名會在投票期間顯示於此。"
+  },
+  "无": {
+    "en": "None",
+    "ja": "なし",
+    "zh-Hans": "无",
+    "zh-Hant": "無"
+  },
+  "无法加载社区数据，请检查网络后重试。": {
+    "en": "Unable to load community data. Check your network and retry.",
+    "ja": "コミュニティデータを読み込めません。ネットワークを確認して再試行してください。",
+    "zh-Hans": "无法加载社区数据，请检查网络后重试。",
+    "zh-Hant": "無法載入社群資料，請檢查網路連線後再試。"
+  },
+  "无法生成或分享日志文件": {
+    "en": "Unable to create or share the log file",
+    "ja": "ログファイルの作成または共有に失敗しました",
+    "zh-Hans": "无法生成或分享日志文件",
+    "zh-Hant": "無法產生或分享診斷紀錄檔"
+  },
+  "日服": {
+    "en": "Japan",
+    "ja": "日本版",
+    "zh-Hans": "日服",
+    "zh-Hant": "日本版"
+  },
+  "日本": {
+    "en": "Japan",
+    "ja": "日本",
+    "zh-Hans": "日本",
+    "zh-Hant": "日本"
+  },
+  "旧曲推荐": {
+    "en": "Older songs",
+    "ja": "旧曲のおすすめ",
+    "zh-Hans": "旧曲推荐",
+    "zh-Hant": "舊曲推薦"
+  },
+  "时间": {
+    "en": "Time",
+    "ja": "日時",
+    "zh-Hans": "时间",
+    "zh-Hant": "時間"
+  },
+  "显示成绩徽标": {
+    "en": "Show score badges",
+    "ja": "スコアバッジを表示",
+    "zh-Hans": "显示成绩徽标",
+    "zh-Hant": "顯示成績徽章"
+  },
+  "普通谱面定数表": {
+    "en": "Standard chart constants",
+    "ja": "通常譜面の定数表",
+    "zh-Hans": "普通谱面定数表",
+    "zh-Hant": "普通譜面定數表"
+  },
+  "暂无云备份。": {
+    "en": "No cloud backups yet.",
+    "ja": "クラウドバックアップはありません。",
+    "zh-Hans": "暂无云备份。",
+    "zh-Hant": "尚無雲端備份。"
+  },
+  "暂无可计入 {0} 的成绩": {
+    "en": "No eligible scores for {0}",
+    "ja": "{0} の対象スコアはありません",
+    "zh-Hans": "暂无可计入 {0} 的成绩",
+    "zh-Hant": "尚無可計入 {0} 的成績"
+  },
+  "暂无已通过的别名": {
+    "en": "No approved aliases yet",
+    "ja": "承認済みの別名はありません",
+    "zh-Hans": "暂无已通过的别名",
+    "zh-Hant": "尚無已核准的別名"
+  },
+  "暂无成绩": {
+    "en": "No scores yet",
+    "ja": "スコアなし",
+    "zh-Hans": "暂无成绩",
+    "zh-Hant": "尚無成績"
+  },
+  "暂无歌曲目录": {
+    "en": "No song catalog",
+    "ja": "楽曲データがありません",
+    "zh-Hans": "暂无歌曲目录",
+    "zh-Hant": "尚無歌曲目錄"
+  },
+  "暂无牌子进度": {
+    "en": "No plate progress",
+    "ja": "プレート進捗がありません",
+    "zh-Hans": "暂无牌子进度",
+    "zh-Hant": "尚無牌子進度"
+  },
+  "暂无谱面数据": {
+    "en": "No chart data",
+    "ja": "譜面データなし",
+    "zh-Hans": "暂无谱面数据",
+    "zh-Hant": "尚無譜面資料"
+  },
+  "暂时没有可吃分的谱面": {
+    "en": "No rating recommendations yet",
+    "ja": "おすすめの譜面はまだありません",
+    "zh-Hans": "暂时没有可吃分的谱面",
+    "zh-Hant": "目前沒有適合挑戰的譜面"
+  },
+  "曲库中已存在这个别名。": {
+    "en": "This alias already exists in the song catalog.",
+    "ja": "この別名は楽曲データに登録済みです。",
+    "zh-Hans": "曲库中已存在这个别名。",
+    "zh-Hant": "歌曲資料庫中已有這個別名。"
+  },
+  "更新并管理本地歌曲数据": {
+    "en": "Update and manage local song data",
+    "ja": "端末の楽曲データを更新・管理",
+    "zh-Hans": "更新并管理本地歌曲数据",
+    "zh-Hant": "更新及管理裝置上的歌曲資料"
+  },
+  "更新操作": {
+    "en": "Update actions",
+    "ja": "更新操作",
+    "zh-Hans": "更新操作",
+    "zh-Hant": "更新操作"
+  },
+  "服务器": {
+    "en": "Server",
+    "ja": "サーバー",
+    "zh-Hans": "服务器",
+    "zh-Hant": "伺服器"
+  },
+  "未完成": {
+    "en": "Incomplete",
+    "ja": "未達成",
+    "zh-Hans": "未完成",
+    "zh-Hant": "未完成"
+  },
+  "未找到可用的 Bilibili 应用": {
+    "en": "No Bilibili app available",
+    "ja": "Bilibili アプリが見つかりません",
+    "zh-Hans": "未找到可用的 Bilibili 应用",
+    "zh-Hant": "找不到可用的 Bilibili 應用程式"
+  },
+  "未找到可用的 YouTube 应用": {
+    "en": "No YouTube app available",
+    "ja": "YouTube アプリが見つかりません",
+    "zh-Hans": "未找到可用的 YouTube 应用",
+    "zh-Hant": "找不到可用的 YouTube 應用程式"
+  },
+  "未找到可用的浏览器": {
+    "en": "No browser available",
+    "ja": "利用できるブラウザーが見つかりません",
+    "zh-Hans": "未找到可用的浏览器",
+    "zh-Hant": "找不到可用的瀏覽器"
+  },
+  "未游玩": {
+    "en": "Not played",
+    "ja": "未プレイ",
+    "zh-Hans": "未游玩",
+    "zh-Hant": "未遊玩"
+  },
+  "未知": {
+    "en": "Unknown",
+    "ja": "不明",
+    "zh-Hans": "未知",
+    "zh-Hant": "未知"
+  },
+  "未知时间": {
+    "en": "Unknown time",
+    "ja": "日時不明",
+    "zh-Hans": "未知时间",
+    "zh-Hant": "未知時間"
+  },
+  "未知艺术家": {
+    "en": "Unknown artist",
+    "ja": "アーティスト不明",
+    "zh-Hans": "未知艺术家",
+    "zh-Hant": "未知演出者"
+  },
+  "未知难度": {
+    "en": "Unknown difficulty",
+    "ja": "難易度不明",
+    "zh-Hans": "未知难度",
+    "zh-Hant": "未知難度"
+  },
+  "查看 Best 50 成绩表": {
+    "en": "View Best 50 scores",
+    "ja": "Best 50 のスコアを表示",
+    "zh-Hans": "查看 Best 50 成绩表",
+    "zh-Hant": "查看 Best 50 成績表"
+  },
+  "查看全部 {0} 条": {
+    "en": "View all {0}",
+    "ja": "全 {0} 件を表示",
+    "zh-Hans": "查看全部 {0} 条",
+    "zh-Hant": "查看全部 {0} 筆"
+  },
+  "查看各版本牌子达成情况": {
+    "en": "Track plate progress by version",
+    "ja": "バージョンごとのプレート達成状況を確認",
+    "zh-Hans": "查看各版本牌子达成情况",
+    "zh-Hant": "查看各版本牌子的達成進度"
+  },
+  "查询歌曲成绩": {
+    "en": "Browse song scores",
+    "ja": "楽曲のスコアを検索",
+    "zh-Hans": "查询歌曲成绩",
+    "zh-Hant": "查詢歌曲成績"
+  },
+  "标题": {
+    "en": "Title",
+    "ja": "タイトル",
+    "zh-Hans": "标题",
+    "zh-Hant": "標題"
+  },
+  "检查中…": {
+    "en": "Checking…",
+    "ja": "確認中…",
+    "zh-Hans": "检查中…",
+    "zh-Hant": "檢查中…"
+  },
+  "检查失败：{0}": {
+    "en": "Check failed: {0}",
+    "ja": "更新確認に失敗しました：{0}",
+    "zh-Hans": "检查失败：{0}",
+    "zh-Hant": "檢查失敗：{0}"
+  },
+  "棕色": {
+    "en": "Brown",
+    "ja": "ブラウン",
+    "zh-Hans": "棕色",
+    "zh-Hant": "棕色"
+  },
+  "模糊": {
+    "en": "Blur",
+    "ja": "ぼかし",
+    "zh-Hans": "模糊",
+    "zh-Hant": "模糊"
+  },
+  "樱花色": {
+    "en": "Cherry blossom",
+    "ja": "桜色",
+    "zh-Hans": "樱花色",
+    "zh-Hant": "櫻花色"
+  },
+  "橙色": {
+    "en": "Orange",
+    "ja": "オレンジ",
+    "zh-Hans": "橙色",
+    "zh-Hant": "橙色"
+  },
+  "歌曲": {
+    "en": "Songs",
+    "ja": "楽曲",
+    "zh-Hans": "歌曲",
+    "zh-Hant": "歌曲"
+  },
+  "歌曲、艺术家、别名...": {
+    "en": "Song, artist, alias…",
+    "ja": "曲名・アーティスト・別名…",
+    "zh-Hans": "歌曲、艺术家、别名...",
+    "zh-Hant": "曲名、演出者、別名…"
+  },
+  "歌曲不存在或目录尚未加载": {
+    "en": "Song not found or catalog not loaded",
+    "ja": "楽曲が見つからないか、データが未読込です",
+    "zh-Hans": "歌曲不存在或目录尚未加载",
+    "zh-Hant": "歌曲不存在，或尚未載入歌曲目錄"
+  },
+  "歌曲或候选别名已不存在，请刷新后重试。": {
+    "en": "Song or alias no longer exists. Refresh and try again.",
+    "ja": "楽曲または別名が存在しません。更新して再試行してください。",
+    "zh-Hans": "歌曲或候选别名已不存在，请刷新后重试。",
+    "zh-Hant": "歌曲或候選別名已不存在，請重新整理後再試。"
+  },
+  "歌曲编号无效": {
+    "en": "Invalid song ID",
+    "ja": "楽曲 ID が無効です",
+    "zh-Hans": "歌曲编号无效",
+    "zh-Hant": "歌曲編號無效"
+  },
+  "歌曲详情": {
+    "en": "Song details",
+    "ja": "楽曲詳細",
+    "zh-Hans": "歌曲详情",
+    "zh-Hant": "歌曲詳細資訊"
+  },
+  "正在下载封面": {
+    "en": "Downloading jackets",
+    "ja": "ジャケットをダウンロード中",
+    "zh-Hans": "正在下载封面",
+    "zh-Hant": "正在下載封面"
+  },
+  "正在下载歌曲目录": {
+    "en": "Downloading song catalog",
+    "ja": "楽曲データをダウンロード中",
+    "zh-Hans": "正在下载歌曲目录",
+    "zh-Hant": "正在下載歌曲目錄"
+  },
+  "正在下载目录和封面资源。": {
+    "en": "Downloading the catalog and song jackets.",
+    "ja": "楽曲一覧とジャケット画像をダウンロードしています。",
+    "zh-Hans": "正在下载目录和封面资源。",
+    "zh-Hant": "正在下載目錄和封面資源。"
+  },
+  "正在下载静态数据": {
+    "en": "Downloading static data",
+    "ja": "楽曲データをダウンロード中",
+    "zh-Hans": "正在下载静态数据",
+    "zh-Hant": "正在下載靜態資料"
+  },
+  "正在下载静态数据…": {
+    "en": "Downloading static data…",
+    "ja": "楽曲データをダウンロード中…",
+    "zh-Hans": "正在下载静态数据…",
+    "zh-Hant": "正在下載靜態資料…"
+  },
+  "正在从后端获取最新清单。": {
+    "en": "Fetching the latest manifest from the server.",
+    "ja": "サーバーから最新の一覧を取得しています。",
+    "zh-Hans": "正在从后端获取最新清单。",
+    "zh-Hant": "正在從伺服器取得最新清單。"
+  },
+  "正在保存本地静态数据。": {
+    "en": "Saving static data locally.",
+    "ja": "楽曲データを端末に保存しています。",
+    "zh-Hans": "正在保存本地静态数据。",
+    "zh-Hant": "正在將靜態資料儲存至此裝置。"
+  },
+  "正在加载…": {
+    "en": "Loading…",
+    "ja": "読み込み中…",
+    "zh-Hans": "正在加载…",
+    "zh-Hant": "正在載入…"
+  },
+  "正在加载歌曲目录": {
+    "en": "Loading song catalog",
+    "ja": "楽曲データを読み込み中",
+    "zh-Hans": "正在加载歌曲目录",
+    "zh-Hant": "正在載入歌曲目錄"
+  },
+  "正在导入…": {
+    "en": "Importing…",
+    "ja": "インポート中…",
+    "zh-Hans": "正在导入…",
+    "zh-Hant": "正在匯入…"
+  },
+  "正在应用静态数据…": {
+    "en": "Applying static data…",
+    "ja": "楽曲データを適用中…",
+    "zh-Hans": "正在应用静态数据…",
+    "zh-Hant": "正在套用靜態資料…"
+  },
+  "正在恢复本地数据…": {
+    "en": "Restoring local data…",
+    "ja": "ローカルデータを復元中…",
+    "zh-Hans": "正在恢复本地数据…",
+    "zh-Hant": "正在還原裝置上的資料…"
+  },
+  "正在校验下载内容。": {
+    "en": "Validating downloaded content.",
+    "ja": "ダウンロードした内容を検証しています。",
+    "zh-Hans": "正在校验下载内容。",
+    "zh-Hant": "正在驗證下載內容。"
+  },
+  "正在校验静态数据…": {
+    "en": "Validating static data…",
+    "ja": "楽曲データを検証中…",
+    "zh-Hans": "正在校验静态数据…",
+    "zh-Hant": "正在驗證靜態資料…"
+  },
+  "正在检查更新…": {
+    "en": "Checking for updates…",
+    "ja": "更新を確認中…",
+    "zh-Hans": "正在检查更新…",
+    "zh-Hant": "正在檢查更新…"
+  },
+  "正在生成图片": {
+    "en": "Generating image",
+    "ja": "画像を生成中",
+    "zh-Hans": "正在生成图片",
+    "zh-Hant": "正在產生圖片"
+  },
+  "正在计算 Best 表": {
+    "en": "Calculating Best table",
+    "ja": "ベスト表を計算中",
+    "zh-Hans": "正在计算 Best 表",
+    "zh-Hant": "正在計算 Best 表"
+  },
+  "段位": {
+    "en": "Rank",
+    "ja": "ランク",
+    "zh-Hans": "段位",
+    "zh-Hant": "段位"
+  },
+  "没有可用的定数数据": {
+    "en": "No chart constants available",
+    "ja": "定数データがありません",
+    "zh-Hans": "没有可用的定数数据",
+    "zh-Hant": "沒有可用的定數資料"
+  },
+  "没有符合条件的成绩": {
+    "en": "No matching scores",
+    "ja": "該当するスコアがありません",
+    "zh-Hans": "没有符合条件的成绩",
+    "zh-Hant": "沒有符合條件的成績"
+  },
+  "没有符合条件的谱面": {
+    "en": "No matching charts",
+    "ja": "該当する譜面がありません",
+    "zh-Hans": "没有符合条件的谱面",
+    "zh-Hant": "沒有符合條件的譜面"
+  },
+  "注册": {
+    "en": "Register",
+    "ja": "新規登録",
+    "zh-Hans": "注册",
+    "zh-Hant": "註冊"
+  },
+  "浅色": {
+    "en": "Light",
+    "ja": "ライト",
+    "zh-Hans": "浅色",
+    "zh-Hant": "淺色"
+  },
+  "浏览公示中的别名并支持/反对": {
+    "en": "Browse submissions",
+    "ja": "公開中の別名を閲覧",
+    "zh-Hans": "浏览公示中的别名",
+    "zh-Hant": "瀏覽公開投票的別名"
+  },
+  "浮动底栏": {
+    "en": "Floating navigation bar",
+    "ja": "フローティングナビゲーションバー",
+    "zh-Hans": "浮动底栏",
+    "zh-Hant": "浮動式底部導覽列"
+  },
+  "深紫色": {
+    "en": "Deep purple",
+    "ja": "ディープパープル",
+    "zh-Hans": "深紫色",
+    "zh-Hant": "深紫色"
+  },
+  "深色": {
+    "en": "Dark",
+    "ja": "ダーク",
+    "zh-Hans": "深色",
+    "zh-Hant": "深色"
+  },
+  "添加到喜爱": {
+    "en": "Add to favorites",
+    "ja": "お気に入りに追加",
+    "zh-Hans": "添加到喜爱",
+    "zh-Hant": "加入最愛"
+  },
+  "添加收藏夹": {
+    "en": "Add collection",
+    "ja": "コレクションを追加",
+    "zh-Hans": "添加收藏夹",
+    "zh-Hant": "新增收藏集"
+  },
+  "清除头像": {
+    "en": "Remove avatar",
+    "ja": "アイコンを削除",
+    "zh-Hans": "清除头像",
+    "zh-Hant": "清除頭像"
+  },
+  "游戏版本": {
+    "en": "Game version",
+    "ja": "ゲームバージョン",
+    "zh-Hans": "游戏版本",
+    "zh-Hant": "遊戲版本"
+  },
+  "点击下方按钮下载并应用完整更新。": {
+    "en": "Tap below to download and apply the full update.",
+    "ja": "下のボタンで更新データをダウンロードして適用できます。",
+    "zh-Hans": "点击下方按钮下载并应用完整更新。",
+    "zh-Hant": "點選下方按鈕，下載並套用完整更新。"
+  },
+  "点击编辑": {
+    "en": "Tap to edit",
+    "ja": "タップして編集",
+    "zh-Hans": "点击编辑",
+    "zh-Hant": "點選以編輯"
+  },
+  "版本": {
+    "en": "Version",
+    "ja": "バージョン",
+    "zh-Hans": "版本",
+    "zh-Hant": "版本"
+  },
+  "版本 / 发行日期": {
+    "en": "Version / release date",
+    "ja": "バージョン / 配信日",
+    "zh-Hans": "版本 / 发行日期",
+    "zh-Hant": "版本 / 發行日期"
+  },
+  "版本：{0} · 构建：{1}": {
+    "en": "Version: {0} · Built: {1}",
+    "ja": "バージョン：{0} · ビルド：{1}",
+    "zh-Hans": "版本：{0} · 构建：{1}",
+    "zh-Hant": "版本：{0} · 建置時間：{1}"
+  },
+  "牌子类型": {
+    "en": "Plate type",
+    "ja": "プレートの種類",
+    "zh-Hans": "牌子类型",
+    "zh-Hant": "牌子類型"
+  },
+  "牌子进度": {
+    "en": "Plate progress",
+    "ja": "プレート進捗",
+    "zh-Hans": "牌子进度",
+    "zh-Hant": "牌子進度"
+  },
+  "状态": {
+    "en": "Status",
+    "ja": "状態",
+    "zh-Hans": "状态",
+    "zh-Hant": "狀態"
+  },
+  "玩家 Rating": {
+    "en": "Player rating",
+    "ja": "プレイヤーレーティング",
+    "zh-Hans": "玩家 Rating",
+    "zh-Hant": "玩家 Rating"
+  },
+  "琥珀色": {
+    "en": "Amber",
+    "ja": "アンバー",
+    "zh-Hans": "琥珀色",
+    "zh-Hant": "琥珀色"
+  },
+  "用户": {
+    "en": "User",
+    "ja": "ユーザー",
+    "zh-Hans": "用户",
+    "zh-Hant": "使用者"
+  },
+  "用户档案": {
+    "en": "Profiles",
+    "ja": "プロフィール",
+    "zh-Hans": "用户档案",
+    "zh-Hant": "個人檔案"
+  },
+  "登录": {
+    "en": "Sign in",
+    "ja": "ログイン",
+    "zh-Hans": "登录",
+    "zh-Hant": "登入"
+  },
+  "登录 Rhythmeta": {
+    "en": "Sign in to Rhythmeta",
+    "ja": "Rhythmeta にログイン",
+    "zh-Hans": "登录 Rhythmeta",
+    "zh-Hant": "登入 Rhythmeta"
+  },
+  "登录云端": {
+    "en": "Sign in to cloud",
+    "ja": "クラウドにログイン",
+    "zh-Hans": "登录云端",
+    "zh-Hant": "登入雲端"
+  },
+  "登录后可以投稿和参与社区别名投票": {
+    "en": "Sign in to submit and vote on community aliases",
+    "ja": "ログインすると別名の投稿や投票ができます",
+    "zh-Hans": "登录后可以投稿和参与社区别名投票",
+    "zh-Hant": "登入後即可投稿及參與社群別名投票"
+  },
+  "登录后可以投稿和参与社区别名投票。": {
+    "en": "Sign in to submit and vote on community aliases.",
+    "ja": "ログインすると別名の投稿や投票ができます。",
+    "zh-Hans": "登录后可以投稿和参与社区别名投票。",
+    "zh-Hant": "登入後即可投稿及參與社群別名投票。"
+  },
+  "登录失败": {
+    "en": "Sign-in failed",
+    "ja": "ログインに失敗しました",
+    "zh-Hans": "登录失败",
+    "zh-Hant": "登入失敗"
+  },
+  "登录已失效，请重新登录 Rhythmeta 账户。": {
+    "en": "Session expired. Sign in to Rhythmeta again.",
+    "ja": "ログインの有効期限が切れました。Rhythmeta に再ログインしてください。",
+    "zh-Hans": "登录已失效，请重新登录 Rhythmeta 账户。",
+    "zh-Hant": "登入已過期，請重新登入 Rhythmeta 帳號。"
+  },
+  "登录账户并通过云端安全同步应用数据": {
+    "en": "Sign in to securely sync app data through the cloud",
+    "ja": "ログインしてアプリのデータを安全にクラウド同期",
+    "zh-Hans": "登录账户并通过云端安全同步应用数据",
+    "zh-Hant": "登入帳號，透過雲端安全同步應用程式資料"
+  },
+  "目标 {0}": {
+    "en": "Target {0}",
+    "ja": "目標 {0}",
+    "zh-Hans": "目标 {0}",
+    "zh-Hant": "目標 {0}"
+  },
+  "直接跳过": {
+    "en": "Skip",
+    "ja": "スキップ",
+    "zh-Hans": "直接跳过",
+    "zh-Hant": "直接跳過"
+  },
+  "确定": {
+    "en": "OK",
+    "ja": "OK",
+    "zh-Hans": "确定",
+    "zh-Hant": "確定"
+  },
+  "确定删除这条历史成绩吗？": {
+    "en": "Delete this score from your history?",
+    "ja": "このスコア履歴を削除しますか？",
+    "zh-Hans": "确定删除这条历史成绩吗？",
+    "zh-Hant": "確定要刪除這筆歷史成績嗎？"
+  },
+  "社区中已存在这个别名或相同投稿。": {
+    "en": "This alias or an identical submission already exists.",
+    "ja": "この別名または同じ投稿がすでに存在します。",
+    "zh-Hans": "社区中已存在这个别名或相同投稿。",
+    "zh-Hant": "社群中已有這個別名或相同的投稿。"
+  },
+  "社区别名": {
+    "en": "Community aliases",
+    "ja": "コミュニティ別名",
+    "zh-Hans": "社区别名",
+    "zh-Hant": "社群別名"
+  },
+  "社区别名同步不完整，请重试。": {
+    "en": "Community alias sync is incomplete. Please retry.",
+    "ja": "コミュニティ別名の同期が不完全です。再試行してください。",
+    "zh-Hans": "社区别名同步不完整，请重试。",
+    "zh-Hant": "社群別名尚未完整同步，請再試一次。"
+  },
+  "社区别名同步失败，点击重试": {
+    "en": "Alias sync failed. Tap to retry.",
+    "ja": "別名の同期に失敗しました。タップして再試行",
+    "zh-Hans": "社区别名同步失败，点击重试",
+    "zh-Hant": "社群別名同步失敗，點選以重試"
+  },
+  "社区别名投票": {
+    "en": "Community aliases",
+    "ja": "コミュニティ別名",
+    "zh-Hans": "社区别名",
+    "zh-Hant": "社群別名"
+  },
+  "社区服务暂时不可用，请稍后重试。": {
+    "en": "Community service is unavailable. Try again later.",
+    "ja": "コミュニティサービスを利用できません。しばらくしてから再試行してください。",
+    "zh-Hans": "社区服务暂时不可用，请稍后重试。",
+    "zh-Hant": "社群服務暫時無法使用，請稍後再試。"
+  },
+  "种子颜色": {
+    "en": "Seed color",
+    "ja": "ベースカラー",
+    "zh-Hans": "种子颜色",
+    "zh-Hant": "基底色彩"
+  },
+  "称号": {
+    "en": "Title",
+    "ja": "称号",
+    "zh-Hans": "称号",
+    "zh-Hant": "稱號"
+  },
+  "移出收藏夹": {
+    "en": "Remove from collection",
+    "ja": "コレクションから削除",
+    "zh-Hans": "移出收藏夹",
+    "zh-Hant": "移出收藏集"
+  },
+  "立刻随机抽取": {
+    "en": "Pick songs now",
+    "ja": "今すぐランダム選曲",
+    "zh-Hans": "立刻随机抽取",
+    "zh-Hant": "立刻隨機抽取"
+  },
+  "立即更新": {
+    "en": "Update now",
+    "ja": "今すぐ更新",
+    "zh-Hans": "立即更新",
+    "zh-Hant": "立即更新"
+  },
+  "等级": {
+    "en": "Rank",
+    "ja": "ランク",
+    "zh-Hans": "等级",
+    "zh-Hant": "等級"
+  },
+  "筛选": {
+    "en": "Filter",
+    "ja": "絞り込み",
+    "zh-Hans": "筛选",
+    "zh-Hant": "篩選"
+  },
+  "管理本地档案、头像和地区": {
+    "en": "Manage local profiles, avatars, and regions",
+    "ja": "ローカルプロフィール・アイコン・地域を管理",
+    "zh-Hans": "管理本地档案、头像和地区",
+    "zh-Hant": "管理裝置上的個人檔案、頭像與地區"
+  },
+  "粉色": {
+    "en": "Pink",
+    "ja": "ピンク",
+    "zh-Hans": "粉色",
+    "zh-Hant": "粉色"
+  },
+  "红色": {
+    "en": "Red",
+    "ja": "レッド",
+    "zh-Hans": "红色",
+    "zh-Hant": "紅色"
+  },
+  "紫色": {
+    "en": "Purple",
+    "ja": "パープル",
+    "zh-Hans": "紫色",
+    "zh-Hant": "紫色"
+  },
+  "绿色": {
+    "en": "Green",
+    "ja": "グリーン",
+    "zh-Hans": "绿色",
+    "zh-Hant": "綠色"
+  },
+  "编辑": {
+    "en": "Edit",
+    "ja": "編集",
+    "zh-Hans": "编辑",
+    "zh-Hant": "編輯"
+  },
+  "编辑档案": {
+    "en": "Edit profile",
+    "ja": "プロフィールを編集",
+    "zh-Hans": "编辑档案",
+    "zh-Hant": "編輯個人檔案"
+  },
+  "网格视图": {
+    "en": "Grid view",
+    "ja": "グリッド表示",
+    "zh-Hans": "网格视图",
+    "zh-Hant": "格狀檢視"
+  },
+  "老虎机式随机抽曲": {
+    "en": "Slot-style random song selection",
+    "ja": "スロット式ランダム選曲",
+    "zh-Hans": "老虎机式随机抽曲",
+    "zh-Hant": "老虎機式隨機抽曲"
+  },
+  "自动": {
+    "en": "Automatic",
+    "ja": "自動",
+    "zh-Hans": "自动",
+    "zh-Hant": "自動"
+  },
+  "自定义更多主题选项": {
+    "en": "Customize theme options",
+    "ja": "テーマの詳細設定",
+    "zh-Hans": "自定义更多主题选项",
+    "zh-Hant": "自訂更多主題選項"
+  },
+  "色彩规范": {
+    "en": "Color specification",
+    "ja": "カラー仕様",
+    "zh-Hans": "色彩规范",
+    "zh-Hant": "色彩規格"
+  },
+  "色板样式": {
+    "en": "Palette style",
+    "ja": "パレットスタイル",
+    "zh-Hans": "色板样式",
+    "zh-Hant": "調色盤樣式"
+  },
+  "蓝灰色": {
+    "en": "Blue gray",
+    "ja": "ブルーグレー",
+    "zh-Hans": "蓝灰色",
+    "zh-Hant": "藍灰色"
+  },
+  "蓝绿色": {
+    "en": "Teal",
+    "ja": "ティール",
+    "zh-Hans": "蓝绿色",
+    "zh-Hant": "藍綠色"
+  },
+  "蓝色": {
+    "en": "Blue",
+    "ja": "ブルー",
+    "zh-Hans": "蓝色",
+    "zh-Hant": "藍色"
+  },
+  "裁剪头像": {
+    "en": "Crop avatar",
+    "ja": "アイコンを切り抜き",
+    "zh-Hans": "裁剪头像",
+    "zh-Hant": "裁切頭像"
+  },
+  "计算速度中": {
+    "en": "Calculating speed",
+    "ja": "速度を計算中",
+    "zh-Hans": "计算速度中",
+    "zh-Hant": "計算速度中"
+  },
+  "记录成绩": {
+    "en": "Record score",
+    "ja": "スコアを記録",
+    "zh-Hans": "记录成绩",
+    "zh-Hant": "記錄成績"
+  },
+  "设置": {
+    "en": "Settings",
+    "ja": "設定",
+    "zh-Hans": "设置",
+    "zh-Hant": "設定"
+  },
+  "试试切换展示难度。": {
+    "en": "Try a different difficulty.",
+    "ja": "表示する難易度を変更してください。",
+    "zh-Hans": "试试切换展示难度。",
+    "zh-Hant": "試著切換顯示難度。"
+  },
+  "请先在静态数据中下载歌曲目录。": {
+    "en": "Download the catalog from Static data first.",
+    "ja": "先に「楽曲データ」からデータをダウンロードしてください。",
+    "zh-Hans": "请先在静态数据中下载歌曲目录。",
+    "zh-Hant": "請先到「靜態資料」下載歌曲目錄。"
+  },
+  "请先更新歌曲目录，或调整筛选条件。": {
+    "en": "Update the song catalog or adjust the filters.",
+    "ja": "楽曲データを更新するか、絞り込み条件を変更してください。",
+    "zh-Hans": "请先更新歌曲目录，或调整筛选条件。",
+    "zh-Hant": "請先更新歌曲目錄，或調整篩選條件。"
+  },
+  "请先登录 Rhythmeta 账户。": {
+    "en": "Sign in to your Rhythmeta account first.",
+    "ja": "先に Rhythmeta アカウントにログインしてください。",
+    "zh-Hans": "请先登录 Rhythmeta 账户。",
+    "zh-Hant": "請先登入 Rhythmeta 帳號。"
+  },
+  "请检查网络或后端状态后重试。": {
+    "en": "Check your network or backend status and try again.",
+    "ja": "ネットワークまたはサーバーの状態を確認して再試行してください。",
+    "zh-Hans": "请检查网络或后端状态后重试。",
+    "zh-Hant": "請檢查網路連線或伺服器狀態後再試。"
+  },
+  "请输入 1–64 个字符的有效别名。": {
+    "en": "Enter a valid alias of 1–64 characters.",
+    "ja": "1～64文字の有効な別名を入力してください。",
+    "zh-Hans": "请输入 1–64 个字符的有效别名。",
+    "zh-Hant": "請輸入 1～64 個字元的有效別名。"
+  },
+  "请输入 chunithmd 收藏夹链接或 CHMD1 分享码": {
+    "en": "Enter a chunithmd collection link or CHMD1 share code",
+    "ja": "chunithmd のコレクションリンクまたは CHMD1 共有コードを入力してください",
+    "zh-Hans": "请输入 chunithmd 收藏夹链接或 CHMD1 分享码",
+    "zh-Hant": "請輸入 chunithmd 收藏集連結或 CHMD1 分享碼"
+  },
+  "请输入收藏夹名称": {
+    "en": "Enter a collection name",
+    "ja": "コレクション名を入力してください",
+    "zh-Hans": "请输入收藏夹名称",
+    "zh-Hant": "請輸入收藏集名稱"
+  },
+  "请输入有效的 chunithmd 收藏夹链接或 CHMD1 分享码": {
+    "en": "Enter a valid chunithmd collection link or CHMD1 share code",
+    "ja": "有効な chunithmd のコレクションリンクまたは CHMD1 共有コードを入力してください",
+    "zh-Hans": "请输入有效的 chunithmd 收藏夹链接或 CHMD1 分享码",
+    "zh-Hant": "請輸入有效的 chunithmd 收藏集連結或 CHMD1 分享碼"
+  },
+  "调整页面内容大小": {
+    "en": "Adjust the size of page content",
+    "ja": "ページ内容の表示サイズを調整",
+    "zh-Hans": "调整页面内容大小",
+    "zh-Hant": "調整頁面內容大小"
+  },
+  "谱面": {
+    "en": "Charts",
+    "ja": "譜面",
+    "zh-Hans": "谱面",
+    "zh-Hant": "譜面"
+  },
+  "谱面类型": {
+    "en": "Chart type",
+    "ja": "譜面タイプ",
+    "zh-Hans": "谱面类型",
+    "zh-Hant": "譜面類型"
+  },
+  "谱面类型无效": {
+    "en": "Invalid chart type",
+    "ja": "譜面タイプが無効です",
+    "zh-Hans": "谱面类型无效",
+    "zh-Hant": "譜面類型無效"
+  },
+  "谱面难度无效": {
+    "en": "Invalid chart difficulty",
+    "ja": "譜面の難易度が無効です",
+    "zh-Hans": "谱面难度无效",
+    "zh-Hant": "譜面難度無效"
+  },
+  "账户信息用于启用云端同步，令牌会加密存储在本机。": {
+    "en": "Account information enables cloud sync. Tokens are encrypted on this device.",
+    "ja": "アカウント情報はクラウド同期に使用します。トークンは端末に暗号化して保存されます。",
+    "zh-Hans": "账户信息用于启用云端同步，令牌会加密存储在本机。",
+    "zh-Hant": "帳號資訊用於啟用雲端同步，驗證權杖會加密儲存在此裝置上。"
+  },
+  "资源同步失败": {
+    "en": "Resource sync failed",
+    "ja": "リソースの同期に失敗しました",
+    "zh-Hans": "资源同步失败",
+    "zh-Hant": "資源同步失敗"
+  },
+  "跟随系统": {
+    "en": "System",
+    "ja": "システムに従う",
+    "zh-Hans": "跟随系统",
+    "zh-Hant": "依照系統設定"
+  },
+  "输入分享链接或 CHMD1 分享码，即可导入收藏夹。": {
+    "en": "Import a collection using a share link or CHMD1 code.",
+    "ja": "共有リンクまたは CHMD1 コードでコレクションをインポートできます。",
+    "zh-Hans": "输入分享链接或 CHMD1 分享码，即可导入收藏夹。",
+    "zh-Hant": "輸入分享連結或 CHMD1 分享碼，即可匯入收藏集。"
+  },
+  "输入新别名": {
+    "en": "Enter a new alias",
+    "ja": "新しい別名を入力",
+    "zh-Hans": "输入新别名",
+    "zh-Hant": "輸入新別名"
+  },
+  "返回": {
+    "en": "Back",
+    "ja": "戻る",
+    "zh-Hans": "返回",
+    "zh-Hant": "返回"
+  },
+  "返回收藏夹列表，查看其他收藏夹。": {
+    "en": "Return to the list to view other collections.",
+    "ja": "一覧に戻って他のコレクションを確認してください。",
+    "zh-Hans": "返回收藏夹列表，查看其他收藏夹。",
+    "zh-Hant": "返回收藏集清單，查看其他收藏集。"
+  },
+  "还没有收藏夹": {
+    "en": "No collections yet",
+    "ja": "コレクションがありません",
+    "zh-Hans": "还没有收藏夹",
+    "zh-Hant": "還沒有收藏集"
+  },
+  "还没有收藏谱面": {
+    "en": "No charts collected yet",
+    "ja": "譜面がまだ登録されていません",
+    "zh-Hans": "还没有收藏谱面",
+    "zh-Hant": "還沒有收藏譜面"
+  },
+  "还没有用户档案": {
+    "en": "No profiles yet",
+    "ja": "プロフィールがありません",
+    "zh-Hans": "还没有用户档案",
+    "zh-Hant": "尚未建立個人檔案"
+  },
+  "这个别名已被管理员驳回，暂时不能再次投稿。": {
+    "en": "An administrator rejected this alias. It cannot be resubmitted yet.",
+    "ja": "この別名は管理者に却下されており、現在は再投稿できません。",
+    "zh-Hans": "这个别名已被管理员驳回，暂时不能再次投稿。",
+    "zh-Hant": "這個別名已被管理員退回，目前無法再次投稿。"
+  },
+  "这将替换本机该游戏的全部个人数据。恢复前会保存本地回滚副本。": {
+    "en": "This replaces all personal data for this game on this device. A local rollback copy is saved first.",
+    "ja": "この端末にある本ゲームの個人データをすべて置き換えます。復元前にロールバック用コピーを保存します。",
+    "zh-Hans": "这将替换本机该游戏的全部个人数据。恢复前会保存本地回滚副本。",
+    "zh-Hant": "這會取代此裝置上本遊戲的所有個人資料。還原前會先儲存一份復原用副本。"
+  },
+  "进入页面后会自动检查静态数据更新。": {
+    "en": "Updates are checked automatically when you open this page.",
+    "ja": "このページを開くと自動で更新を確認します。",
+    "zh-Hans": "进入页面后会自动检查静态数据更新。",
+    "zh-Hant": "開啟此頁面時會自動檢查靜態資料更新。"
+  },
+  "退出登录": {
+    "en": "Sign out",
+    "ja": "ログアウト",
+    "zh-Hans": "退出登录",
+    "zh-Hant": "登出"
+  },
+  "选择图片": {
+    "en": "Choose image",
+    "ja": "画像を選択",
+    "zh-Hans": "选择图片",
+    "zh-Hant": "選擇圖片"
+  },
+  "通过邮箱登录以启用安全的云端同步": {
+    "en": "Sign in with email to enable secure cloud sync",
+    "ja": "メールでログインして安全なクラウド同期を有効化",
+    "zh-Hans": "通过邮箱登录以启用安全的云端同步",
+    "zh-Hant": "使用電子郵件登入，啟用安全的雲端同步"
+  },
+  "重命名收藏夹": {
+    "en": "Rename collection",
+    "ja": "コレクション名を変更",
+    "zh-Hans": "重命名收藏夹",
+    "zh-Hant": "重新命名收藏集"
+  },
+  "重新同步": {
+    "en": "Sync again",
+    "ja": "再同期",
+    "zh-Hans": "重新同步",
+    "zh-Hant": "重新同步"
+  },
+  "重新安装当前版本": {
+    "en": "Reinstall current version",
+    "ja": "現在のバージョンを再インストール",
+    "zh-Hans": "重新安装当前版本",
+    "zh-Hant": "重新安裝目前版本"
+  },
+  "重新检查更新": {
+    "en": "Check again",
+    "ja": "更新を再確認",
+    "zh-Hans": "重新检查更新",
+    "zh-Hant": "重新檢查更新"
+  },
+  "重置": {
+    "en": "Reset",
+    "ja": "リセット",
+    "zh-Hans": "重置",
+    "zh-Hant": "重置"
+  },
+  "重置筛选": {
+    "en": "Reset filters",
+    "ja": "絞り込みをリセット",
+    "zh-Hans": "重置筛选",
+    "zh-Hant": "重置篩選"
+  },
+  "重试": {
+    "en": "Retry",
+    "ja": "再試行",
+    "zh-Hans": "重试",
+    "zh-Hant": "再試一次"
+  },
+  "金 FC": {
+    "en": "Gold FC",
+    "ja": "金 FC",
+    "zh-Hans": "金 FC",
+    "zh-Hant": "金 FC"
+  },
+  "铂 FC": {
+    "en": "Platinum FC",
+    "ja": "プラチナ FC",
+    "zh-Hans": "铂 FC",
+    "zh-Hant": "鉑 FC"
+  },
+  "降序": {
+    "en": "Descending",
+    "ja": "降順",
+    "zh-Hans": "降序",
+    "zh-Hant": "遞減排序"
+  },
+  "隐藏删除曲": {
+    "en": "Hide removed songs",
+    "ja": "削除曲を非表示",
+    "zh-Hans": "隐藏删除曲",
+    "zh-Hant": "隱藏刪除曲"
+  },
+  "随机歌曲": {
+    "en": "Random songs",
+    "ja": "ランダム選曲",
+    "zh-Hans": "随机歌曲",
+    "zh-Hant": "隨機歌曲"
+  },
+  "难度": {
+    "en": "Difficulty",
+    "ja": "難易度",
+    "zh-Hans": "难度",
+    "zh-Hant": "難度"
+  },
+  "需要先下载歌曲目录": {
+    "en": "Download the song catalog first",
+    "ja": "先に楽曲データをダウンロードしてください",
+    "zh-Hans": "需要先下载歌曲目录",
+    "zh-Hant": "需要先下載歌曲目錄"
+  },
+  "需要登录": {
+    "en": "Sign-in required",
+    "ja": "ログインが必要です",
+    "zh-Hans": "需要登录",
+    "zh-Hant": "需要登入"
+  },
+  "青色": {
+    "en": "Cyan",
+    "ja": "シアン",
+    "zh-Hans": "青色",
+    "zh-Hant": "青色"
+  },
+  "静态数据": {
+    "en": "Static data",
+    "ja": "楽曲データ",
+    "zh-Hans": "静态数据",
+    "zh-Hant": "靜態資料"
+  },
+  "靛蓝色": {
+    "en": "Indigo",
+    "ja": "インディゴ",
+    "zh-Hans": "靛蓝色",
+    "zh-Hant": "靛藍色"
+  },
+  "音符统计": {
+    "en": "Note counts",
+    "ja": "ノーツ数",
+    "zh-Hans": "音符统计",
+    "zh-Hant": "音符統計"
+  },
+  "页面缩放": {
+    "en": "Page scale",
+    "ja": "表示サイズ",
+    "zh-Hans": "页面缩放",
+    "zh-Hant": "頁面縮放"
+  },
+  "预测返回": {
+    "en": "Predictive back",
+    "ja": "予測型「戻る」",
+    "zh-Hans": "预测返回",
+    "zh-Hant": "預測返回"
+  },
+  "黄色": {
+    "en": "Yellow",
+    "ja": "イエロー",
+    "zh-Hans": "黄色",
+    "zh-Hant": "黃色"
+  },
+  "默认顺序": {
+    "en": "Default order",
+    "ja": "標準の順序",
+    "zh-Hans": "默认顺序",
+    "zh-Hant": "預設順序"
+  }
+}

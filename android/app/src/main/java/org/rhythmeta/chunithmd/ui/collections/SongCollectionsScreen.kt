@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.collections
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,7 +62,7 @@ fun SongCollectionsScreen(
             try { action() }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (failure: Exception) {
-                error = failure.message ?: "操作失败，请重试"
+                error = failure.message ?: tr("操作失败，请重试")
                 scope.launch { snackbar.showSnackbar(error.orEmpty(), duration = SnackbarDuration.Short) }
             }
             finally { busy = false }
@@ -71,7 +73,7 @@ fun SongCollectionsScreen(
         context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, link)
-        }, "分享收藏夹"))
+        }, tr("分享收藏夹")))
     }
     if (collectionId == null && uiState.importRequested) {
         LaunchedEffect(uiState.importValue) { error = null }
@@ -106,8 +108,8 @@ fun SongCollectionsScreen(
             collections == null -> Box(scrollModifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             collectionId == null && collections.orEmpty().isEmpty() -> CollectionEmptyState(
                 icon = Icons.Rounded.FolderOpen,
-                title = "从第一个收藏夹开始",
-                message = "把喜欢的谱面、练习目标整理在一起，随时回来查看。",
+                title = tr("从第一个收藏夹开始"),
+                message = tr("把喜欢的谱面、练习目标整理在一起，随时回来查看。"),
                 modifier = emptyModifier,
             ) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -115,12 +117,12 @@ fun SongCollectionsScreen(
                         onClick = { uiState.createRequested = true },
                         colors = ButtonDefaults.buttonColorsPrimary(),
                         modifier = Modifier.weight(1f),
-                    ) { Text("新建收藏夹") }
+                    ) { Text(tr("新建收藏夹")) }
                     Button(
                         enabled = !busy,
                         onClick = { uiState.importRequested = true },
                         modifier = Modifier.weight(1f),
-                    ) { Text("导入收藏夹") }
+                    ) { Text(tr("导入收藏夹")) }
                 }
             }
             collectionId == null -> {
@@ -142,12 +144,12 @@ fun SongCollectionsScreen(
                 SongListScrollBar(listState, PaddingValues(top = contentTopPadding + 10.dp, bottom = 36.dp))
             }
             collection == null -> CollectionEmptyState(
-                Icons.Rounded.FolderOpen, "收藏夹已不存在", "返回收藏夹列表，查看其他收藏夹。", emptyModifier,
+                Icons.Rounded.FolderOpen, tr("收藏夹已不存在"), tr("返回收藏夹列表，查看其他收藏夹。"), emptyModifier,
             )
             cards.isEmpty() -> CollectionEmptyState(
                 icon = Icons.Rounded.LibraryMusic,
-                title = "还没有收藏谱面",
-                message = "在歌曲详情中长按谱面标题，选择这个收藏夹，即可加入。",
+                title = tr("还没有收藏谱面"),
+                message = tr("在歌曲详情中长按谱面标题，选择这个收藏夹，即可加入。"),
                 modifier = emptyModifier,
             )
             uiState.grid -> LazyVerticalGrid(
@@ -186,19 +188,19 @@ fun SongCollectionsScreen(
                 error = null
             }
         }
-        WindowDialog(show = true, title = if (renaming) "重命名收藏夹" else "新建收藏夹", onDismissRequest = ::dismiss) {
-            TextField(draft, { draft = it.take(40) }, label = "收藏夹名称", modifier = Modifier.fillMaxWidth())
+        WindowDialog(show = true, title = if (renaming) tr("重命名收藏夹") else tr("新建收藏夹"), onDismissRequest = ::dismiss) {
+            TextField(draft, { draft = it.take(40) }, label = tr("收藏夹名称"), modifier = Modifier.fillMaxWidth())
             error?.let { Text(it, color = MiuixTheme.colorScheme.error) }
             Spacer(Modifier.height(14.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                TextButton("取消", enabled = !busy, onClick = ::dismiss, modifier = Modifier.weight(1f))
+                TextButton(tr("取消"), enabled = !busy, onClick = ::dismiss, modifier = Modifier.weight(1f))
                 Button(enabled = !busy && draft.isNotBlank(), modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColorsPrimary(), onClick = {
                     perform {
                         if (renaming) repository.rename(requireNotNull(collection).id, draft) else repository.create(draft)
                         uiState.createRequested = false
                         uiState.renameRequested = false
                     }
-                }) { Text("完成") }
+                }) { Text(tr("完成")) }
             }
         }
     }

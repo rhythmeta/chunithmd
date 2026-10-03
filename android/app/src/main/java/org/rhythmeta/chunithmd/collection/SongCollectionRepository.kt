@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.collection
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -35,7 +37,7 @@ class SongCollectionRepository internal constructor(private val store: DataStore
 
     suspend fun rename(id: String, name: String) {
         val trimmed = name.trim().take(40)
-        require(trimmed.isNotEmpty()) { "请输入收藏夹名称" }
+        require(trimmed.isNotEmpty()) { tr("请输入收藏夹名称") }
         update { collections ->
             val unique = uniqueName(trimmed, collections.filter { it.id != id }.map { it.name }.toSet())
             collections.map { if (it.id == id) it.copy(name = unique) else it }
@@ -47,7 +49,7 @@ class SongCollectionRepository internal constructor(private val store: DataStore
     suspend fun setMembership(collectionId: String, entry: CollectionEntry, included: Boolean) {
         val normalized = entry.normalized()
         update { collections ->
-            require(collections.any { it.id == collectionId }) { "收藏夹已不存在" }
+            require(collections.any { it.id == collectionId }) { tr("收藏夹已不存在") }
             collections.map { collection ->
                 if (collection.id != collectionId) collection
                 else collection.copy(entries = if (included) {

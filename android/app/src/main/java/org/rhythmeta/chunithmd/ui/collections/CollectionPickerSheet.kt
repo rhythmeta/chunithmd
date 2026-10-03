@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.collections
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,12 +35,12 @@ fun CollectionPickerSheet(repository: SongCollectionRepository, entry: Collectio
     ExpandableBottomSheet(
         visible = entry != null,
         onDismissRequest = { if (!busy) onDismiss() },
-        expandActionLabel = "展开收藏夹列表", collapseActionLabel = "收起收藏夹列表",
-        expandedStateDescription = "收藏夹列表已展开", halfExpandedStateDescription = "收藏夹列表半展开",
+        expandActionLabel = tr("展开收藏夹列表"), collapseActionLabel = tr("收起收藏夹列表"),
+        expandedStateDescription = tr("收藏夹列表已展开"), halfExpandedStateDescription = tr("收藏夹列表半展开"),
         header = {
-            IconButton(onClick = onDismiss, enabled = !busy, modifier = Modifier.align(Alignment.CenterStart)) { Icon(Icons.Rounded.Close, "取消") }
-            Text("加入收藏夹", style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Center))
-            IconButton(onClick = onDismiss, enabled = !busy, modifier = Modifier.align(Alignment.CenterEnd)) { Icon(Icons.Rounded.Check, "完成", tint = MiuixTheme.colorScheme.primary) }
+            IconButton(onClick = onDismiss, enabled = !busy, modifier = Modifier.align(Alignment.CenterStart)) { Icon(Icons.Rounded.Close, tr("取消")) }
+            Text(tr("加入收藏夹"), style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Center))
+            IconButton(onClick = onDismiss, enabled = !busy, modifier = Modifier.align(Alignment.CenterEnd)) { Icon(Icons.Rounded.Check, tr("完成"), tint = MiuixTheme.colorScheme.primary) }
         },
     ) { topInset ->
         LazyColumn(
@@ -51,8 +53,8 @@ fun CollectionPickerSheet(repository: SongCollectionRepository, entry: Collectio
             else if (collections.orEmpty().isEmpty()) item("empty") {
                 CollectionEmptyState(
                     Icons.Rounded.FolderOpen,
-                    "还没有收藏夹",
-                    "前往主页的「收藏夹」新建一个，再回来收下这张谱面。",
+                    tr("还没有收藏夹"),
+                    tr("前往主页的「收藏夹」新建一个，再回来收下这张谱面。"),
                     Modifier.fillParentMaxSize(),
                 )
             }
@@ -69,7 +71,7 @@ fun CollectionPickerSheet(repository: SongCollectionRepository, entry: Collectio
                                 error = null
                                 try { repository.setMembership(collection.id, chart, included) }
                                 catch (cancelled: CancellationException) { throw cancelled }
-                                catch (failure: Exception) { error = failure.message ?: "保存失败，请重试" }
+                                catch (failure: Exception) { error = failure.message ?: tr("保存失败，请重试") }
                                 finally { busy = false }
                             }
                         }

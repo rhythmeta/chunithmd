@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.collections
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,7 +57,7 @@ internal fun CollectionSummaryCard(collection: SongCollection, previews: List<Co
                         Spacer(Modifier.width(10.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(collection.name, style = MiuixTheme.textStyles.body1, maxLines = 1)
-                            Text("${collection.entries.size} 张谱面", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 1)
+                            Text(tr("{0} 张谱面", collection.entries.size), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 1)
                         }
                     }
                     if (previews.isNotEmpty()) {
@@ -71,8 +73,8 @@ internal fun CollectionSummaryCard(collection: SongCollection, previews: List<Co
                 Icon(Icons.Rounded.ChevronRight, null, tint = MiuixTheme.colorScheme.onSurfaceVariantActions.copy(alpha = 0.5f))
             }
             CollectionContextMenu(menuExpanded, { menuExpanded = false }) {
-                CollectionMenuItem("分享收藏夹", Icons.Rounded.Share) { menuExpanded = false; onShare() }
-                CollectionMenuItem("删除收藏夹", Icons.Rounded.DeleteOutline, destructive = true) { menuExpanded = false; onDelete() }
+                CollectionMenuItem(tr("分享收藏夹"), Icons.Rounded.Share) { menuExpanded = false; onShare() }
+                CollectionMenuItem(tr("删除收藏夹"), Icons.Rounded.DeleteOutline, destructive = true) { menuExpanded = false; onDelete() }
             }
         }
     }
@@ -108,7 +110,7 @@ internal fun CollectionChartCard(card: CollectionCard, grid: Boolean, jacketBase
             SongCard(song, jacketBaseUrl, localJacketPath, emptyMap(), onClick = onOpen, actualSheet = sheet, onLongClick = { menuExpanded = true })
         }
         CollectionContextMenu(menuExpanded, { menuExpanded = false }) {
-            CollectionMenuItem("移出收藏夹", Icons.Rounded.DeleteOutline, destructive = true) { menuExpanded = false; onDelete() }
+            CollectionMenuItem(tr("移出收藏夹"), Icons.Rounded.DeleteOutline, destructive = true) { menuExpanded = false; onDelete() }
         }
     }
 }
@@ -150,7 +152,7 @@ fun CollectionsHomeCard(modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(modifier.height(140.dp), cornerRadius = 16.dp, insideMargin = PaddingValues(16.dp), onClick = onClick) {
         Icon(Icons.Rounded.Folder, null, modifier = Modifier.size(30.dp), tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
         Spacer(Modifier.height(12.dp))
-        Text("收藏夹", style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
-        Text("整理喜爱的歌曲谱面", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        Text(tr("收藏夹"), style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
+        Text(tr("整理喜爱的歌曲谱面"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
     }
 }

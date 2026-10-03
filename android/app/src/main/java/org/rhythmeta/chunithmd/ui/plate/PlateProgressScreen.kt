@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.plate
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -113,7 +115,7 @@ fun PlateProgressScreen(
     ) {
         when {
             bundle == null -> item("unavailable") {
-                PlateMessage("暂无歌曲目录", "请先在静态数据中下载歌曲目录。")
+                PlateMessage(tr("暂无歌曲目录"), tr("请先在静态数据中下载歌曲目录。"))
             }
             loaded == null -> item("loading") {
                 Box(Modifier.fillMaxWidth().padding(vertical = 64.dp), contentAlignment = Alignment.Center) {
@@ -121,7 +123,7 @@ fun PlateProgressScreen(
                 }
             }
             loaded.groups.isEmpty() -> item("empty") {
-                PlateMessage("暂无牌子进度", "当前服务器没有可用的 BASIC～MASTER 谱面。")
+                PlateMessage(tr("暂无牌子进度"), tr("当前服务器没有可用的 BASIC～MASTER 谱面。"))
             }
             else -> {
                 item("summary") { PlateSummary(loaded, difficulty) }
@@ -133,22 +135,22 @@ fun PlateProgressScreen(
                     ) {
                         Column {
                             WindowDropdownPreference(
-                                title = "版本", items = loaded.groups.map { it.name },
+                                title = tr("版本"), items = loaded.groups.map { it.name },
                                 selectedIndex = loaded.groups.indexOf(loaded.selectedGroup).coerceAtLeast(0),
                                 onSelectedIndexChange = { index -> scope.launch { preferencesRepository.setVersion(loaded.groups[index].version) } },
                             )
                             WindowDropdownPreference(
-                                title = "牌子类型", items = PlateType.entries.map { "${it.title} · ${it.requirement}" },
+                                title = tr("牌子类型"), items = PlateType.entries.map { "${it.title} · ${it.requirement}" },
                                 selectedIndex = PlateType.entries.indexOf(plateType),
                                 onSelectedIndexChange = { index -> scope.launch { preferencesRepository.setPlateType(PlateType.entries[index]) } },
                             )
                             WindowDropdownPreference(
-                                title = "展示难度", items = listOf("全部难度") + PlateProgressCalculator.difficulties.map { it.uppercase() },
+                                title = tr("展示难度"), items = listOf(tr("全部难度")) + PlateProgressCalculator.difficulties.map { it.uppercase() },
                                 selectedIndex = difficulty?.let { PlateProgressCalculator.difficulties.indexOf(it) + 1 } ?: 0,
                                 onSelectedIndexChange = { index -> scope.launch { preferencesRepository.setDifficulty(PlateProgressCalculator.difficulties.getOrNull(index - 1)) } },
                             )
                             SwitchPreference(
-                                title = "只看未完成", checked = remainingOnly,
+                                title = tr("只看未完成"), checked = remainingOnly,
                                 onCheckedChange = { value -> scope.launch { preferencesRepository.setRemainingOnly(value) } },
                             )
                         }
@@ -156,7 +158,7 @@ fun PlateProgressScreen(
                 }
                 if (sections.isEmpty()) {
                     item("no-charts") {
-                        PlateMessage("没有符合条件的谱面", if (remainingOnly) "当前展示范围内没有未完成谱面。" else "试试切换展示难度。")
+                        PlateMessage(tr("没有符合条件的谱面"), if (remainingOnly) tr("当前展示范围内没有未完成谱面。") else tr("试试切换展示难度。"))
                     }
                 }
                 sections.forEach { section ->
@@ -216,9 +218,9 @@ private fun PlateSummary(response: PlateProgressResponse, difficulty: String?) {
             }
             PlateProgressBar(response.progress, accent)
             Row(Modifier.fillMaxWidth()) {
-                PlateMetric("已完成", completedCount, Modifier.weight(1f))
-                PlateMetric("未完成", charts.size - completedCount, Modifier.weight(1f))
-                PlateMetric(difficulty?.let { "${it.uppercase()} 谱面" } ?: "总谱面", charts.size, Modifier.weight(1f))
+                PlateMetric(tr("已完成"), completedCount, Modifier.weight(1f))
+                PlateMetric(tr("未完成"), charts.size - completedCount, Modifier.weight(1f))
+                PlateMetric(difficulty?.let { tr("{0} 谱面", it.uppercase()) } ?: tr("总谱面"), charts.size, Modifier.weight(1f))
             }
         }
     }
@@ -246,7 +248,7 @@ private fun PlateSectionHeader(section: PlateLevelSection, plateType: PlateType)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Lv. ${section.level}", style = MiuixTheme.textStyles.title4, fontWeight = FontWeight.Bold)
             Text(
-                "${section.completedCount} / ${section.charts.size} 已完成",
+                tr("{0} / {1} 已完成", section.completedCount, section.charts.size),
                 modifier = Modifier.padding(start = 10.dp), style = MiuixTheme.textStyles.footnote1,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
@@ -266,7 +268,7 @@ private fun PlateJacket(
 ) {
     val accent = plateColor(plateType)
     val title = CatalogSongFormatter.displayTitle(chart.song)
-    val status = if (chart.achieved) "已完成" else "未完成"
+    val status = if (chart.achieved) tr("已完成") else tr("未完成")
     val imageModel = remember(chart.song.imageName, jacketBaseUrl, localJacketPath) {
         localJacketPath(chart.song.imageName)?.let(::File)
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${chart.song.imageName.trimStart('/')}" }
@@ -336,7 +338,7 @@ fun PlateProgressHomeCard(modifier: Modifier = Modifier, onClick: () -> Unit) {
     ) {
         Icon(Icons.Rounded.EmojiEvents, contentDescription = null, modifier = Modifier.size(30.dp), tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
         Spacer(Modifier.height(12.dp))
-        Text("牌子进度", style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
-        Text("查看各版本牌子达成情况", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        Text(tr("牌子进度"), style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
+        Text(tr("查看各版本牌子达成情况"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
     }
 }

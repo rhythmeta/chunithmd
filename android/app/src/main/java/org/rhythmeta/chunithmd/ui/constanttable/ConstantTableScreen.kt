@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.constanttable
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -196,7 +198,7 @@ fun ConstantTableScreen(
                     ) {
                         if (isExporting) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                         else Icon(Icons.Rounded.Image, contentDescription = null, modifier = Modifier.size(20.dp))
-                        Text(if (isExporting) "正在生成图片" else "导出定数表图片", modifier = Modifier.padding(start = 8.dp))
+                        Text(if (isExporting) tr("正在生成图片") else tr("导出定数表图片"), modifier = Modifier.padding(start = 8.dp))
                     }
                 }
                 sections.forEachIndexed { index, section ->
@@ -231,7 +233,7 @@ fun ConstantTableToolbarActions(
     IconButton(onClick = onFilter) {
         Icon(
             Icons.Rounded.FilterList,
-            contentDescription = "筛选",
+            contentDescription = tr("筛选"),
             tint = if (filterActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurface,
         )
     }
@@ -245,7 +247,7 @@ private fun ConstantTableSettings(
     onSelectBaseLevel: (Int) -> Unit,
     onIncludeScoresChange: (Boolean) -> Unit,
 ) {
-    SmallTitle(text = "定数范围", insideMargin = PaddingValues(horizontal = 4.dp, vertical = 6.dp))
+    SmallTitle(text = tr("定数范围"), insideMargin = PaddingValues(horizontal = 4.dp, vertical = 6.dp))
     Card(
         modifier = Modifier.fillMaxWidth(),
         cornerRadius = 16.dp,
@@ -256,7 +258,7 @@ private fun ConstantTableSettings(
             WindowDropdownPreference(
                 items = availableBaseLevels.map(::constantTableBaseLevelLabel),
                 selectedIndex = availableBaseLevels.indexOf(selectedBaseLevel).coerceAtLeast(0),
-                title = "定数档位",
+                title = tr("定数档位"),
                 onSelectedIndexChange = { index -> availableBaseLevels.getOrNull(index)?.let(onSelectBaseLevel) },
             )
             Row(
@@ -264,8 +266,8 @@ private fun ConstantTableSettings(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("显示成绩徽标", style = MiuixTheme.textStyles.body1)
-                    Text("在曲绘上显示 Rank、FC/AJ/AJC 和金 FC/铂 FC", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                    Text(tr("显示成绩徽标"), style = MiuixTheme.textStyles.body1)
+                    Text(tr("在曲绘上显示 Rank、FC/AJ/AJC 和金 FC/铂 FC"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                 }
                 Switch(checked = includeScores, onCheckedChange = onIncludeScoresChange)
             }
@@ -283,11 +285,11 @@ private fun ConstantTableSummary(chartCount: Int, sectionCount: Int, filtered: B
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("普通谱面定数表", style = MiuixTheme.textStyles.body1)
-                Text("WE 谱面不纳入统计", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                Text(tr("普通谱面定数表"), style = MiuixTheme.textStyles.body1)
+                Text(tr("WE 谱面不纳入统计"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
             Text(
-                text = "$chartCount 张谱面 · $sectionCount 个定数${if (filtered) " · 已筛选" else ""}",
+                text = tr("{0} 张谱面 · {1} 个定数{2}", chartCount, sectionCount, if (filtered) tr(" · 已筛选") else ""),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantActions,
             )
@@ -308,7 +310,7 @@ private fun ConstantTableSectionView(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(section.constantLabel, style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold, color = levelColor)
-            Text("${section.entries.size} 张谱面", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(start = 8.dp))
+            Text(tr("{0} 张谱面", section.entries.size), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(start = 8.dp))
         }
         Column(
             modifier = Modifier
@@ -380,7 +382,7 @@ private fun ConstantTableJacket(
 @Composable
 private fun ConstantTableBadge(text: String, color: Color, compact: Boolean = false) {
     Text(
-        text = text,
+        text = tr(text),
         color = Color.White,
         style = MiuixTheme.textStyles.footnote2.copy(fontSize = if (compact) 6.sp else 7.sp),
         fontWeight = FontWeight.Bold,
@@ -397,8 +399,8 @@ private fun ConstantTableEmpty() {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(Icons.Rounded.GridView, contentDescription = null, tint = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.size(34.dp))
-        Text("没有可用的定数数据", style = MiuixTheme.textStyles.title3)
-        Text("请先更新歌曲目录，或调整筛选条件。", style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        Text(tr("没有可用的定数数据"), style = MiuixTheme.textStyles.title3)
+        Text(tr("请先更新歌曲目录，或调整筛选条件。"), style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
     }
 }
 
@@ -451,7 +453,7 @@ private suspend fun shareConstantTable(
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             },
-            "分享定数表",
+            tr("分享定数表"),
         ),
     )
 }
@@ -494,8 +496,8 @@ fun ConstantTableHomeCard(modifier: Modifier = Modifier, onClick: () -> Unit) {
         Icon(Icons.Rounded.GridView, contentDescription = null, modifier = Modifier.size(30.dp), tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
         Spacer(Modifier.size(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("定数表", style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
-            Text("按定数查看全部谱面", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 2)
+            Text(tr("定数表"), style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
+            Text(tr("按定数查看全部谱面"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 2)
         }
     }
 }

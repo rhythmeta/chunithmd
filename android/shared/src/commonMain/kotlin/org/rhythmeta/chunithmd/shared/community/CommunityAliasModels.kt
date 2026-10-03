@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared.community
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import kotlinx.serialization.Serializable
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 
@@ -27,16 +29,16 @@ data class CommunitySubmitResult(
     val quotaRemaining: Int? = null,
 ) {
     val displayMessage: String get() = when (status) {
-        "created" -> "投稿成功，已进入社区投票；你现在可以用这个别名搜索歌曲。"
-        "quota_exceeded" -> "今日投稿次数已用完，请明天再试。"
-        "unauthenticated" -> "请先登录 Rhythmeta 账户。"
-        "invalid_request" -> "请输入 1–64 个字符的有效别名。"
+        "created" -> tr("投稿成功，已进入社区投票；你现在可以用这个别名搜索歌曲。")
+        "quota_exceeded" -> tr("今日投稿次数已用完，请明天再试。")
+        "unauthenticated" -> tr("请先登录 Rhythmeta 账户。")
+        "invalid_request" -> tr("请输入 1–64 个字符的有效别名。")
         "rejected_duplicate" -> when (duplicateReason) {
-            "lxns_existing" -> "曲库中已存在这个别名。"
-            "admin_rejected_locked" -> "这个别名已被管理员驳回，暂时不能再次投稿。"
-            else -> "社区中已存在这个别名或相同投稿。"
+            "lxns_existing" -> tr("曲库中已存在这个别名。")
+            "admin_rejected_locked" -> tr("这个别名已被管理员驳回，暂时不能再次投稿。")
+            else -> tr("社区中已存在这个别名或相同投稿。")
         }
-        else -> "投稿失败，请稍后重试。"
+        else -> tr("投稿失败，请稍后重试。")
     }
 }
 

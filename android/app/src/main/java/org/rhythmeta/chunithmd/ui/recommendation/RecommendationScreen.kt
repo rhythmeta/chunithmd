@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.recommendation
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -106,7 +108,7 @@ fun RecommendationScreen(
 
     if (bundle == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("需要先下载歌曲目录", color = MiuixTheme.colorScheme.onBackgroundVariant)
+            Text(tr("需要先下载歌曲目录"), color = MiuixTheme.colorScheme.onBackgroundVariant)
         }
         return
     }
@@ -137,9 +139,9 @@ fun RecommendationScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Text("暂时没有可吃分的谱面", style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold)
+                    Text(tr("暂时没有可吃分的谱面"), style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
-                    Text("先录入成绩，或提高当前谱面的分数", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                    Text(tr("先录入成绩，或提高当前谱面的分数"), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                 }
             }
         } else {
@@ -212,7 +214,7 @@ private fun RecommendationRow(
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (currentRank == null) {
-                        Text("未游玩", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                        Text(tr("未游玩"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                     } else {
                         Text(
                             currentRank,
@@ -244,7 +246,7 @@ private fun RecommendationRow(
                     color = RecommendationAccent,
                 )
                 Text(
-                    "目标 ${result.targetRank}",
+                    tr("目标 {0}", result.targetRank),
                     style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),
                     fontWeight = FontWeight.Bold,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
@@ -266,7 +268,7 @@ fun RecommendationPageSwitcher(
         exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
     ) {
         TabRowWithContour(
-            tabs = listOf("新曲推荐", "旧曲推荐"),
+            tabs = listOf(tr("新曲推荐"), tr("旧曲推荐")),
             selectedTabIndex = selectedPage,
             onTabSelected = onSelectedPageChange,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
@@ -291,8 +293,8 @@ fun RecommendationHomeCard(
         Icon(Icons.AutoMirrored.Rounded.TrendingUp, contentDescription = null, modifier = Modifier.size(30.dp), tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
         Spacer(Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("吃分推荐", style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
-            Text("定数拟合分析", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 2)
+            Text(tr("吃分推荐"), style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
+            Text(tr("定数拟合分析"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, maxLines = 2)
         }
     }
 }

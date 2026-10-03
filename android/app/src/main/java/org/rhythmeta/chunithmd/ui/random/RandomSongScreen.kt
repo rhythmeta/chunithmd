@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.random
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
@@ -199,7 +201,7 @@ internal fun RandomSongScreen(
 
     if (bundle == null || catalog.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("需要先下载歌曲目录", color = MiuixTheme.colorScheme.onBackgroundVariant)
+            Text(tr("需要先下载歌曲目录"), color = MiuixTheme.colorScheme.onBackgroundVariant)
         }
     } else {
         Column(
@@ -216,7 +218,7 @@ internal fun RandomSongScreen(
                 verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
                 TabRowWithContour(
-                    tabs = listOf("一次 3 首", "一次 4 首"),
+                    tabs = listOf(tr("一次 3 首"), tr("一次 4 首")),
                     selectedTabIndex = sessionState.songCount - 3,
                     onTabSelected = { index ->
                         val nextCount = index + 3
@@ -271,7 +273,7 @@ internal fun RandomSongScreen(
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(Modifier.size(8.dp))
-                    Text(if (isSpinning) "直接跳过" else "立刻随机抽取")
+                    Text(if (isSpinning) tr("直接跳过") else tr("立刻随机抽取"))
                 }
             }
             AnimatedVisibility(
@@ -288,7 +290,7 @@ internal fun RandomSongScreen(
                 ) {
                     item {
                         Text(
-                            text = "抽选结果",
+                            text = tr("抽选结果"),
                             style = MiuixTheme.textStyles.footnote1,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             modifier = Modifier.padding(start = 8.dp, bottom = 4.dp),
@@ -353,7 +355,7 @@ private fun RandomSlotColumn(
                     modifier = Modifier.size(34.dp),
                     tint = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.22f),
                 )
-                Text("准备好了吗？", style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.34f))
+                Text(tr("准备好了吗？"), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.34f))
             }
         } else {
             Column(
@@ -412,13 +414,13 @@ internal fun RandomSongHomeCard(
         Spacer(Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                "随机歌曲",
+                tr("随机歌曲"),
                 style = MiuixTheme.textStyles.body1,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                 maxLines = 2,
             )
             Text(
-                "老虎机式随机抽曲",
+                tr("老虎机式随机抽曲"),
                 style = MiuixTheme.textStyles.footnote1,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 maxLines = 2,

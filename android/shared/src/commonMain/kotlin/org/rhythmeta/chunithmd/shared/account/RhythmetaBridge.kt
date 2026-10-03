@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared.account
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -22,7 +24,7 @@ class RhythmetaBridge(secrets: RhythmetaSecretStore, files: SnapshotFiles, clien
         state=state.copy(busy=true,error=null);emit()
         scope.launch {
             try { block() }
-            catch(error:Exception) { state=state.copy(error=error.message ?: "操作失败") }
+            catch(error:Exception) { state=state.copy(error=error.message ?: tr("操作失败")) }
             finally { state=state.copy(user=client.session.value?.user,busy=false);emit() }
         }
     }

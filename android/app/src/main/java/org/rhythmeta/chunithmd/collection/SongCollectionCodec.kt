@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.collection
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import java.io.ByteArrayOutputStream
 import java.util.Base64
 import java.util.zip.Deflater
@@ -25,9 +27,9 @@ object SongCollectionCodec {
                     .build()
             })
             .build().toByteArray()
-        require(bytes.size <= MaxRawSize) { "收藏夹过大，无法生成分享码" }
+        require(bytes.size <= MaxRawSize) { tr("收藏夹过大，无法生成分享码") }
         val result = Prefix + Base64.getUrlEncoder().withoutPadding().encodeToString(compress(bytes))
-        require(result.length <= MaxTextSize) { "收藏夹过大，无法生成分享码" }
+        require(result.length <= MaxTextSize) { tr("收藏夹过大，无法生成分享码") }
         return result
     }
 
@@ -39,7 +41,7 @@ object SongCollectionCodec {
             val compressed = Base64.getUrlDecoder().decode(code.removePrefix(Prefix))
             SongCollectionShare.parseFrom(decompress(compressed))
         } catch (error: Exception) {
-            throw IllegalArgumentException("分享码不完整或已损坏", error)
+            throw IllegalArgumentException(tr("分享码不完整或已损坏"), error)
         }
         return CollectionExport(message.name, message.entriesList.map {
             CollectionEntry(it.songId, it.chartType, it.difficulty)
@@ -68,11 +70,11 @@ object SongCollectionCodec {
             val buffer = ByteArray(8192)
             while (!inflater.finished()) {
                 val count = inflater.inflate(buffer)
-                require(count > 0 || inflater.finished()) { "分享码不完整或已损坏" }
-                require(output.size() + count <= MaxRawSize) { "收藏夹数据过大" }
+                require(count > 0 || inflater.finished()) { tr("分享码不完整或已损坏") }
+                require(output.size() + count <= MaxRawSize) { tr("收藏夹数据过大") }
                 output.write(buffer, 0, count)
             }
-            require(inflater.remaining == 0) { "分享码含有多余数据" }
+            require(inflater.remaining == 0) { tr("分享码含有多余数据") }
             output.toByteArray()
         } finally {
             inflater.end()

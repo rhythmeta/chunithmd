@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.settings
 
+import org.rhythmeta.chunithmd.shared.localization.tr
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +37,8 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -45,6 +49,7 @@ fun StaticResourcesScreen(
     manifest: StaticManifest?,
     sync: CatalogSyncState,
     error: String?,
+    topAppBarScrollBehavior: ScrollBehavior,
     onCheck: () -> Unit,
     onDownload: () -> Unit,
 ) {
@@ -58,7 +63,7 @@ fun StaticResourcesScreen(
     )
     val isDownloading = sync.stage == CatalogSyncStage.Downloading
     val hasError = error != null || sync.stage == CatalogSyncStage.Failed
-    val updateAvailable = sync.message == "发现可用更新"
+    val updateAvailable = sync.updateAvailable
     val upToDate = manifest != null && !isSyncing && !hasError && !updateAvailable
     val statusIcon = when {
         hasError -> Icons.Rounded.ErrorOutline
@@ -80,29 +85,29 @@ fun StaticResourcesScreen(
         else -> MiuixTheme.colorScheme.onSurface
     }
     val statusTitle = when {
-        hasError -> "检查失败：${error.orEmpty()}"
-        sync.stage == CatalogSyncStage.Checking -> "正在检查更新…"
-        sync.stage == CatalogSyncStage.Downloading -> "正在下载静态数据…"
-        sync.stage == CatalogSyncStage.Validating -> "正在校验静态数据…"
-        sync.stage == CatalogSyncStage.Applying -> "正在应用静态数据…"
-        updateAvailable -> "发现可用更新"
-        upToDate -> "已是最新静态数据"
-        else -> "准备检查更新"
+        hasError -> tr("检查失败：{0}", error.orEmpty())
+        sync.stage == CatalogSyncStage.Checking -> tr("正在检查更新…")
+        sync.stage == CatalogSyncStage.Downloading -> tr("正在下载静态数据…")
+        sync.stage == CatalogSyncStage.Validating -> tr("正在校验静态数据…")
+        sync.stage == CatalogSyncStage.Applying -> tr("正在应用静态数据…")
+        updateAvailable -> tr("发现可用更新")
+        upToDate -> tr("已是最新静态数据")
+        else -> tr("准备检查更新")
     }
     val statusDescription = when {
-        hasError -> "请检查网络或后端状态后重试。"
-        sync.stage == CatalogSyncStage.Checking -> "正在从后端获取最新清单。"
-        sync.stage == CatalogSyncStage.Downloading -> "正在下载目录和封面资源。"
-        sync.stage == CatalogSyncStage.Validating -> "正在校验下载内容。"
-        sync.stage == CatalogSyncStage.Applying -> "正在保存本地静态数据。"
-        updateAvailable -> "点击下方按钮下载并应用完整更新。"
-        upToDate -> "当前本地数据与服务端最新版本一致。"
-        else -> "进入页面后会自动检查静态数据更新。"
+        hasError -> tr("请检查网络或后端状态后重试。")
+        sync.stage == CatalogSyncStage.Checking -> tr("正在从后端获取最新清单。")
+        sync.stage == CatalogSyncStage.Downloading -> tr("正在下载目录和封面资源。")
+        sync.stage == CatalogSyncStage.Validating -> tr("正在校验下载内容。")
+        sync.stage == CatalogSyncStage.Applying -> tr("正在保存本地静态数据。")
+        updateAvailable -> tr("点击下方按钮下载并应用完整更新。")
+        upToDate -> tr("当前本地数据与服务端最新版本一致。")
+        else -> tr("进入页面后会自动检查静态数据更新。")
     }
     val actionTitle = when {
-        updateAvailable -> "下载并更新"
-        upToDate -> "重新安装当前版本"
-        else -> "立即更新"
+        updateAvailable -> tr("下载并更新")
+        upToDate -> tr("重新安装当前版本")
+        else -> tr("立即更新")
     }
     val actionIcon: ImageVector = when {
         updateAvailable -> Icons.Rounded.ArrowDownward
@@ -110,96 +115,103 @@ fun StaticResourcesScreen(
         else -> Icons.Rounded.Sync
     }
 
-    LazyColumn(
+    PullToRefresh(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 96.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        isRefreshing = isSyncing,
+        onRefresh = { if (!isSyncing) onCheck() },
+        topAppBarScrollBehavior = topAppBarScrollBehavior,
     ) {
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                cornerRadius = 16.dp,
-                insideMargin = PaddingValues(16.dp),
-                colors = CardDefaults.defaultColors(
-                    color = statusCardColor,
-                    contentColor = statusContentColor,
-                ),
-            ) {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .offset(x = 65.dp, y = 35.dp),
-                        contentAlignment = Alignment.BottomEnd,
-                    ) {
-                        Icon(
-                            imageVector = statusIcon,
-                            contentDescription = null,
-                            tint = statusContentColor.copy(alpha = 0.18f),
-                            modifier = Modifier.size(132.dp),
-                        )
-                    }
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(end = 64.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(text = statusTitle, style = MiuixTheme.textStyles.title3)
-                        Text(
-                            text = statusDescription,
-                            style = MiuixTheme.textStyles.body2,
-                            color = statusContentColor.copy(alpha = 0.82f),
-                        )
-                        manifest?.let {
-                            Text(
-                                text = "版本：${it.version} · 构建：${it.createdAt.ifBlank { "未知时间" }}",
-                                style = MiuixTheme.textStyles.footnote2,
-                                color = statusContentColor.copy(alpha = 0.68f),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 96.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    cornerRadius = 16.dp,
+                    insideMargin = PaddingValues(16.dp),
+                    colors = CardDefaults.defaultColors(
+                        color = statusCardColor,
+                        contentColor = statusContentColor,
+                    ),
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .offset(x = 65.dp, y = 35.dp),
+                            contentAlignment = Alignment.BottomEnd,
+                        ) {
+                            Icon(
+                                imageVector = statusIcon,
+                                contentDescription = null,
+                                tint = statusContentColor.copy(alpha = 0.18f),
+                                modifier = Modifier.size(132.dp),
                             )
+                        }
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(end = 64.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(text = statusTitle, style = MiuixTheme.textStyles.title3)
+                            Text(
+                                text = statusDescription,
+                                style = MiuixTheme.textStyles.body2,
+                                color = statusContentColor.copy(alpha = 0.82f),
+                            )
+                            manifest?.let {
+                                Text(
+                                    text = tr("版本：{0} · 构建：{1}", it.version, it.createdAt.ifBlank { tr("未知时间") }),
+                                    style = MiuixTheme.textStyles.footnote2,
+                                    color = statusContentColor.copy(alpha = 0.68f),
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
-        item {
-            SmallTitle(
-                text = "更新操作",
-                insideMargin = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
-            )
-        }
-        item {
-            if (isSyncing) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    val downloadProgress = sync.progress
-                    if (isDownloading && downloadProgress != null) {
-                        LinearProgressIndicator(
-                            progress = downloadProgress.coerceIn(0f, 1f),
-                            modifier = Modifier.fillMaxWidth(),
+            item {
+                SmallTitle(
+                    text = tr("更新操作"),
+                    insideMargin = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+                )
+            }
+            item {
+                if (isSyncing) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        val downloadProgress = sync.progress
+                        if (isDownloading && downloadProgress != null) {
+                            LinearProgressIndicator(
+                                progress = downloadProgress.coerceIn(0f, 1f),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        } else {
+                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        }
+                        Text(
+                            text = sync.message ?: tr("正在检查更新…"),
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         )
-                    } else {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
-                    Text(
-                        text = sync.message ?: "正在检查更新…",
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    )
-                }
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StaticResourcesActionButton(
-                        title = actionTitle,
-                        icon = actionIcon,
-                        primary = true,
-                        onClick = onDownload,
-                    )
-                    StaticResourcesActionButton(
-                        title = "重新检查更新",
-                        icon = Icons.Rounded.Search,
-                        onClick = onCheck,
-                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        StaticResourcesActionButton(
+                            title = actionTitle,
+                            icon = actionIcon,
+                            primary = true,
+                            onClick = onDownload,
+                        )
+                        StaticResourcesActionButton(
+                            title = tr("重新检查更新"),
+                            icon = Icons.Rounded.Search,
+                            onClick = onCheck,
+                        )
+                    }
                 }
             }
         }
