@@ -47,6 +47,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -757,6 +758,7 @@ private fun ChartDetailCard(
     onAddToCollection: () -> Unit,
 ) {
     var expanded by rememberSaveable(song.songId, sheet.type, sheet.difficulty) { mutableStateOf(false) }
+    val bestRecord = records.bestScore()
     val chevronRotation by animateFloatAsState(
         targetValue = if (expanded) 90f else 0f,
         animationSpec = tween(durationMillis = 180),
@@ -836,6 +838,10 @@ private fun ChartDetailCard(
                         )
                     }
             }
+            if (!expanded && bestRecord != null) {
+                ChartScorePreview(bestRecord, accentColor)
+                Spacer(Modifier.width(8.dp))
+            }
             MiuixText(
                 levelLabel,
                 style = MiuixTheme.textStyles.title3.copy(brush = chartTextBrush),
@@ -860,7 +866,7 @@ private fun ChartDetailCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 ScoreSummarySection(
-                    bestRecord = records.bestScore(),
+                    bestRecord = bestRecord,
                     accentColor = accentColor,
                 )
                 NoteCountSection(
@@ -1073,13 +1079,30 @@ private fun ScoreSummarySection(
 }
 
 @Composable
+private fun ChartScorePreview(record: ScoreRecord, accentColor: Color) {
+    Column(
+        modifier = Modifier.widthIn(max = 120.dp),
+        horizontalAlignment = Alignment.End,
+    ) {
+        MiuixText(
+            text = formatScore(record.score),
+            style = MiuixTheme.textStyles.body2,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+        )
+        RecordStatusBadges(record = record, accentColor = accentColor, showClear = false)
+    }
+}
+
+@Composable
 private fun RecordStatusBadges(
     record: ScoreRecord,
     accentColor: Color,
     modifier: Modifier = Modifier,
+    showClear: Boolean = true,
 ) {
     val statuses = buildList {
-        add(ClearType.displayName(record.clear) to accentColor)
+        if (showClear) add(ClearType.displayName(record.clear) to accentColor)
         FullComboType.displayName(record.fullCombo)?.let { add(it to Color(0xFFFFB300)) }
         FullChainType.displayName(record.fullChain)?.let { add(it to Color(0xFFB7C4D6)) }
     }
