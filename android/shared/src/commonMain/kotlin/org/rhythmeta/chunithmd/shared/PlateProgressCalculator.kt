@@ -3,7 +3,7 @@ package org.rhythmeta.chunithmd.shared
 enum class PlateType(val title: String, val requirement: String) {
     Spirit("Spirit", "RANK S"),
     Tribute("Tribute", "RANK SSS"),
-    Legend("Legend", "ALL JUSTICE"),
+    Legend("Legend", "AJ"),
     ;
 
     fun isAchieved(record: ScoreRecord): Boolean = when (this) {

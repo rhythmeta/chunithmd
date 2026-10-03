@@ -9,8 +9,8 @@ class ScoreQueryCalculatorTest {
         assertEquals("FC", displayFullCombo("fc+"))
         assertEquals("AJ", displayFullCombo("ap"))
         assertEquals("AJC", displayFullCombo("ap+"))
-        assertEquals("铂 FULL CHAIN", displayFullChain("fs+"))
-        assertEquals("金FULL CHAIN", displayFullChain("fdx+"))
+        assertEquals("铂 FC", displayFullChain("fs+"))
+        assertEquals("金 FC", displayFullChain("fdx+"))
     }
 
     @Test
@@ -39,7 +39,7 @@ class ScoreQueryCalculatorTest {
                 difficulties = setOf("master"),
                 ranks = setOf("SSS+"),
                 fullCombos = setOf("AJ"),
-                fullChains = setOf("金FULL CHAIN"),
+                fullChains = setOf("金 FC"),
             ),
             sortMode = ScoreQuerySortMode.Rating,
             ascending = false,

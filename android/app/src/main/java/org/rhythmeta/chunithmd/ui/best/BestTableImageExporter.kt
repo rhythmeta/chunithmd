@@ -356,12 +356,7 @@ internal object BestTableImageExporter {
             null -> Color.LTGRAY
         }
 
-        private fun comboBadgeText(value: String): String = when (FullComboType.fromWire(value)) {
-            FullComboType.AllJusticeCritical -> "AJC"
-            FullComboType.AllJustice -> "AJ"
-            FullComboType.FullCombo -> "FC"
-            null -> value.trim().uppercase()
-        }
+        private fun comboBadgeText(value: String): String = FullComboType.displayName(value).orEmpty()
 
         private fun chainColor(value: String): Int = when (FullChainType.fromWire(value)) {
             FullChainType.FullChain -> Color.rgb(183, 196, 214)

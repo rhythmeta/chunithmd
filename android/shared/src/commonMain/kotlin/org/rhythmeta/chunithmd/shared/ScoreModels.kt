@@ -26,13 +26,13 @@ enum class FullComboType(
     val displayName: String,
 ) {
     AllJusticeCritical("alljusticecritical", "AJC"),
-    AllJustice("alljustice", "ALL JUSTICE"),
-    FullCombo("fullcombo", "FULL COMBO"),
+    AllJustice("alljustice", "AJ"),
+    FullCombo("fullcombo", "FC"),
     ;
 
     companion object {
         fun fromWire(value: String?): FullComboType? = entries.firstOrNull { it.wireValue.equals(value, true) }
-        fun displayName(value: String?): String? = entries.firstOrNull { it.wireValue.equals(value, true) }?.displayName
+        fun displayName(value: String?): String? = displayFullCombo(value)
             ?: value?.trim()?.takeIf(String::isNotEmpty)?.uppercase()
     }
 }
@@ -41,13 +41,13 @@ enum class FullChainType(
     val wireValue: String,
     val displayName: String,
 ) {
-    FullChain("fullchain", "铂 FULL CHAIN"),
-    FullChain2("fullchain2", "金 FULL CHAIN"),
+    FullChain("fullchain", "铂 FC"),
+    FullChain2("fullchain2", "金 FC"),
     ;
 
     companion object {
         fun fromWire(value: String?): FullChainType? = entries.firstOrNull { it.wireValue.equals(value, true) }
-        fun displayName(value: String?): String? = entries.firstOrNull { it.wireValue.equals(value, true) }?.displayName
+        fun displayName(value: String?): String? = displayFullChain(value)
             ?: value?.trim()?.takeIf(String::isNotEmpty)?.uppercase()
     }
 }

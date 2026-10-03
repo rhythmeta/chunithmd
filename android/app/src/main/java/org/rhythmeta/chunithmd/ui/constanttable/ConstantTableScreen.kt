@@ -265,7 +265,7 @@ private fun ConstantTableSettings(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("显示成绩徽标", style = MiuixTheme.textStyles.body1)
-                    Text("在曲绘上显示 Rank、FC/AJ/AJC 和 FULL CHAIN", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                    Text("在曲绘上显示 Rank、FC/AJ/AJC 和金 FC/铂 FC", style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                 }
                 Switch(checked = includeScores, onCheckedChange = onIncludeScoresChange)
             }

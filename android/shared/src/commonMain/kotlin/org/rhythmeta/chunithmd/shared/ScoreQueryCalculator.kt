@@ -119,15 +119,15 @@ fun filterAndSortScoreQueryEntries(
 }
 
 fun displayFullCombo(value: String?): String? = when (normalizeStatus(value)) {
-    "fc", "fc+", "fullcombo", "fullcombo+" -> "FC"
-    "aj", "ap", "alljustice" -> "AJ"
-    "ajc", "ap+", "alljusticecritical" -> "AJC"
+    "fc", "fc+", "fullcombo", "fullcombo+" -> FullComboType.FullCombo.displayName
+    "aj", "ap", "alljustice" -> FullComboType.AllJustice.displayName
+    "ajc", "ap+", "alljusticecritical" -> FullComboType.AllJusticeCritical.displayName
     else -> null
 }
 
 fun displayFullChain(value: String?): String? = when (normalizeStatus(value)) {
-    "fs", "fs+", "fullchain", "铂fullchain" -> "铂 FULL CHAIN"
-    "fdx", "fdx+", "fullchain2", "fullchainplus2", "金fullchain" -> "金FULL CHAIN"
+    "fs", "fs+", "fullchain", "铂fullchain", "铂fc" -> FullChainType.FullChain.displayName
+    "fdx", "fdx+", "fullchain2", "fullchainplus2", "金fullchain", "金fc" -> FullChainType.FullChain2.displayName
     else -> null
 }
 
@@ -139,8 +139,8 @@ private fun canonicalFullCombo(value: String?): String? = when (displayFullCombo
 }
 
 private fun canonicalFullChain(value: String?): String? = when (displayFullChain(value)) {
-    "铂 FULL CHAIN" -> "fs"
-    "金FULL CHAIN" -> "fdx"
+    "铂 FC" -> "fs"
+    "金 FC" -> "fdx"
     else -> null
 }
 
@@ -152,8 +152,8 @@ private fun calculateScoreQueryStats(entries: List<ScoreQueryEntry>): ScoreQuery
     fcCount = entries.count { displayFullCombo(it.fullCombo) == "FC" },
     ajCount = entries.count { displayFullCombo(it.fullCombo) == "AJ" },
     ajcCount = entries.count { displayFullCombo(it.fullCombo) == "AJC" },
-    platinumFullChainCount = entries.count { displayFullChain(it.fullChain) == "铂 FULL CHAIN" },
-    goldFullChainCount = entries.count { displayFullChain(it.fullChain) == "金FULL CHAIN" },
+    platinumFullChainCount = entries.count { displayFullChain(it.fullChain) == "铂 FC" },
+    goldFullChainCount = entries.count { displayFullChain(it.fullChain) == "金 FC" },
 )
 
 private fun normalizeStatus(value: String?): String = value.orEmpty()

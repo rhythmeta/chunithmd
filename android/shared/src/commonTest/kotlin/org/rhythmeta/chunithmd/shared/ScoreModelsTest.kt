@@ -14,7 +14,7 @@ class ScoreModelsTest {
         assertEquals("AJC", FullComboType.displayName("alljusticecritical"))
         assertNull(FullComboType.fromWire(null))
         assertEquals(FullChainType.FullChain2, FullChainType.fromWire("fullchain2"))
-        assertEquals("金 FULL CHAIN", FullChainType.displayName("fullchain2"))
+        assertEquals("金 FC", FullChainType.displayName("fullchain2"))
         assertNull(FullChainType.displayName(null))
     }
 

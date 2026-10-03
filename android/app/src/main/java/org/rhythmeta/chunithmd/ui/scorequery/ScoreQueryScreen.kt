@@ -535,7 +535,7 @@ private fun Set<String>.toggle(value: String): Set<String> = if (value in this) 
 private val DifficultyOptions = listOf("basic", "advanced", "expert", "master", "ultima", "world's end")
 private val RankOptions = listOf("SSS+", "SSS", "SS+", "SS", "S+", "S", "AAA", "AA", "A", "BBB", "BB", "B", "C", "D")
 private val ComboOptions = listOf("FC", "AJ", "AJC")
-private val ChainOptions = listOf("铂 FULL CHAIN", "金FULL CHAIN")
+private val ChainOptions = listOf("铂 FC", "金 FC")
 
 @Composable private fun difficultyChipColor(value: String): Color = difficultyColor(value)
 @Composable private fun rankColor(value: String): Color = when (value) {
