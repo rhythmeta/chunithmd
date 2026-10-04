@@ -878,6 +878,7 @@ private fun ChartDetailCard(
                 RatingTableSection(
                     constant = sheet.internalLevelValue ?: sheet.levelValue,
                 )
+                ChartScoreToleranceSection(song.songId, sheet, accentColor)
                 if (records.isNotEmpty()) {
                     ScoreHistorySection(
                         records = records,
@@ -1733,7 +1734,7 @@ private fun formatScore(score: Int): String = String.format(Locale.ROOT, "%,d", 
 
 private fun formatRating(rating: Double): String = String.format(Locale.ROOT, "%.2f", rating)
 
-private fun scoreRankColor(rank: String): Color? = when (rank.uppercase(Locale.ROOT)) {
+internal fun scoreRankColor(rank: String): Color? = when (rank.uppercase(Locale.ROOT)) {
     "SSS+", "SSS" -> Color(0xFFFFD900)
     "SS+", "SS" -> Color(0xFFFFBF00)
     "S+", "S" -> Color(0xFFFF9900)

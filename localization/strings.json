@@ -2680,5 +2680,23 @@
     "ja": "標準の順序",
     "zh-Hans": "默认顺序",
     "zh-Hant": "預設順序"
+  },
+  "上限": {
+    "en": "Limit",
+    "ja": "上限",
+    "zh-Hans": "上限",
+    "zh-Hant": "上限"
+  },
+  "各项独立计算，其余音符均为 JUSTICE CRITICAL，不可相加。": {
+    "en": "Each limit is calculated separately with all other notes judged JUSTICE CRITICAL. Limits cannot be combined.",
+    "ja": "各判定の許容数は、残りがすべて JUSTICE CRITICAL の場合です。合算はできません。",
+    "zh-Hans": "各项独立计算，其余音符均为 JUSTICE CRITICAL，不可相加。",
+    "zh-Hant": "各項分開計算，其餘音符均為 JUSTICE CRITICAL，上限不能相加。"
+  },
+  "容错计算器": {
+    "en": "Score tolerance",
+    "ja": "許容判定数計算",
+    "zh-Hans": "容错计算器",
+    "zh-Hant": "容錯計算機"
   }
 }
