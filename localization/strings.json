@@ -2698,5 +2698,29 @@
     "ja": "許容判定数計算",
     "zh-Hans": "容错计算器",
     "zh-Hant": "容錯計算機"
+  },
+  "从剪贴板导入": {
+    "en": "Import from clipboard",
+    "ja": "クリップボードからインポート",
+    "zh-Hans": "从剪贴板导入",
+    "zh-Hant": "從剪貼簿匯入"
+  },
+  "剪贴板为空，请先复制收藏夹链接或分享码": {
+    "en": "Clipboard is empty. Copy a collection link or share code first.",
+    "ja": "クリップボードが空です。先にコレクションのリンクか共有コードをコピーしてください。",
+    "zh-Hans": "剪贴板为空，请先复制收藏夹链接或分享码",
+    "zh-Hant": "剪貼簿是空的，請先複製收藏集連結或分享碼"
+  },
+  "收藏夹导入成功": {
+    "en": "Collection imported",
+    "ja": "コレクションを読み込みました",
+    "zh-Hans": "收藏夹导入成功",
+    "zh-Hant": "收藏集匯入成功"
+  },
+  "收藏夹导入失败": {
+    "en": "Collection import failed",
+    "ja": "コレクションの読み込みに失敗しました",
+    "zh-Hans": "收藏夹导入失败",
+    "zh-Hant": "收藏集匯入失敗"
   }
 }

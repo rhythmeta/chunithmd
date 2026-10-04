@@ -28,7 +28,9 @@ class CollectionsUiState(grid: Boolean = false, sort: CatalogSort = CatalogSort.
     var ascending by mutableStateOf(ascending)
     var createRequested by mutableStateOf(false)
     var importRequested by mutableStateOf(false)
+    var clipboardImportRequested by mutableStateOf(false)
     var importValue by mutableStateOf("")
+    var importedCollectionId by mutableStateOf<String?>(null)
     var renameRequested by mutableStateOf(false)
 }
 
@@ -46,7 +48,7 @@ fun CollectionsToolbarActions(state: CollectionsUiState, detail: Boolean) {
             IconButton(onClick = { menuExpanded = !menuExpanded }) { Icon(Icons.Rounded.Add, tr("添加收藏夹")) }
             WindowListPopup(show = menuExpanded, alignment = PopupPositionProvider.Align.End, enableWindowDim = true, onDismissRequest = { menuExpanded = false }) {
                 ListPopupColumn {
-                    DropdownImpl(tr("导入收藏夹"), optionSize = 2, isSelected = false, index = 0, onSelectedIndexChange = { menuExpanded = false; state.importRequested = true })
+                    DropdownImpl(tr("从剪贴板导入"), optionSize = 2, isSelected = false, index = 0, onSelectedIndexChange = { menuExpanded = false; state.clipboardImportRequested = true })
                     DropdownImpl(tr("新建收藏夹"), optionSize = 2, isSelected = false, index = 1, onSelectedIndexChange = { menuExpanded = false; state.createRequested = true })
                 }
             }

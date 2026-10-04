@@ -3,6 +3,7 @@ package org.rhythmeta.chunithmd.ui.collections
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import android.content.Intent
+import android.content.ClipboardManager
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -54,15 +55,15 @@ fun SongCollectionsScreen(
     val listState = rememberLazyListState()
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    fun perform(action: suspend () -> Unit) {
+    fun perform(failureMessage: String? = null, action: suspend () -> Unit) {
         if (busy) return
+        busy = true
+        error = null
         scope.launch {
-            busy = true
-            error = null
             try { action() }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (failure: Exception) {
-                error = failure.message ?: tr("操作失败，请重试")
+                error = failureMessage ?: failure.message ?: tr("操作失败，请重试")
                 scope.launch { snackbar.showSnackbar(error.orEmpty(), duration = SnackbarDuration.Short) }
             }
             finally { busy = false }
@@ -75,28 +76,33 @@ fun SongCollectionsScreen(
             putExtra(Intent.EXTRA_TEXT, link)
         }, tr("分享收藏夹")))
     }
-    if (collectionId == null && uiState.importRequested) {
-        LaunchedEffect(uiState.importValue) { error = null }
-        CollectionImportDialog(
-            initialValue = uiState.importValue,
-            busy = busy,
-            error = error,
-            onClearError = { error = null },
-            onDismiss = {
-                uiState.importRequested = false
-                uiState.importValue = ""
-                error = null
-            },
-            onImport = { value ->
-                perform {
-                    val source = withContext(Dispatchers.Default) { SongCollectionCodec.decode(value) }
-                    val id = repository.importCollection(source)
-                    uiState.importRequested = false
-                    uiState.importValue = ""
-                    onOpenCollection(id)
+    suspend fun importCollection(value: String) {
+        val source = withContext(Dispatchers.Default) { SongCollectionCodec.decode(value) }
+        val id = repository.importCollection(source)
+        uiState.importedCollectionId = id
+        onOpenCollection(id)
+    }
+    LaunchedEffect(collectionId, uiState.importedCollectionId) {
+        if (collectionId != null && collectionId == uiState.importedCollectionId) {
+            uiState.importedCollectionId = null
+            scope.launch { snackbar.showSnackbar(tr("收藏夹导入成功"), duration = SnackbarDuration.Short) }
+        }
+    }
+    LaunchedEffect(uiState.importRequested, uiState.clipboardImportRequested, collectionId, busy) {
+        if (collectionId == null && (uiState.importRequested || uiState.clipboardImportRequested) && !busy) {
+            val incomingLink = uiState.importValue.takeIf { uiState.importRequested }
+            uiState.importRequested = false
+            uiState.importValue = ""
+            uiState.clipboardImportRequested = false
+            perform(failureMessage = tr("收藏夹导入失败")) {
+                val value = incomingLink ?: run {
+                    val clipboard = context.getSystemService(ClipboardManager::class.java)?.primaryClip
+                    clipboard?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
                 }
-            },
-        )
+                require(!value.isNullOrBlank())
+                importCollection(value)
+            }
+        }
     }
     val cards = remember(collection, bundle, uiState.sort, uiState.ascending, activeServer) {
         collection?.let { collectionCards(it, bundle, uiState.sort, uiState.ascending, activeServer) }.orEmpty()
@@ -120,9 +126,9 @@ fun SongCollectionsScreen(
                     ) { Text(tr("新建收藏夹")) }
                     Button(
                         enabled = !busy,
-                        onClick = { uiState.importRequested = true },
+                        onClick = { uiState.clipboardImportRequested = true },
                         modifier = Modifier.weight(1f),
-                    ) { Text(tr("导入收藏夹")) }
+                    ) { Text(tr("从剪贴板导入")) }
                 }
             }
             collectionId == null -> {
