@@ -147,6 +147,9 @@ import org.rhythmeta.chunithmd.shared.sortForHistory
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.dashedSquircleBorder
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.clearStatusColor
+import org.rhythmeta.chunithmd.ui.components.comboStatusColor
+import org.rhythmeta.chunithmd.ui.components.chainStatusColor
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.Button as MiuixButton
@@ -1555,19 +1558,21 @@ private fun ScoreEntrySheet(
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             ScoreStatusDropdown(
                                 title = tr("CLEAR 状态"),
-                                items = ClearType.entries.map { it.displayName },
+                                items = ClearType.entries.map { ScoreStatusOption(it.displayName, clearStatusColor(it.wireValue)) },
                                 selectedIndex = ClearType.entries.indexOf(ClearType.fromWire(clear)),
                                 onSelectedIndexChange = { index -> clear = ClearType.entries[index].wireValue },
                             )
                             ScoreStatusDropdown(
                                 title = tr("COMBO 状态"),
-                                items = listOf(tr("无")) + FullComboType.entries.map { it.displayName },
+                                items = listOf(ScoreStatusOption(tr("无"), MiuixTheme.colorScheme.onSurfaceVariantSummary)) +
+                                    FullComboType.entries.map { ScoreStatusOption(it.displayName, comboStatusColor(it.wireValue)) },
                                 selectedIndex = fullCombo?.let { value -> FullComboType.entries.indexOf(FullComboType.fromWire(value)) + 1 } ?: 0,
                                 onSelectedIndexChange = { index -> fullCombo = FullComboType.entries.getOrNull(index - 1)?.wireValue },
                             )
                             ScoreStatusDropdown(
                                 title = tr("CHAIN 状态"),
-                                items = listOf(tr("无")) + FullChainType.entries.map { tr(it.displayName) },
+                                items = listOf(ScoreStatusOption(tr("无"), MiuixTheme.colorScheme.onSurfaceVariantSummary)) +
+                                    FullChainType.entries.map { ScoreStatusOption(tr(it.displayName), chainStatusColor(it.wireValue)) },
                                 selectedIndex = fullChain?.let { value -> FullChainType.entries.indexOf(FullChainType.fromWire(value)) + 1 } ?: 0,
                                 onSelectedIndexChange = { index -> fullChain = FullChainType.entries.getOrNull(index - 1)?.wireValue },
                             )
@@ -1609,14 +1614,18 @@ private fun ScoreEntrySheet(
     }
 }
 
+private data class ScoreStatusOption(val label: String, val color: Color)
+
 @Composable
 private fun ScoreStatusDropdown(
     title: String,
-    items: List<String>,
+    items: List<ScoreStatusOption>,
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val selectedOption = items.getOrNull(selectedIndex) ?: items.firstOrNull()
+    val selectedColor = selectedOption?.color ?: MiuixTheme.colorScheme.onSurfaceVariantSummary
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         MiuixText(
             title,
@@ -1638,12 +1647,13 @@ private fun ScoreStatusDropdown(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 MiuixText(
-                    items.getOrElse(selectedIndex) { items.firstOrNull().orEmpty() },
+                    selectedOption?.label.orEmpty(),
                     style = MiuixTheme.textStyles.body1,
                     fontWeight = FontWeight.Medium,
+                    color = selectedColor,
                     modifier = Modifier.weight(1f),
                 )
-                MiuixIcon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(20.dp))
+                MiuixIcon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, tint = selectedColor, modifier = Modifier.size(20.dp))
             }
             WindowListPopup(
                 show = expanded,
@@ -1657,7 +1667,7 @@ private fun ScoreStatusDropdown(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    if (index == selectedIndex) MiuixTheme.colorScheme.primary.copy(alpha = 0.08f)
+                                    if (index == selectedIndex) item.color.copy(alpha = 0.08f)
                                     else Color.Transparent,
                                 )
                                 .selectable(
@@ -1671,9 +1681,9 @@ private fun ScoreStatusDropdown(
                                 .padding(horizontal = 20.dp, vertical = 14.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            MiuixText(item, modifier = Modifier.weight(1f))
+                            MiuixText(item.label, color = item.color, modifier = Modifier.weight(1f))
                             if (index == selectedIndex) {
-                                MiuixIcon(Icons.Rounded.Check, contentDescription = null, tint = MiuixTheme.colorScheme.primary)
+                                MiuixIcon(Icons.Rounded.Check, contentDescription = null, tint = item.color)
                             }
                         }
                     }

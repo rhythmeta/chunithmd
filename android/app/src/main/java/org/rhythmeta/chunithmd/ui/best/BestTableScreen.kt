@@ -80,6 +80,9 @@ import org.rhythmeta.chunithmd.shared.latestPlayableVersion
 import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
 import org.rhythmeta.chunithmd.ui.catalog.ultimaStripedBrush
 import org.rhythmeta.chunithmd.ui.catalog.SongVisualUtils
+import org.rhythmeta.chunithmd.ui.components.clearStatusColor
+import org.rhythmeta.chunithmd.ui.components.comboStatusColor
+import org.rhythmeta.chunithmd.ui.components.chainStatusColor
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
@@ -523,29 +526,6 @@ private fun rankColor(rank: String): Color = when (rank.uppercase(Locale.ROOT)) 
     "AA" -> Color(0xFF99CCFF)
     "A" -> Color(0xFF80E680)
     else -> Color.Unspecified
-}
-
-private fun clearStatusColor(value: String?): Color = when (ClearType.fromWire(value)) {
-    ClearType.Catastrophy -> Color(0xFFAF52DE)
-    ClearType.Absolute -> Color(0xFF007AFF)
-    ClearType.Brave -> Color(0xFF34C759)
-    ClearType.Hard -> Color(0xFFFF9500)
-    ClearType.Clear -> Color(0xFF5AC8FA)
-    ClearType.Failed -> Color(0xFFFF3B30)
-}
-
-private fun comboStatusColor(value: String?): Color = when (FullComboType.fromWire(value)) {
-    FullComboType.AllJusticeCritical,
-    FullComboType.AllJustice,
-    -> Color(0xFFFF9500)
-    FullComboType.FullCombo -> Color(0xFF34C759)
-    null -> Color(0xFF8E8E93)
-}
-
-private fun chainStatusColor(value: String?): Color = when (FullChainType.fromWire(value)) {
-    FullChainType.FullChain -> Color(0xFFB7C4D6)
-    FullChainType.FullChain2 -> Color(0xFFD4A72C)
-    null -> Color(0xFF8E8E93)
 }
 
 private val BestAccent = Color(0xFFFF9500)
