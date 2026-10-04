@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -191,27 +190,48 @@ private fun ThemePreviewCard(settings: AppThemeSettings) {
     val ratio = configuration.screenWidthDp.toFloat() / configuration.screenHeightDp.toFloat()
     val colors = MiuixTheme.colorScheme
     val background = if (settings.colorMode.isAmoled) Color.Black else if (settings.colorMode.isMonet) colors.background else colors.surface
-    val card = if (settings.colorMode.isMonet) colors.surfaceContainerHighest else colors.surfaceVariant
+    val card = colors.surfaceContainer
     Box(Modifier.fillMaxWidth().padding(top = 12.dp), contentAlignment = Alignment.TopCenter) {
         val shape = RoundedCornerShape(20.dp)
         Box(Modifier.fillMaxWidth(0.42f).aspectRatio(ratio).clip(shape).background(background).border(1.dp, colors.outline, shape)) {
-            Column {
-                Text(tr("主页"), color = if (settings.colorMode.isMonet) colors.onSurface else colors.onBackground, modifier = Modifier.padding(start = 12.dp, top = 20.dp))
-                Box(Modifier.fillMaxWidth().height(34.dp).padding(8.dp, 4.dp).background(if (settings.colorMode.isMonet) colors.secondaryContainer else colors.surfaceVariant, RoundedCornerShape(6.dp)))
-                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().padding(8.dp)) {
-                    val rows = if (maxHeight >= 180.dp) 4 else if (maxHeight >= 130.dp) 3 else 2
-                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        repeat(2) { Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) { repeat(rows) { Box(Modifier.fillMaxWidth().weight(1f).background(card, RoundedCornerShape(6.dp))) } } }
+            Column(
+                Modifier.fillMaxSize().padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 2.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(tr("主页"), style = MiuixTheme.textStyles.footnote2, color = colors.onSurface, modifier = Modifier.padding(start = 4.dp))
+                // Profile and Best table, followed by the paired home shortcuts.
+                Box(Modifier.fillMaxWidth().weight(0.8f).background(card, RoundedCornerShape(6.dp)))
+                Box(Modifier.fillMaxWidth().weight(0.55f).background(Color(0xFFFF9500).copy(alpha = 0.16f), RoundedCornerShape(6.dp)))
+                repeat(4) { row ->
+                    Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Box(Modifier.weight(1f).fillMaxSize().background(card, RoundedCornerShape(6.dp)))
+                        if (row < 3) {
+                            Box(Modifier.weight(1f).fillMaxSize().background(card, RoundedCornerShape(6.dp)))
+                        } else {
+                            Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
             }
             if (settings.enableFloatingBottomBar) {
                 Row(
                     Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp).height(28.dp)
-                        .background(if (settings.colorMode.isMonet) colors.surfaceContainer else colors.surface, RoundedCornerShape(14.dp))
+                        .background(
+                            (if (settings.colorMode.isMonet) colors.surfaceContainer else colors.surface)
+                                .copy(alpha = if (settings.enableFloatingBottomBarBlur) 0.5f else 1f),
+                            RoundedCornerShape(14.dp),
+                        )
                         .border(0.5.dp, colors.onSurface.copy(alpha = 0.12f), RoundedCornerShape(14.dp)).padding(horizontal = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically,
                 ) { repeat(4) { Box(Modifier.size(13.dp).background(if (it == 0) colors.primary else colors.onSurface.copy(alpha = 0.5f), RoundedCornerShape(3.dp))) } }
+            } else {
+                Row(
+                    Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(34.dp).background(colors.surface),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    repeat(4) { Box(Modifier.size(13.dp).background(if (it == 0) colors.primary else colors.onSurface.copy(alpha = 0.5f), RoundedCornerShape(3.dp))) }
+                }
             }
         }
     }
