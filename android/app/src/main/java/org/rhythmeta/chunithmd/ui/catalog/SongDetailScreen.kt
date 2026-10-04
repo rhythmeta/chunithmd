@@ -1103,9 +1103,9 @@ private fun RecordStatusBadges(
     showClear: Boolean = true,
 ) {
     val statuses = buildList {
-        if (showClear) add(ClearType.displayName(record.clear) to accentColor)
         FullComboType.displayName(record.fullCombo)?.let { add(it to Color(0xFFFFB300)) }
         FullChainType.displayName(record.fullChain)?.let { add(it to Color(0xFFB7C4D6)) }
+        if (showClear || isEmpty()) add(0, ClearType.displayName(record.clear) to accentColor)
     }
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
