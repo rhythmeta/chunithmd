@@ -137,6 +137,8 @@ import org.rhythmeta.chunithmd.shared.FullComboType
 import org.rhythmeta.chunithmd.shared.ScoreRecord
 import org.rhythmeta.chunithmd.shared.ScoreHistorySort
 import org.rhythmeta.chunithmd.shared.bestScore
+import org.rhythmeta.chunithmd.shared.BestScoreSummary
+import org.rhythmeta.chunithmd.shared.bestScoreSummary
 import org.rhythmeta.chunithmd.shared.buildRatingTable
 import org.rhythmeta.chunithmd.shared.breakdown
 import org.rhythmeta.chunithmd.shared.page
@@ -354,7 +356,7 @@ fun SongDetailScreen(
         visible = entrySheet != null,
         song = song,
         sheet = entrySheet,
-        bestRecord = entrySheet?.let { sheet -> recordsBySheet[song.sheetKey(sheet)].orEmpty().bestScore() },
+        bestRecord = entrySheet?.let { sheet -> recordsBySheet[song.sheetKey(sheet)].orEmpty().bestScoreSummary() },
         saving = scoreEntrySaving,
         onDismiss = { if (!scoreEntrySaving) scoreEntrySheetKey = null },
         onSave = { score, clear, fullCombo, fullChain ->
@@ -758,7 +760,7 @@ private fun ChartDetailCard(
     onAddToCollection: () -> Unit,
 ) {
     var expanded by rememberSaveable(song.songId, sheet.type, sheet.difficulty) { mutableStateOf(false) }
-    val bestRecord = records.bestScore()
+    val bestRecord = records.bestScoreSummary()
     val chevronRotation by animateFloatAsState(
         targetValue = if (expanded) 90f else 0f,
         animationSpec = tween(durationMillis = 180),
@@ -1037,7 +1039,7 @@ private fun noteCountColor(label: String): Color = when (label) {
 
 @Composable
 private fun ScoreSummarySection(
-    bestRecord: ScoreRecord?,
+    bestRecord: BestScoreSummary?,
     accentColor: Color,
 ) {
     Row(
@@ -1073,14 +1075,14 @@ private fun ScoreSummarySection(
                         color = scoreRankColor(bestRecord.rank) ?: accentColor,
                     )
                 }
-                RecordStatusBadges(record = bestRecord, accentColor = accentColor)
+                RecordStatusBadges(bestRecord.clear, bestRecord.fullCombo, bestRecord.fullChain, accentColor)
             }
         }
     }
 }
 
 @Composable
-private fun ChartScorePreview(record: ScoreRecord, accentColor: Color) {
+private fun ChartScorePreview(record: BestScoreSummary, accentColor: Color) {
     Column(
         modifier = Modifier.widthIn(max = 120.dp),
         horizontalAlignment = Alignment.End,
@@ -1091,21 +1093,23 @@ private fun ChartScorePreview(record: ScoreRecord, accentColor: Color) {
             fontWeight = FontWeight.Bold,
             maxLines = 1,
         )
-        RecordStatusBadges(record = record, accentColor = accentColor, showClear = false)
+        RecordStatusBadges(record.clear, record.fullCombo, record.fullChain, accentColor, showClear = false)
     }
 }
 
 @Composable
 private fun RecordStatusBadges(
-    record: ScoreRecord,
+    clear: String,
+    fullCombo: String?,
+    fullChain: String?,
     accentColor: Color,
     modifier: Modifier = Modifier,
     showClear: Boolean = true,
 ) {
     val statuses = buildList {
-        FullComboType.displayName(record.fullCombo)?.let { add(it to Color(0xFFFFB300)) }
-        FullChainType.displayName(record.fullChain)?.let { add(it to Color(0xFFB7C4D6)) }
-        if (showClear || isEmpty()) add(0, ClearType.displayName(record.clear) to accentColor)
+        FullComboType.displayName(fullCombo)?.let { add(it to Color(0xFFFFB300)) }
+        FullChainType.displayName(fullChain)?.let { add(it to Color(0xFFB7C4D6)) }
+        if (showClear || isEmpty()) add(0, ClearType.displayName(clear) to accentColor)
     }
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
@@ -1423,7 +1427,9 @@ private fun ScoreHistoryRow(
                 MiuixText(formatScore(record.score), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
             }
             RecordStatusBadges(
-                record = record,
+                clear = record.clear,
+                fullCombo = record.fullCombo,
+                fullChain = record.fullChain,
                 accentColor = accentColor,
                 modifier = Modifier.padding(top = 3.dp),
             )
@@ -1444,7 +1450,7 @@ private fun ScoreEntrySheet(
     visible: Boolean,
     song: CatalogSong,
     sheet: CatalogSheet?,
-    bestRecord: ScoreRecord?,
+    bestRecord: BestScoreSummary?,
     saving: Boolean,
     onSave: (Int, ClearType, FullComboType?, FullChainType?) -> Unit,
     onDismiss: () -> Unit,
@@ -1582,7 +1588,7 @@ private fun ScoreEntrySheet(
                                 MiuixText(formatScore(best.score), style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold)
                                 MiuixText(best.rank, style = MiuixTheme.textStyles.body2, fontWeight = FontWeight.Bold, color = scoreRankColor(best.rank) ?: MiuixTheme.colorScheme.onSurfaceVariantSummary)
                             }
-                            RecordStatusBadges(record = best, accentColor = MiuixTheme.colorScheme.primary)
+                            RecordStatusBadges(best.clear, best.fullCombo, best.fullChain, MiuixTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -1642,7 +1648,7 @@ private fun ScoreStatusDropdown(
             WindowListPopup(
                 show = expanded,
                 alignment = PopupPositionProvider.Align.End,
-                enableWindowDim = false,
+                enableWindowDim = true,
                 onDismissRequest = { expanded = false },
             ) {
                 ListPopupColumn {

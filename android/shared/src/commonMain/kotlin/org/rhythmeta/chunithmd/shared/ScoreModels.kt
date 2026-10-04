@@ -83,6 +83,37 @@ enum class ScoreHistorySort { Time, Score }
 
 fun Iterable<ScoreRecord>.bestScore(): ScoreRecord? = maxWithOrNull(compareBy<ScoreRecord> { it.score }.thenBy { it.playedAt })
 
+/** Personal bests for one profile and chart, which may come from different plays. */
+data class BestScoreSummary(
+    val score: Int,
+    val clear: String,
+    val fullCombo: String?,
+    val fullChain: String?,
+) {
+    val rank: String get() = ChunithmScoreRules.rank(score)
+}
+
+fun Iterable<ScoreRecord>.bestScoreSummary(): BestScoreSummary? {
+    val records = toList()
+    val highestScore = records.bestScore() ?: return null
+    // Enum order is strongest first: CATASTROPHY -> FAILED, AJC -> FC, platinum -> gold.
+    val clear = ClearType.entries.firstOrNull { status ->
+        records.any { it.clear.trim().equals(status.wireValue, ignoreCase = true) }
+    }
+    val combo = FullComboType.entries.firstOrNull { status ->
+        records.any { displayFullCombo(it.fullCombo) == status.displayName }
+    }
+    val chain = FullChainType.entries.firstOrNull { status ->
+        records.any { displayFullChain(it.fullChain) == status.displayName }
+    }
+    return BestScoreSummary(
+        score = highestScore.score,
+        clear = clear?.wireValue ?: highestScore.clear,
+        fullCombo = combo?.wireValue ?: highestScore.fullCombo,
+        fullChain = chain?.wireValue ?: highestScore.fullChain,
+    )
+}
+
 fun Iterable<ScoreRecord>.sortForHistory(sort: ScoreHistorySort): List<ScoreRecord> = when (sort) {
     ScoreHistorySort.Time -> sortedByDescending(ScoreRecord::playedAt)
     ScoreHistorySort.Score -> sortedWith(compareByDescending<ScoreRecord> { it.score }.thenByDescending { it.playedAt })
