@@ -82,6 +82,7 @@ import org.rhythmeta.chunithmd.shared.displayFullCombo
 import org.rhythmeta.chunithmd.shared.filterAndSortScoreQueryEntries
 import org.rhythmeta.chunithmd.ui.catalog.CatalogPhotoGridState
 import org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState
+import org.rhythmeta.chunithmd.ui.catalog.CoverGridPage
 import org.rhythmeta.chunithmd.ui.components.ZoomableCoverImage
 import org.rhythmeta.chunithmd.ui.components.ZoomableCoverGrid
 import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
@@ -123,7 +124,7 @@ fun ScoreQueryScreen(
     onFilterDismiss: () -> Unit,
     onOpenSong: (String) -> Unit,
 ) {
-    val gridState = rememberCatalogPhotoGridState()
+    val gridState = rememberCatalogPhotoGridState(CoverGridPage.ScoreQuery)
     if (bundle == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return

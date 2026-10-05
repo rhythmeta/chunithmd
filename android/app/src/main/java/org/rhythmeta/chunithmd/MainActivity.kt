@@ -495,7 +495,9 @@ private fun CatalogApp(
         }
     }
     val catalogListState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val catalogGridState = org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState()
+    val catalogGridState = org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState(
+        org.rhythmeta.chunithmd.ui.catalog.CoverGridPage.Catalog,
+    )
     val songCoverTransitions = remember { androidx.compose.runtime.mutableStateMapOf<String, CatalogCoverTransition>() }
     var catalogCoverTransition by remember { mutableStateOf<CatalogCoverTransition?>(null) }
     val navigationCornerRadius = rememberNavSystemCornerRadius()

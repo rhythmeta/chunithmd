@@ -2,12 +2,12 @@ package org.rhythmeta.chunithmd.ui.catalog
 
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.geometry.Offset
 import kotlin.math.roundToInt
 import kotlin.math.floor
 
 class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0, zoom: Float = 1f) {
+    private var hasInitialColumns = false
     internal var zoom by mutableFloatStateOf(zoom.coerceIn(1f, 2f))
     internal var transforming by mutableStateOf(false)
     internal var scrollOffset by mutableFloatStateOf(0f)
@@ -54,6 +54,15 @@ class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0
 
     fun requestScrollToItem(index: Int, scrollOffset: Int = 0) {
         requestedPosition = index.coerceAtLeast(0) to scrollOffset
+    }
+
+    internal fun restoreColumns(columns: Int) {
+        // Saved instance state or a gesture made while preferences load takes precedence.
+        if (!hasInitialColumns && !transforming) {
+            requestedPosition = firstVisibleItemIndex to firstVisibleItemScrollOffset
+            zoom = if (columns == 3) 2f else 1f
+        }
+        hasInitialColumns = true
     }
 
     internal fun prepareLayout(width: Float, height: Float, gap: Float, top: Float, bottom: Float, ids: List<String>, hasHeader: Boolean = false): CatalogGridGeometry {
@@ -108,6 +117,7 @@ class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0
     // Gesture motion changes scale only. The chosen cover center stays fixed until release.
     internal fun transform(value: Float, anchor: PhotoGridAnchor, scrollCorrection: Float = 0f) {
         val old = geometry ?: return
+        hasInitialColumns = true
         zoom = value.coerceIn(1f, 2f)
         val grid = CatalogGridGeometry(old.width, old.gap, old.count, zoom)
         rowKeyOffset += anchor.index / old.columns - anchor.index / grid.columns
@@ -119,14 +129,13 @@ class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0
     companion object {
         internal val Saver = listSaver<CatalogPhotoGridState, Number>(
             save = { listOf(it.firstVisibleItemIndex, it.firstVisibleItemScrollOffset, it.zoom) },
-            restore = { CatalogPhotoGridState(it[0].toInt(), it[1].toInt(), it[2].toFloat()) },
+            restore = {
+                CatalogPhotoGridState(it[0].toInt(), it[1].toInt(), it[2].toFloat()).apply {
+                    hasInitialColumns = true
+                }
+            },
         )
     }
 }
 
 internal data class PhotoGridAnchor(val index: Int, val fractionY: Float, val point: Offset)
-
-@Composable
-fun rememberCatalogPhotoGridState(): CatalogPhotoGridState = rememberSaveable(saver = CatalogPhotoGridState.Saver) {
-    CatalogPhotoGridState()
-}

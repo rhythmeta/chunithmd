@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import org.rhythmeta.chunithmd.collection.*
 import org.rhythmeta.chunithmd.shared.*
 import org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState
+import org.rhythmeta.chunithmd.ui.catalog.CoverGridPage
 import org.rhythmeta.chunithmd.ui.components.SongListScrollBar
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -51,7 +52,7 @@ fun SongCollectionsScreen(
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
-    val gridState = key(collectionId) { rememberCatalogPhotoGridState() }
+    val gridState = key(collectionId) { rememberCatalogPhotoGridState(CoverGridPage.Collections) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     fun perform(failureMessage: String? = null, action: suspend () -> Unit) {
