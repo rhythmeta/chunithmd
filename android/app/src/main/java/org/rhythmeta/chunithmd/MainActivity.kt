@@ -1022,10 +1022,12 @@ private fun CatalogApp(
 
     @Composable
     fun SongDetailPage(songId: String, coverTransition: CatalogCoverTransition? = null) {
+        var showTopTitle by rememberSaveable(songId) { mutableStateOf(false) }
         CatalogContainerTransform(coverTransition, songDetailBackground ?: pageBackground) {
             val song = bundle?.catalog?.songs?.firstOrNull { it.songId == songId }
             AppPageScaffold(
                 title = song?.let(CatalogSongFormatter::displayTitle) ?: tr("歌曲详情"),
+                smallTitleVisible = song == null || showTopTitle,
                 pageBackground = songDetailBackground ?: pageBackground,
                 blurEnabled = enableBlur,
                 largeTitle = false,
@@ -1063,6 +1065,7 @@ private fun CatalogApp(
                     onOpenCommunity = { pushRoute(AppRoute.CommunityAliases) },
                     onLogin = { pushRoute(AppRoute.Account) },
                     onBackgroundChanged = { songDetailBackground = it },
+                    onHeaderTitleHiddenChange = { showTopTitle = it },
                     scoreRepository = scoreRepository,
                     collectionRepository = collectionRepository,
                 )

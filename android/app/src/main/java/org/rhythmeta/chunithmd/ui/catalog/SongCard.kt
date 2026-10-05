@@ -3,7 +3,6 @@ package org.rhythmeta.chunithmd.ui.catalog
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -151,7 +150,7 @@ internal fun SongCard(
                     color = MiuixTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Clip,
-                    modifier = Modifier.fillMaxWidth().height(20.dp).basicMarquee(),
+                    modifier = Modifier.fillMaxWidth().height(20.dp),
                 )
                 CatalogListText(
                     element = CatalogTextElement.Artist, source = transitionSource, transition = transition,
@@ -160,7 +159,7 @@ internal fun SongCard(
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,
                     overflow = TextOverflow.Clip,
-                    modifier = Modifier.fillMaxWidth().height(16.dp).basicMarquee(),
+                    modifier = Modifier.fillMaxWidth().height(16.dp),
                 )
             }
             Spacer(Modifier.width(8.dp))

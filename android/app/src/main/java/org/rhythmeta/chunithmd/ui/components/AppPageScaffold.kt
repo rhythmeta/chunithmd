@@ -45,6 +45,7 @@ fun AppPageScaffold(
     pageBackground: Color,
     blurEnabled: Boolean,
     largeTitle: Boolean = true,
+    smallTitleVisible: Boolean? = null,
     topBarScrollBehavior: ScrollBehavior = MiuixScrollBehavior(),
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
@@ -80,10 +81,8 @@ fun AppPageScaffold(
                 actions = actions,
                 bottomContent = bottomContent,
                 scrollBehavior = topBarScrollBehavior,
-            ) else top.yukonga.miuix.kmp.basic.SmallTopAppBar(
-                title = title,
-                navigationIcon = navigationIcon,
-                modifier = if (topBarBlurEnabled) {
+            ) else {
+                val barModifier = if (topBarBlurEnabled) {
                     Modifier.textureBlur(
                         backdrop = topBarBackdrop,
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp),
@@ -96,11 +95,27 @@ fun AppPageScaffold(
                     )
                 } else {
                     Modifier
-                },
-                color = if (topBarBlurEnabled) Color.Transparent else pageBackground,
-                actions = actions,
-                scrollBehavior = topBarScrollBehavior,
-            )
+                }
+                val barColor = if (topBarBlurEnabled) Color.Transparent else pageBackground
+                if (smallTitleVisible != null) {
+                    AnimatedSmallTopAppBar(
+                        title = title,
+                        titleVisible = smallTitleVisible,
+                        modifier = barModifier,
+                        color = barColor,
+                        navigationIcon = navigationIcon,
+                        actions = actions,
+                        scrollBehavior = topBarScrollBehavior,
+                    )
+                } else top.yukonga.miuix.kmp.basic.SmallTopAppBar(
+                    title = title,
+                    navigationIcon = navigationIcon,
+                    modifier = barModifier,
+                    color = barColor,
+                    actions = actions,
+                    scrollBehavior = topBarScrollBehavior,
+                )
+            }
         },
     ) { padding ->
         Box(

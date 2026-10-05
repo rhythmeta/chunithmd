@@ -48,6 +48,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -83,6 +84,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -195,6 +198,7 @@ fun SongDetailScreen(
     onOpenCommunity: () -> Unit,
     onLogin: () -> Unit,
     onBackgroundChanged: (Color?) -> Unit = {},
+    onHeaderTitleHiddenChange: (Boolean) -> Unit = {},
 ) {
     if (song == null) {
         if (loading) {
@@ -203,6 +207,25 @@ fun SongDetailScreen(
             DetailEmptyState()
         }
         return
+    }
+
+    val listState = rememberLazyListState()
+    val titleBounds = remember(song.songId) { SongDetailTitleBounds() }
+    val topBarHeightPx = with(LocalDensity.current) { contentTopPadding.toPx() }
+    val latestTitleHiddenChange by rememberUpdatedState(onHeaderTitleHiddenChange)
+    LaunchedEffect(song.songId, listState, titleBounds, topBarHeightPx) {
+        snapshotFlow {
+            val layout = listState.layoutInfo
+            val header = layout.visibleItemsInfo.firstOrNull { it.index == 0 }
+            val titleBottom = titleBounds.bottom
+            when {
+                header == null -> listState.firstVisibleItemIndex > 0
+                titleBottom == null -> false
+                // Lazy offsets start after beforeContentPadding; the app bar covers the top
+                // of that viewport. Wait until the *whole* title has passed underneath it.
+                else -> header.offset + titleBottom <= layout.viewportStartOffset + topBarHeightPx
+            }
+        }.collect { latestTitleHiddenChange(it) }
     }
 
     val communityState by communityStore.state.collectAsState()
@@ -273,6 +296,7 @@ fun SongDetailScreen(
             .background(pageBackground),
     ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(topBarScrollConnection),
@@ -287,6 +311,7 @@ fun SongDetailScreen(
                     coverModel = coverModel,
                     coverFile = localCover,
                     coverViewportTop = contentTopPadding,
+                    titleBounds = titleBounds,
                     surfaceColor = surfaceColor,
                     accentColor = accent,
                     onAccentColor = { jacketAccent = it },
@@ -439,6 +464,7 @@ private fun SongDetailHeader(
     coverModel: Any?,
     coverFile: File?,
     coverViewportTop: Dp,
+    titleBounds: SongDetailTitleBounds,
     surfaceColor: Color,
     accentColor: Color,
     onAccentColor: (Color) -> Unit,
@@ -458,8 +484,11 @@ private fun SongDetailHeader(
             .build()
     }
     var jacketMenuExpanded by remember(song.songId) { mutableStateOf(false) }
+    DisposableEffect(titleBounds) {
+        onDispose { titleBounds.clear() }
+    }
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().onGloballyPositioned(titleBounds::updateHeader),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box {
@@ -516,7 +545,8 @@ private fun SongDetailHeader(
             color = MiuixTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth().basicMarquee().clickable { onCopyText(CatalogSongFormatter.displayTitle(song)) },
+            modifier = Modifier.fillMaxWidth().onGloballyPositioned(titleBounds::updateTitle)
+                .basicMarquee().clickable { onCopyText(CatalogSongFormatter.displayTitle(song)) },
         )
         MiuixText(
             text = song.artist.ifBlank { tr("未知艺术家") },

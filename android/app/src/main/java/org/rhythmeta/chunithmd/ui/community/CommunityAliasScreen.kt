@@ -131,7 +131,12 @@ private fun CommunitySongHeader(
     SongCardTransitionContent(coverNavigation) { showCover ->
         Row(
             Modifier.fillMaxWidth().then(if (showCover) coverNavigation.cardModifier else Modifier)
-                .clickable(enabled = showCover && song != null, role = Role.Button) { coverNavigation.open() }
+                .clickable(
+                    interactionSource = null,
+                    indication = null,
+                    enabled = showCover && song != null,
+                    role = Role.Button,
+                ) { coverNavigation.open() }
                 .padding(top = 8.dp, bottom = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,

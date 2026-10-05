@@ -1,12 +1,15 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -73,15 +76,23 @@ internal fun CatalogListText(
         val layout = measurement.layout ?: return
         source?.texts?.set(element, CatalogTextAnchor(coordinates.catalogBoundsInRoot(), layout))
     }
-    Text(
-        text = text, style = style, color = color, maxLines = maxLines, overflow = overflow,
+    // Measure a separate viewport node. The marquee measures its child at the full text width;
+    // recording that child's bounds would let the overlay draw across the version/progress badges.
+    Box(
         modifier = modifier
             .onGloballyPositioned { measurement.coordinates = it; updateMeasurement() }
+            .clipToBounds()
             .graphicsLayer {
                 alpha = if (transition?.hidesSource == true) 0f else 1f
             },
-        onTextLayout = { measurement.layout = it; updateMeasurement() },
-    )
+        propagateMinConstraints = true,
+    ) {
+        Text(
+            text = text, style = style, color = color, maxLines = maxLines, overflow = overflow,
+            modifier = Modifier.fillMaxWidth().basicMarquee(),
+            onTextLayout = { measurement.layout = it; updateMeasurement() },
+        )
+    }
 }
 
 /** The two list labels retain their spacing and move as one fading group. */
