@@ -76,6 +76,7 @@ import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -90,13 +91,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -282,6 +286,7 @@ fun SongDetailScreen(
                     communityAliasKeys = communityAliasKeys,
                     coverModel = coverModel,
                     coverFile = localCover,
+                    coverViewportTop = contentTopPadding,
                     surfaceColor = surfaceColor,
                     accentColor = accent,
                     onAccentColor = { jacketAccent = it },
@@ -433,6 +438,7 @@ private fun SongDetailHeader(
     communityAliasKeys: Set<String>,
     coverModel: Any?,
     coverFile: File?,
+    coverViewportTop: Dp,
     surfaceColor: Color,
     accentColor: Color,
     onAccentColor: (Color) -> Unit,
@@ -440,6 +446,11 @@ private fun SongDetailHeader(
     onCoverAction: (CoverAction) -> Unit,
 ) {
     val context = LocalContext.current
+    val coverTransition = LocalCatalogCoverTransition.current?.takeIf { it.songId == song.songId }
+    val viewportTop = with(LocalDensity.current) { coverViewportTop.toPx() }
+    DisposableEffect(coverTransition) {
+        onDispose { coverTransition?.updateDetailCover(null, 0f) }
+    }
     val coverRequest = remember(coverModel) {
         ImageRequest.Builder(context)
             .data(coverModel)
@@ -455,6 +466,8 @@ private fun SongDetailHeader(
             Box(
                 modifier = Modifier
                     .size(220.dp)
+                    .onGloballyPositioned { coverTransition?.updateDetailCover(it, viewportTop) }
+                    .graphicsLayer { alpha = if (coverTransition?.hidesDetailCover == true) 0f else 1f }
                     .clip(RoundedCornerShape(26.dp))
                     .combinedClickable(
                         onClick = {},
@@ -468,6 +481,8 @@ private fun SongDetailHeader(
                 } else {
                     AsyncImage(
                         model = coverRequest,
+                        placeholder = coverTransition?.coverPainter,
+                        error = coverTransition?.coverPainter,
                         contentDescription = song.title,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),

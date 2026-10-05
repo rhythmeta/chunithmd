@@ -20,19 +20,25 @@ internal fun ZoomableCoverImage(
     imageSize: Int,
     animateCoverChanges: Boolean,
     modifier: Modifier = Modifier,
+    onPainterChanged: ((Painter?) -> Unit)? = null,
+    fallbackPainter: Painter? = null,
 ) {
     val context = LocalContext.current
     val image = remember(context, model, imageSize) {
         ImageRequest.Builder(context).data(model).size(imageSize).crossfade(false).build()
     }
     val imagePainter = rememberAsyncImagePainter(image)
-    var displayedCover by remember { mutableStateOf<Painter?>(null) }
+    var displayedCover by remember { mutableStateOf(fallbackPainter) }
     val loadedCover = (imagePainter.state as? AsyncImagePainter.State.Success)?.painter
-    LaunchedEffect(loadedCover) {
+    LaunchedEffect(loadedCover, fallbackPainter) {
         // Keep the old cover while loading; only zoom transitions animate its replacement.
         if (loadedCover != null) displayedCover = loadedCover
+        else if (fallbackPainter != null) displayedCover = fallbackPainter
     }
-    Crossfade(targetState = displayedCover,
+    // A recycled source tile must show its retained cover on the very first return frame.
+    val visibleCover = if (fallbackPainter != null) loadedCover ?: fallbackPainter else displayedCover
+    SideEffect { onPainterChanged?.invoke(visibleCover) }
+    Crossfade(targetState = visibleCover,
         animationSpec = if (animateCoverChanges) tween(180) else snap(),
         modifier = modifier, label = "coverReplacement") { cover ->
         if (cover != null) {

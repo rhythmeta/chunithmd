@@ -125,6 +125,11 @@ import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
 import org.rhythmeta.chunithmd.ui.catalog.CatalogToolbarActions
 import org.rhythmeta.chunithmd.ui.catalog.FavoriteSongRepository
+import org.rhythmeta.chunithmd.ui.catalog.CatalogCoverTransition
+import org.rhythmeta.chunithmd.ui.catalog.CatalogContainerTransform
+import org.rhythmeta.chunithmd.ui.catalog.LocalCatalogCoverTransition
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import org.rhythmeta.chunithmd.ui.catalog.SongDetailScreen
 import org.rhythmeta.chunithmd.ui.collections.CollectionsHomeCard
 import org.rhythmeta.chunithmd.ui.collections.CollectionsToolbarActions
@@ -207,6 +212,7 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Collections : AppRoute
     @Serializable data class CollectionDetail(val collectionId: String) : AppRoute
     @Serializable data class SongDetail(val songId: String) : AppRoute
+    @Serializable data class CatalogSongDetail(val songId: String) : AppRoute
 }
 
 /** Keeps the decoded catalog across Activity recreation caused by rotation. */
@@ -486,6 +492,9 @@ private fun CatalogApp(
     }
     val catalogListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val catalogGridState = org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState()
+    var catalogCoverTransition by remember { mutableStateOf<CatalogCoverTransition?>(null) }
+    val navigationCornerRadius = rememberNavSystemCornerRadius()
+    var navigationOrigin by remember { mutableStateOf(Offset.Zero) }
     val scope = rememberCoroutineScope()
     val latestOtogameCatalog by rememberUpdatedState(bundle)
     val otogameClient = (communityContext as ChunithmdApplication).otogameClient
@@ -941,7 +950,8 @@ private fun CatalogApp(
                     }
                 }
                 1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
-                2 -> CatalogScreen(
+                2 -> CompositionLocalProvider(LocalCatalogCoverTransition provides catalogCoverTransition) {
+                CatalogScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentTopPadding = padding.calculateTopPadding(),
                     bundle = bundle,
@@ -959,7 +969,15 @@ private fun CatalogApp(
                     topBarScrollConnection = topBarScrollConnection,
                     onRetry = ::refresh,
                     onSongClick = { song -> pushRoute(AppRoute.SongDetail(song.songId)) },
+                    onGridCoverClick = { song, bounds, painter ->
+                        if (navBackStack.lastOrNull() == AppRoute.Home) {
+                            catalogCoverTransition = CatalogCoverTransition(song.songId,
+                                bounds.translate(-navigationOrigin), painter, navigationCornerRadius, { navigationOrigin })
+                            pushRoute(AppRoute.CatalogSongDetail(song.songId))
+                        }
+                    },
                 )
+                }
                 else -> SettingsHome(
                     Modifier.padding(padding).fillMaxSize()
                         .background(MiuixTheme.colorScheme.surface)
@@ -986,16 +1004,66 @@ private fun CatalogApp(
         }
     }
 
+    @Composable
+    fun SongDetailPage(songId: String, coverTransition: CatalogCoverTransition? = null) {
+        CatalogContainerTransform(coverTransition, songDetailBackground ?: pageBackground) {
+            val song = bundle?.catalog?.songs?.firstOrNull { it.songId == songId }
+            AppPageScaffold(
+                title = song?.let(CatalogSongFormatter::displayTitle) ?: tr("歌曲详情"),
+                pageBackground = songDetailBackground ?: pageBackground,
+                blurEnabled = enableBlur,
+                largeTitle = false,
+                topBarScrollBehavior = MiuixScrollBehavior(),
+                navigationIcon = {
+                    MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                        MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = tr("返回"))
+                    }
+                },
+                actions = {
+                    if (song != null) {
+                        val isFavorite = song.songId in favoriteSongIds
+                        MiuixIconButton(onClick = {
+                            scope.launch { favoriteSongRepository.setFavorite(song.songId, !isFavorite) }
+                        }) {
+                            MiuixIcon(
+                                if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                                contentDescription = if (isFavorite) tr("取消喜爱") else tr("添加到喜爱"),
+                                tint = if (isFavorite) Color(0xFFE85D5D) else MiuixTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
+                },
+            ) { padding, topBarScrollConnection ->
+                SongDetailScreen(
+                    song = song,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                    loading = bundle == null,
+                    aliases = bundle?.aliases?.get(songId).orEmpty(),
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
+                    localJacketPath = repository::localJacketPath,
+                    contentTopPadding = padding.calculateTopPadding(),
+                    topBarScrollConnection = topBarScrollConnection,
+                    communityStore = communityStore,
+                    onOpenCommunity = { pushRoute(AppRoute.CommunityAliases) },
+                    onLogin = { pushRoute(AppRoute.Account) },
+                    onBackgroundChanged = { songDetailBackground = it },
+                    scoreRepository = scoreRepository,
+                    collectionRepository = collectionRepository,
+                )
+            }
+        }
+    }
+
     NavigationEventGate(predictiveBackEnabled) {
     NavDisplay(
         backStack = navBackStack,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().onGloballyPositioned { navigationOrigin = it.positionInRoot() },
         transition = NavTransitions.MiuixDefault,
-        effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
+        effects = NavDisplayEffects(cornerClipRadius = navigationCornerRadius),
         onBack = {
             if (navBackStack.lastOrNull() == AppRoute.Otogame || navBackStack.lastOrNull() == AppRoute.OtogameLogin || navBackStack.lastOrNull() == AppRoute.Lxns || navBackStack.lastOrNull() == AppRoute.DivingFish || navBackStack.lastOrNull() == AppRoute.CommunityAliases || navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
-            } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
+            } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() is AppRoute.CatalogSongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.size > 1) {
                 navBackStack.removeLastOrNull()
@@ -1324,52 +1392,11 @@ private fun CatalogApp(
         entry<AppRoute.SongDetail>(
             transition = SettingsDetailTransition,
             swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
-        ) { route ->
-            val song = bundle?.catalog?.songs?.firstOrNull { it.songId == route.songId }
-            AppPageScaffold(
-                title = song?.let(CatalogSongFormatter::displayTitle) ?: tr("歌曲详情"),
-                pageBackground = songDetailBackground ?: pageBackground,
-                blurEnabled = enableBlur,
-                largeTitle = false,
-                topBarScrollBehavior = MiuixScrollBehavior(),
-                navigationIcon = {
-                    MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
-                        MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = tr("返回"))
-                    }
-                },
-                actions = {
-                    if (song != null) {
-                        val isFavorite = song.songId in favoriteSongIds
-                        MiuixIconButton(onClick = {
-                            scope.launch { favoriteSongRepository.setFavorite(song.songId, !isFavorite) }
-                        }) {
-                            MiuixIcon(
-                                if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                                contentDescription = if (isFavorite) tr("取消喜爱") else tr("添加到喜爱"),
-                                tint = if (isFavorite) Color(0xFFE85D5D) else MiuixTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
-                },
-            ) { padding, topBarScrollConnection ->
-                SongDetailScreen(
-                    song = song,
-                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
-                    loading = bundle == null,
-                    aliases = bundle?.aliases?.get(route.songId).orEmpty(),
-                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
-                    localJacketPath = repository::localJacketPath,
-                    contentTopPadding = padding.calculateTopPadding(),
-                    topBarScrollConnection = topBarScrollConnection,
-                    communityStore = communityStore,
-                    onOpenCommunity = { pushRoute(AppRoute.CommunityAliases) },
-                    onLogin = { pushRoute(AppRoute.Account) },
-                    onBackgroundChanged = { songDetailBackground = it },
-                    scoreRepository = scoreRepository,
-                    collectionRepository = collectionRepository,
-                )
-            }
-        }
+        ) { route -> SongDetailPage(route.songId) }
+        entry<AppRoute.CatalogSongDetail>(
+            transition = catalogCoverTransition?.transition ?: SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) { route -> SongDetailPage(route.songId, catalogCoverTransition) }
         entry<AppRoute.Home> {
             Box(
                 Modifier.fillMaxSize()

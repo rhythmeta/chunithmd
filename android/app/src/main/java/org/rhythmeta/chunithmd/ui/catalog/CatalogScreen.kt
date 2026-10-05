@@ -32,6 +32,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
@@ -80,6 +82,7 @@ fun CatalogScreen(
     topBarScrollConnection: NestedScrollConnection,
     onRetry: () -> Unit,
     onSongClick: (CatalogSong) -> Unit,
+    onGridCoverClick: ((CatalogSong, Rect, Painter?) -> Unit)? = null,
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -105,6 +108,11 @@ fun CatalogScreen(
                 localJacketPath = localJacketPath,
                 state = gridState,
                 onSongClick = openSong,
+                onCoverClick = onGridCoverClick?.let { openCover -> { song, bounds, painter ->
+                    focusManager.clearFocus(force = true)
+                    keyboardController?.hide()
+                    openCover(song, bounds, painter)
+                } },
             )
         } else {
             SongList(
