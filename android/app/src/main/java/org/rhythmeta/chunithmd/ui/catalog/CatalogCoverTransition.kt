@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -151,16 +150,16 @@ internal class CatalogCoverTransition(
         } else if (listSource != null) 12.dp.toPx() else 0f
     }
 
-    // Both layouts share the driver timing, so cover, labels, badges and color settle together.
-    // Keep velocity continuity for gesture commits; a tween here would introduce a release hitch.
-    private val commitMotion = NavSettleSpec.Spring(dampingRatio = 1f, stiffness = 700f)
+    // Both return paths use the original gesture spring; gesture commits also retain
+    // release velocity while the cover, labels, badges and background settle together.
+    private val returnSpec = NavSettleSpec.Spring(dampingRatio = 1f, stiffness = 700f)
     private val enterMotion = NavMotion(
-        commit = commitMotion,
+        commit = returnSpec,
         programmatic = NavSettleSpec.Tween(400, FastOutSlowInEasing),
     )
     private val returnMotion = NavMotion(
-        commit = commitMotion,
-        programmatic = NavSettleSpec.Tween(350, CubicBezierEasing(0.3f, 0f, 0.65f, 1f)),
+        commit = returnSpec,
+        programmatic = returnSpec,
     )
 
     private val visualTransition = navGraphicsTransition(
