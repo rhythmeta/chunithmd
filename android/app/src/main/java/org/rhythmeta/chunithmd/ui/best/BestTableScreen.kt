@@ -481,10 +481,9 @@ private fun BestTableEntryCard(
                     Text(formatScore(entry.score), style = MiuixTheme.textStyles.footnote1.copy(fontFamily = FontFamily.Monospace), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    EntryBadge(
-                        ClearType.displayName(entry.clear),
-                        clearStatusColor(entry.clear),
-                    )
+                    ClearType.displayName(entry.clear)?.let { display ->
+                        EntryBadge(display, clearStatusColor(entry.clear))
+                    }
                     FullComboType.displayName(entry.fullCombo)?.let { display ->
                         EntryBadge(display, comboStatusColor(entry.fullCombo))
                     }

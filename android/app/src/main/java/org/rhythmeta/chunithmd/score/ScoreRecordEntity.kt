@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.ColumnInfo
-import org.rhythmeta.chunithmd.shared.ClearType
 import org.rhythmeta.chunithmd.shared.ScoreRecord
 
 @Entity(
@@ -23,7 +22,7 @@ data class ScoreRecordEntity(
     val score: Int,
     val rank: String,
     val playedAt: Long,
-    @ColumnInfo(defaultValue = "'clear'") val clear: String = ClearType.Clear.wireValue,
+    val clear: String? = null,
     @ColumnInfo(name = "full_combo") val fullCombo: String? = null,
     @ColumnInfo(name = "full_chain") val fullChain: String? = null,
 ) {

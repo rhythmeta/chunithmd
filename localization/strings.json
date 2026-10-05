@@ -2722,5 +2722,305 @@
     "ja": "コレクションの読み込みに失敗しました",
     "zh-Hans": "收藏夹导入失败",
     "zh-Hant": "收藏集匯入失敗"
+  },
+  "从水鱼读取中二节奏最佳成绩，保留本地更好的成绩和已有记录。": {
+    "en": "Read CHUNITHM best scores from Diving-Fish, keeping better local scores and existing records.",
+    "ja": "Diving-Fish から CHUNITHM のベストスコアを取得し、より高いローカルスコアと既存の記録を保持します。",
+    "zh-Hans": "从水鱼读取中二节奏最佳成绩，保留本地更好的成绩和已有记录。",
+    "zh-Hant": "從水魚讀取中二節奏最佳成績，保留裝置上更好的成績及既有紀錄。"
+  },
+  "在浏览器完成授权后，返回此页即可自动导入。": {
+    "en": "Authorize in your browser, then return here to import automatically.",
+    "ja": "ブラウザで認証を完了してこのページに戻ると、自動でインポートされます。",
+    "zh-Hans": "在浏览器完成授权后，返回此页即可自动导入。",
+    "zh-Hant": "在瀏覽器完成授權後，返回此頁即可自動匯入。"
+  },
+  "导入到档案：{0}": {
+    "en": "Import to profile: {0}",
+    "ja": "インポート先のプロフィール：{0}",
+    "zh-Hans": "导入到档案：{0}",
+    "zh-Hant": "匯入至個人檔案：{0}"
+  },
+  "导入成绩": {
+    "en": "Import scores",
+    "ja": "スコアをインポート",
+    "zh-Hans": "导入成绩",
+    "zh-Hant": "匯入成績"
+  },
+  "尚未连接水鱼账号": {
+    "en": "Diving-Fish not connected",
+    "ja": "Diving-Fish 未接続",
+    "zh-Hans": "尚未连接水鱼账号",
+    "zh-Hant": "尚未連結水魚帳號"
+  },
+  "已拒绝水鱼授权。": {
+    "en": "Diving-Fish authorization was denied.",
+    "ja": "Diving-Fish の認証が拒否されました。",
+    "zh-Hans": "已拒绝水鱼授权。",
+    "zh-Hant": "已拒絕水魚授權。"
+  },
+  "已跳过无效成绩或无法唯一匹配的谱面，可更新静态数据后重试。": {
+    "en": "Invalid scores and charts without a unique match were skipped. Update the catalog and try again.",
+    "ja": "無効なスコアや一意に特定できない譜面をスキップしました。楽曲データを更新して再試行できます。",
+    "zh-Hans": "已跳过无效成绩或无法唯一匹配的谱面，可更新静态数据后重试。",
+    "zh-Hant": "已略過無效成績或無法唯一匹配的譜面，可更新靜態資料後重試。"
+  },
+  "已连接水鱼账号": {
+    "en": "Diving-Fish connected",
+    "ja": "Diving-Fish に接続済み",
+    "zh-Hans": "已连接水鱼账号",
+    "zh-Hant": "已連結水魚帳號"
+  },
+  "当前档案已更改，请重新导入。": {
+    "en": "The active profile changed. Import again.",
+    "ja": "現在のプロフィールが変更されました。再度インポートしてください。",
+    "zh-Hans": "当前档案已更改，请重新导入。",
+    "zh-Hant": "目前的個人檔案已變更，請重新匯入。"
+  },
+  "成绩导入完成": {
+    "en": "Scores imported",
+    "ja": "スコアをインポートしました",
+    "zh-Hans": "成绩导入完成",
+    "zh-Hant": "成績匯入完成"
+  },
+  "打开水鱼授权页面": {
+    "en": "Open Diving-Fish authorization",
+    "ja": "Diving-Fish の認証ページを開く",
+    "zh-Hans": "打开水鱼授权页面",
+    "zh-Hant": "開啟水魚授權頁面"
+  },
+  "授权并导入": {
+    "en": "Authorize and import",
+    "ja": "認証してインポート",
+    "zh-Hans": "授权并导入",
+    "zh-Hant": "授權並匯入"
+  },
+  "授权水鱼账号并导入中二节奏成绩": {
+    "en": "Authorize Diving-Fish and import CHUNITHM scores",
+    "ja": "Diving-Fish を認証して CHUNITHM のスコアをインポート",
+    "zh-Hans": "授权水鱼账号并导入中二节奏成绩",
+    "zh-Hant": "授權水魚帳號並匯入中二節奏成績"
+  },
+  "授权码已过期，请重新授权。": {
+    "en": "The authorization code expired. Authorize again.",
+    "ja": "認証コードの有効期限が切れました。再認証してください。",
+    "zh-Hans": "授权码已过期，请重新授权。",
+    "zh-Hant": "授權碼已過期，請重新授權。"
+  },
+  "断开连接": {
+    "en": "Disconnect",
+    "ja": "接続を解除",
+    "zh-Hans": "断开连接",
+    "zh-Hant": "取消連結"
+  },
+  "无档案": {
+    "en": "No profile",
+    "ja": "プロフィールなし",
+    "zh-Hans": "无档案",
+    "zh-Hant": "無個人檔案"
+  },
+  "无法打开浏览器，请安装浏览器后重试。": {
+    "en": "Could not open a browser. Install one and try again.",
+    "ja": "ブラウザを開けません。ブラウザをインストールして再試行してください。",
+    "zh-Hans": "无法打开浏览器，请安装浏览器后重试。",
+    "zh-Hant": "無法開啟瀏覽器，請安裝瀏覽器後重試。"
+  },
+  "无法读取成绩，请确认已同意水鱼用户协议并授予成绩读取权限。": {
+    "en": "Cannot read scores. Accept the Diving-Fish agreement and grant score read permission.",
+    "ja": "スコアを取得できません。Diving-Fish の利用規約への同意とスコア読み取り権限を確認してください。",
+    "zh-Hans": "无法读取成绩，请确认已同意水鱼用户协议并授予成绩读取权限。",
+    "zh-Hant": "無法讀取成績，請確認已同意水魚使用者協議並授予成績讀取權限。"
+  },
+  "正在获取授权码…": {
+    "en": "Requesting authorization code…",
+    "ja": "認証コードを取得中…",
+    "zh-Hans": "正在获取授权码…",
+    "zh-Hant": "正在取得授權碼…"
+  },
+  "水鱼不提供游玩时间、Clear 灯或 Full Chain；记录时间为导入时间。": {
+    "en": "Diving-Fish does not provide play times, clear lamps or Full Chain. Records use the import time.",
+    "ja": "Diving-Fish はプレイ日時、クリアランプ、Full Chain を提供しません。記録日時にはインポート日時を使用します。",
+    "zh-Hans": "水鱼不提供游玩时间、Clear 灯或 Full Chain；记录时间为导入时间。",
+    "zh-Hant": "水魚不提供遊玩時間、Clear 燈或 Full Chain；紀錄時間為匯入時間。"
+  },
+  "水鱼导入": {
+    "en": "Diving-Fish import",
+    "ja": "Diving-Fish インポート",
+    "zh-Hans": "水鱼导入",
+    "zh-Hant": "水魚匯入"
+  },
+  "水鱼导入失败，请检查网络后重试。": {
+    "en": "Diving-Fish import failed. Check your connection and try again.",
+    "ja": "Diving-Fish のインポートに失敗しました。接続を確認して再試行してください。",
+    "zh-Hans": "水鱼导入失败，请检查网络后重试。",
+    "zh-Hant": "水魚匯入失敗，請檢查網路後重試。"
+  },
+  "水鱼应用配置有误，请检查客户端类型和成绩读取权限。": {
+    "en": "Check the Diving-Fish application client type and score read permission.",
+    "ja": "Diving-Fish アプリのクライアント種別とスコア読み取り権限を確認してください。",
+    "zh-Hans": "水鱼应用配置有误，请检查客户端类型和成绩读取权限。",
+    "zh-Hant": "水魚應用程式設定有誤，請檢查用戶端類型和成績讀取權限。"
+  },
+  "水鱼授权已失效，请重新授权。": {
+    "en": "Diving-Fish authorization expired or was revoked. Authorize again.",
+    "ja": "Diving-Fish の認証が無効になりました。再認証してください。",
+    "zh-Hans": "水鱼授权已失效，请重新授权。",
+    "zh-Hant": "水魚授權已失效，請重新授權。"
+  },
+  "水鱼请求过于频繁，请稍后重试。": {
+    "en": "Too many Diving-Fish requests. Try again later.",
+    "ja": "Diving-Fish へのリクエストが多すぎます。しばらくしてから再試行してください。",
+    "zh-Hans": "水鱼请求过于频繁，请稍后重试。",
+    "zh-Hant": "水魚請求過於頻繁，請稍後重試。"
+  },
+  "水鱼返回的数据格式不正确，请稍后重试。": {
+    "en": "Diving-Fish returned invalid data. Try again later.",
+    "ja": "Diving-Fish の応答形式が不正です。しばらくしてから再試行してください。",
+    "zh-Hans": "水鱼返回的数据格式不正确，请稍后重试。",
+    "zh-Hant": "水魚傳回的資料格式不正確，請稍後重試。"
+  },
+  "没有需要更新的成绩": {
+    "en": "No scores to update",
+    "ja": "更新するスコアはありません",
+    "zh-Hans": "没有需要更新的成绩",
+    "zh-Hant": "沒有需要更新的成績"
+  },
+  "获取 {0} 条，更新 {1} 条，跳过 {2} 条。": {
+    "en": "Fetched {0}, updated {1}, skipped {2}.",
+    "ja": "取得 {0} 件、更新 {1} 件、スキップ {2} 件。",
+    "zh-Hans": "获取 {0} 条，更新 {1} 条，跳过 {2} 条。",
+    "zh-Hant": "取得 {0} 筆，更新 {1} 筆，略過 {2} 筆。"
+  },
+  "请先下载静态歌曲数据。": {
+    "en": "Download the song catalog first.",
+    "ja": "先に楽曲データをダウンロードしてください。",
+    "zh-Hans": "请先下载静态歌曲数据。",
+    "zh-Hant": "請先下載靜態歌曲資料。"
+  },
+  "请确认授权页上的用户码与此处一致。": {
+    "en": "Check that the user code on the authorization page matches this code.",
+    "ja": "認証ページのユーザーコードがこのコードと一致することを確認してください。",
+    "zh-Hans": "请确认授权页上的用户码与此处一致。",
+    "zh-Hant": "請確認授權頁上的使用者代碼與此處一致。"
+  },
+  "成绩同步": {
+    "zh-Hans": "成绩同步",
+    "zh-Hant": "成績同步",
+    "en": "Score sync",
+    "ja": "スコア同期"
+  },
+  "已连接": {
+    "zh-Hans": "已连接",
+    "zh-Hant": "已連結",
+    "en": "Connected",
+    "ja": "接続済み"
+  },
+  "未连接": {
+    "zh-Hans": "未连接",
+    "zh-Hant": "未連結",
+    "en": "Not connected",
+    "ja": "未接続"
+  },
+  "等待授权": {
+    "zh-Hans": "等待授权",
+    "zh-Hant": "等待授權",
+    "en": "Waiting for authorization",
+    "ja": "認証待ち"
+  },
+  "请核对授权页上的用户码": {
+    "zh-Hans": "请核对授权页上的用户码",
+    "zh-Hant": "請核對授權頁上的使用者代碼",
+    "en": "Check the user code on the authorization page",
+    "ja": "認証ページのユーザーコードを確認してください"
+  },
+  "前往授权": {
+    "zh-Hans": "前往授权",
+    "zh-Hant": "前往授權",
+    "en": "Authorize",
+    "ja": "認証ページへ"
+  },
+  "获取": {
+    "zh-Hans": "获取",
+    "zh-Hant": "取得",
+    "en": "Fetched",
+    "ja": "取得"
+  },
+  "更新": {
+    "zh-Hans": "更新",
+    "zh-Hant": "更新",
+    "en": "Updated",
+    "ja": "更新"
+  },
+  "跳过": {
+    "zh-Hans": "跳过",
+    "zh-Hant": "略過",
+    "en": "Skipped",
+    "ja": "スキップ"
+  },
+  "落雪导入": {
+    "zh-Hans": "落雪导入",
+    "zh-Hant": "落雪匯入",
+    "en": "LXNS import",
+    "ja": "LXNS インポート"
+  },
+  "粘贴浏览器中的授权码": {
+    "zh-Hans": "粘贴浏览器中的授权码",
+    "zh-Hant": "貼上瀏覽器中的授權碼",
+    "en": "Paste the code from your browser",
+    "ja": "ブラウザの認証コードを貼り付け"
+  },
+  "重新授权": {
+    "zh-Hans": "重新授权",
+    "zh-Hant": "重新授權",
+    "en": "Reauthorize",
+    "ja": "再認証"
+  },
+  "请输入有效的授权码。": {
+    "zh-Hans": "请输入有效的授权码。",
+    "zh-Hant": "請輸入有效的授權碼。",
+    "en": "Enter a valid authorization code.",
+    "ja": "有効な認証コードを入力してください。"
+  },
+  "落雪授权已失效，请重新授权。": {
+    "zh-Hans": "落雪授权已失效，请重新授权。",
+    "zh-Hant": "落雪授權已失效，請重新授權。",
+    "en": "LXNS authorization expired. Authorize again.",
+    "ja": "LXNS の認証が無効です。再認証してください。"
+  },
+  "落雪应用配置有误，请检查应用信息和读取权限。": {
+    "zh-Hans": "落雪应用配置有误，请检查应用信息和读取权限。",
+    "zh-Hant": "落雪應用程式設定有誤，請檢查應用程式資訊和讀取權限。",
+    "en": "Check the LXNS application configuration and read permission.",
+    "ja": "LXNS アプリの設定と読み取り権限を確認してください。"
+  },
+  "请在落雪授权页面授予玩家数据读取权限。": {
+    "zh-Hans": "请在落雪授权页面授予玩家数据读取权限。",
+    "zh-Hant": "請在落雪授權頁面授予玩家資料讀取權限。",
+    "en": "Grant player data read permission on the LXNS authorization page.",
+    "ja": "LXNS の認証ページでプレイヤーデータの読み取りを許可してください。"
+  },
+  "落雪账号尚未绑定中二节奏玩家。": {
+    "zh-Hans": "落雪账号尚未绑定中二节奏玩家。",
+    "zh-Hant": "落雪帳號尚未綁定中二節奏玩家。",
+    "en": "No CHUNITHM player is linked to this LXNS account.",
+    "ja": "LXNS アカウントに CHUNITHM プレイヤーが連携されていません。"
+  },
+  "落雪请求过于频繁，请稍后重试。": {
+    "zh-Hans": "落雪请求过于频繁，请稍后重试。",
+    "zh-Hant": "落雪請求過於頻繁，請稍後重試。",
+    "en": "Too many LXNS requests. Try again later.",
+    "ja": "LXNS へのリクエストが多すぎます。しばらくしてから再試行してください。"
+  },
+  "落雪返回的数据格式不正确，请稍后重试。": {
+    "zh-Hans": "落雪返回的数据格式不正确，请稍后重试。",
+    "zh-Hant": "落雪傳回的資料格式不正確，請稍後重試。",
+    "en": "LXNS returned invalid data. Try again later.",
+    "ja": "LXNS の応答形式が不正です。しばらくしてから再試行してください。"
+  },
+  "落雪导入失败，请检查网络后重试。": {
+    "zh-Hans": "落雪导入失败，请检查网络后重试。",
+    "zh-Hant": "落雪匯入失敗，請檢查網路後重試。",
+    "en": "LXNS import failed. Check your connection and try again.",
+    "ja": "LXNS のインポートに失敗しました。接続を確認して再試行してください。"
   }
 }

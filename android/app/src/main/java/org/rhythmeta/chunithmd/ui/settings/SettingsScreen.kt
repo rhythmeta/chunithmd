@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.rounded.AcUnit
 import androidx.compose.material.icons.Icons
+import org.rhythmeta.chunithmd.ui.components.FishIcon
 import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Download
@@ -45,6 +47,8 @@ fun SettingsHome(
     onAccount: () -> Unit,
     accountClient: RhythmetaClient,
     onSendLogs: () -> Unit,
+    onDivingFish: () -> Unit,
+    onLxns: () -> Unit,
 ) {
     var backendAvailable by remember(accountClient) { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(accountClient) {
@@ -77,6 +81,22 @@ fun SettingsHome(
                     title = tr("云端账户"),
                     summary = tr("登录账户并通过云端安全同步应用数据"),
                     onClick = onAccount,
+                )
+            }
+        }
+        item {
+            SettingsSection(title = tr("成绩同步")) {
+                SettingsRow(
+                    icon = FishIcon,
+                    title = tr("水鱼导入"),
+                    summary = tr("导入成绩"),
+                    onClick = onDivingFish,
+                )
+                SettingsRow(
+                    icon = Icons.Rounded.AcUnit,
+                    title = tr("落雪导入"),
+                    summary = tr("导入成绩"),
+                    onClick = onLxns,
                 )
             }
         }

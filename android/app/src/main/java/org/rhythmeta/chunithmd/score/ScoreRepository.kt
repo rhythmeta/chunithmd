@@ -31,8 +31,38 @@ class ScoreRepository(
         context.applicationContext,
         ScoreDatabase::class.java,
         "score-records.db",
-    ).addMigrations(ScoreDatabase.MIGRATION_1_2).build()
+    ).addMigrations(ScoreDatabase.MIGRATION_1_2, ScoreDatabase.MIGRATION_2_3).build()
     private val dao = database.records()
+
+    suspend fun importDivingFish(
+        profileId: String,
+        payload: org.rhythmeta.chunithmd.shared.importing.DivingFishPayload,
+        catalog: org.rhythmeta.chunithmd.shared.CatalogBundle,
+    ): org.rhythmeta.chunithmd.shared.importing.ScoreImportResult =
+        profileRepository.withActiveProfile(profileId) {
+            database.withTransaction {
+                val plan = org.rhythmeta.chunithmd.shared.importing.DivingFishImportPolicy.plan(
+                    payload, catalog, profileId, dao.forProfile(profileId).map { it.toDomain() }, clock(),
+                )
+                plan.records.forEach { dao.insert(ScoreRecordEntity.fromDomain(it)) }
+                plan.result
+            }
+        }
+
+    suspend fun importLxns(
+        profileId: String,
+        payload: org.rhythmeta.chunithmd.shared.importing.LxnsPayload,
+        catalog: org.rhythmeta.chunithmd.shared.CatalogBundle,
+    ): org.rhythmeta.chunithmd.shared.importing.ScoreImportResult =
+        profileRepository.withActiveProfile(profileId) {
+            database.withTransaction {
+                val plan = org.rhythmeta.chunithmd.shared.importing.LxnsImportPolicy.plan(
+                    payload, catalog, profileId, dao.forProfile(profileId).map { it.toDomain() }, clock(),
+                )
+                plan.records.forEach { dao.insert(ScoreRecordEntity.fromDomain(it)) }
+                plan.result
+            }
+        }
 
     suspend fun exportRecords(): List<ScoreRecord> = dao.all().map { it.toDomain() }
 
@@ -45,7 +75,7 @@ class ScoreRepository(
         songId = songId,
         sheetKey = sheetKey,
         score = score,
-        clear = ClearType.Clear,
+        clear = null,
         fullCombo = null,
         fullChain = null,
     )
@@ -66,7 +96,7 @@ class ScoreRepository(
         songId: String,
         sheetKey: String,
         score: Int,
-        clear: ClearType,
+        clear: ClearType?,
         fullCombo: FullComboType?,
         fullChain: FullChainType?,
     ): ScoreRecord {
@@ -81,7 +111,7 @@ class ScoreRepository(
             score = score,
             rank = ChunithmScoreRules.rank(score),
             playedAt = now,
-            clear = clear.wireValue,
+            clear = clear?.wireValue,
             fullCombo = fullCombo?.wireValue,
             fullChain = fullChain?.wireValue,
         )

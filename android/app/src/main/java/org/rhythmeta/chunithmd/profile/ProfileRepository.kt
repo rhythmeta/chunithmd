@@ -28,6 +28,14 @@ class ProfileRepository(context: Context) {
     private val dao = database.profiles()
     private val mutex = Mutex()
 
+    /** Serialize import commits with profile activation and restore. */
+    suspend fun <T> withActiveProfile(profileId: String, action: suspend () -> T): T = mutex.withLock {
+        if (dao.active()?.id != profileId) {
+            throw org.rhythmeta.chunithmd.shared.importing.DivingFishException("profile_changed")
+        }
+        action()
+    }
+
     suspend fun exportProfiles(): List<UserProfile> = dao.observeAllOnce().map(UserProfileEntity::toShared)
 
     suspend fun replaceProfiles(profiles: List<UserProfile>) = mutex.withLock {

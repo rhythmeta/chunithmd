@@ -12,7 +12,7 @@ data class BestTableEntry(
     val rank: String,
     val rating: Double,
     val isNew: Boolean,
-    val clear: String,
+    val clear: String?,
     val fullCombo: String?,
     val fullChain: String?,
 )
@@ -26,7 +26,7 @@ data class BestTableShareEntry(
     val rating: Double,
     val level: String,
     val jacketPath: String?,
-    val clear: String,
+    val clear: String?,
     val fullCombo: String?,
     val fullChain: String?,
 )

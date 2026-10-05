@@ -65,10 +65,19 @@ class BestScoreSummaryTest {
         )
     }
 
+    @Test
+    fun missingClearStaysNullAndCannotReplaceAKnownLamp() {
+        val unknown = record("imported", 1_009_500, clear = null)
+        assertNull(listOf(unknown).bestScoreSummary()?.clear)
+        val known = record("manual", 1_000_000, clear = "hard")
+        assertEquals("hard", listOf(known, unknown).bestScoreSummary()?.clear)
+        assertEquals("hard", listOf(unknown, known).bestScoreSummary()?.clear)
+    }
+
     private fun record(
         id: String,
         score: Int,
-        clear: String = "clear",
+        clear: String? = "clear",
         combo: String? = null,
         chain: String? = null,
     ) = ScoreRecord(

@@ -1102,7 +1102,7 @@ private fun ChartScorePreview(record: BestScoreSummary, accentColor: Color) {
 
 @Composable
 private fun RecordStatusBadges(
-    clear: String,
+    clear: String?,
     fullCombo: String?,
     fullChain: String?,
     accentColor: Color,
@@ -1112,7 +1112,7 @@ private fun RecordStatusBadges(
     val statuses = buildList {
         FullComboType.displayName(fullCombo)?.let { add(it to Color(0xFFFFB300)) }
         FullChainType.displayName(fullChain)?.let { add(it to Color(0xFFB7C4D6)) }
-        if (showClear || isEmpty()) add(0, ClearType.displayName(clear) to accentColor)
+        if (showClear || isEmpty()) ClearType.displayName(clear)?.let { add(0, it to accentColor) }
     }
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
@@ -1479,7 +1479,7 @@ private fun ScoreEntrySheet(
         if (!saving && isValid) {
             onSave(
                 parsedScore,
-                ClearType.fromWire(clear),
+                ClearType.fromWire(clear) ?: ClearType.Clear,
                 FullComboType.fromWire(fullCombo),
                 FullChainType.fromWire(fullChain),
             )
@@ -1559,7 +1559,7 @@ private fun ScoreEntrySheet(
                             ScoreStatusDropdown(
                                 title = tr("CLEAR 状态"),
                                 items = ClearType.entries.map { ScoreStatusOption(it.displayName, clearStatusColor(it.wireValue)) },
-                                selectedIndex = ClearType.entries.indexOf(ClearType.fromWire(clear)),
+                                selectedIndex = ClearType.entries.indexOf(ClearType.fromWire(clear) ?: ClearType.Clear),
                                 onSelectedIndexChange = { index -> clear = ClearType.entries[index].wireValue },
                             )
                             ScoreStatusDropdown(

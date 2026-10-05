@@ -9,7 +9,9 @@ class ScoreModelsTest {
     fun statusTypesUseStableWireValues() {
         assertEquals(ClearType.Catastrophy, ClearType.fromWire("catastrophy"))
         assertEquals("CATASTROPHY", ClearType.displayName("catastrophy"))
-        assertEquals("CLEAR", ClearType.displayName(null))
+        assertNull(ClearType.fromWire(null))
+        assertNull(ClearType.displayName(null))
+        assertNull(ClearType.displayName(""))
         assertEquals(FullComboType.AllJusticeCritical, FullComboType.fromWire("alljusticecritical"))
         assertEquals("AJC", FullComboType.displayName("alljusticecritical"))
         assertNull(FullComboType.fromWire(null))

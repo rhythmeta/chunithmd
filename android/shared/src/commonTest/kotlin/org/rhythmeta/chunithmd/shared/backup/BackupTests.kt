@@ -19,6 +19,43 @@ class BackupTests {
         assertFails { BackupCodec.validate(source.copy(game="maimaid")) }
         assertFails { BackupCodec.validate(source.copy(profiles=emptyList())) }
     }
+    @Test fun nullableClearRoundTripsAndOldEmptyValuesRestoreAsNull() {
+        val record = org.rhythmeta.chunithmd.shared.ScoreRecord(
+            id = "20000000-0000-4000-8000-000000000001", profileId = snapshot().profiles.single().id,
+            songId = "song", sheetKey = "song:std:master", score = 1_009_000, rank = "SSS", playedAt = 1,
+        )
+        for (lamp in listOf(null, "clear", "hard", "failed")) {
+            val expected = record.copy(clear = lamp)
+            val encoded = BackupCodec.encode(snapshot().copy(playRecords = listOf(expected.toBackup())))
+            assertEquals(expected, BackupCodec.decode(encoded).playRecords.single().toRecord())
+        }
+        val legacy = record.toBackup().copy(result = record.toBackup().result.copy(clear = ""))
+        assertNull(BackupCodec.decode(BackupCodec.encode(snapshot().copy(playRecords = listOf(legacy))))
+            .playRecords.single().toRecord().clear)
+    }
+
+    @Test fun importedNullClearAndLegacyImportIdsCanBeBackedUp() {
+        val sheet = org.rhythmeta.chunithmd.shared.CatalogSheet("std", "master")
+        val catalog = org.rhythmeta.chunithmd.shared.CatalogBundle(1,
+            org.rhythmeta.chunithmd.shared.Catalog(songs = listOf(
+                org.rhythmeta.chunithmd.shared.CatalogSong("song", "Song", sheets = listOf(sheet)),
+            )))
+        val payload = org.rhythmeta.chunithmd.shared.importing.DivingFishPayload(1, listOf(
+            org.rhythmeta.chunithmd.shared.importing.DivingFishScore("Song", 3, 1_009_000, "alljustice"),
+        ))
+        val imported = org.rhythmeta.chunithmd.shared.importing.DivingFishImportPolicy.plan(
+            payload, catalog, snapshot().profiles.single().id, emptyList(), 1,
+        ).records.single()
+        val decoded = BackupCodec.decode(BackupCodec.encode(snapshot().copy(playRecords = listOf(imported.toBackup()))))
+        assertEquals(imported, decoded.playRecords.single().toRecord())
+        val legacy = imported.copy(id = "diving-fish:" + "a".repeat(64))
+        val backup = legacy.toBackup()
+        assertEquals("aaaaaaaa-aaaa-8aaa-8aaa-aaaaaaaaaaaa", backup.id)
+        val restored = BackupCodec.decode(BackupCodec.encode(snapshot().copy(playRecords = listOf(backup))))
+            .playRecords.single().toRecord()
+        assertEquals(legacy.copy(id = backup.id), restored)
+    }
+
     @Test fun invalidPreferenceCannotReachNativeStorage() {
         val wrongType = BackupSetting(key="android.chunithmd.theme.color_mode", kind="string", stringValue="bad")
         assertFails { BackupCodec.validate(snapshot().copy(settings=listOf(wrongType))) }

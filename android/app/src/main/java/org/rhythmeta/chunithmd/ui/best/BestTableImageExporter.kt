@@ -172,7 +172,9 @@ internal object BestTableImageExporter {
             val levelText = "${entry.level} → ${String.format(Locale.ROOT, "%.2f", entry.rating)}"
             drawText(canvas, levelText, contentLeft, top + 53f, 9f, difficulty, true)
             var badgeLeft = contentLeft
-            badgeLeft += drawBadge(canvas, ClearType.displayName(entry.clear), badgeLeft, top + 55f, clearColor(entry.clear)) + 3f
+            ClearType.displayName(entry.clear)?.let { display ->
+                badgeLeft += drawBadge(canvas, display, badgeLeft, top + 55f, clearColor(entry.clear)) + 3f
+            }
             entry.fullCombo?.takeIf(String::isNotBlank)?.let { value ->
                 badgeLeft += drawBadge(canvas, comboBadgeText(value), badgeLeft, top + 55f, comboColor(value)) + 3f
             }
@@ -343,13 +345,14 @@ internal object BestTableImageExporter {
             else -> Color.LTGRAY
         }
 
-        private fun clearColor(value: String): Int = when (ClearType.fromWire(value)) {
+        private fun clearColor(value: String?): Int = when (ClearType.fromWire(value)) {
             ClearType.Catastrophy -> Color.rgb(175, 82, 222)
             ClearType.Absolute -> Color.rgb(0, 122, 255)
             ClearType.Brave -> Color.rgb(52, 199, 89)
             ClearType.Hard -> Color.rgb(255, 149, 0)
             ClearType.Clear -> Color.rgb(90, 200, 250)
             ClearType.Failed -> Color.rgb(255, 59, 48)
+            null -> Color.LTGRAY
         }
 
         private fun comboColor(value: String): Int = when (FullComboType.fromWire(value)) {

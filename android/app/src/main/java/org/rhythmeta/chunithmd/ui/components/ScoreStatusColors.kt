@@ -12,6 +12,7 @@ internal fun clearStatusColor(value: String?): Color = when (ClearType.fromWire(
     ClearType.Hard -> Color(0xFFFF9500)
     ClearType.Clear -> Color(0xFF5AC8FA)
     ClearType.Failed -> Color(0xFFFF3B30)
+    null -> Color(0xFF8E8E93)
 }
 
 internal fun comboStatusColor(value: String?): Color = when (FullComboType.fromWire(value)) {

@@ -27,7 +27,7 @@ data class ScoreQueryEntry(
     val score: Int,
     val rank: String,
     val rating: Double,
-    val clear: String,
+    val clear: String?,
     val fullCombo: String?,
     val fullChain: String?,
 )

@@ -53,6 +53,7 @@ data class BackupScore(
     @ProtoNumber(7) val fs: String = "",
     @ProtoNumber(8) val achievedAt: Long = 0,
     @ProtoNumber(9) val score: Int = 0,
+    // Proto3 represents a missing lamp as an empty string; domain models use null.
     @ProtoNumber(10) val clear: String = "",
     @ProtoNumber(11) val songId: String = "",
 )

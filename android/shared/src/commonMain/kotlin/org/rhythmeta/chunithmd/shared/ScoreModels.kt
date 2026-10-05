@@ -15,9 +15,9 @@ enum class ClearType(
     ;
 
     companion object {
-        fun fromWire(value: String?): ClearType = entries.firstOrNull { it.wireValue.equals(value, true) } ?: Clear
-        fun displayName(value: String?): String = entries.firstOrNull { it.wireValue.equals(value, true) }?.displayName
-            ?: value?.trim()?.takeIf(String::isNotEmpty)?.uppercase() ?: Clear.displayName
+        fun fromWire(value: String?): ClearType? = entries.firstOrNull { it.wireValue.equals(value?.trim(), true) }
+        fun displayName(value: String?): String? = fromWire(value)?.displayName
+            ?: value?.trim()?.takeIf(String::isNotEmpty)?.uppercase()
     }
 }
 
@@ -60,7 +60,7 @@ data class ScoreRecord(
     val score: Int,
     val rank: String,
     val playedAt: Long,
-    val clear: String = ClearType.Clear.wireValue,
+    val clear: String? = null,
     val fullCombo: String? = null,
     val fullChain: String? = null,
 )
@@ -72,7 +72,7 @@ interface ScoreStore {
         songId: String,
         sheetKey: String,
         score: Int,
-        clear: ClearType = ClearType.Clear,
+        clear: ClearType? = null,
         fullCombo: FullComboType? = null,
         fullChain: FullChainType? = null,
     ): ScoreRecord
@@ -86,7 +86,7 @@ fun Iterable<ScoreRecord>.bestScore(): ScoreRecord? = maxWithOrNull(compareBy<Sc
 /** Personal bests for one profile and chart, which may come from different plays. */
 data class BestScoreSummary(
     val score: Int,
-    val clear: String,
+    val clear: String?,
     val fullCombo: String?,
     val fullChain: String?,
 ) {
@@ -98,7 +98,7 @@ fun Iterable<ScoreRecord>.bestScoreSummary(): BestScoreSummary? {
     val highestScore = records.bestScore() ?: return null
     // Enum order is strongest first: CATASTROPHY -> FAILED, AJC -> FC, platinum -> gold.
     val clear = ClearType.entries.firstOrNull { status ->
-        records.any { it.clear.trim().equals(status.wireValue, ignoreCase = true) }
+        records.any { it.clear?.trim().equals(status.wireValue, ignoreCase = true) }
     }
     val combo = FullComboType.entries.firstOrNull { status ->
         records.any { displayFullCombo(it.fullCombo) == status.displayName }
@@ -108,7 +108,7 @@ fun Iterable<ScoreRecord>.bestScoreSummary(): BestScoreSummary? {
     }
     return BestScoreSummary(
         score = highestScore.score,
-        clear = clear?.wireValue ?: highestScore.clear,
+        clear = clear?.wireValue ?: highestScore.clear?.takeIf(String::isNotBlank),
         fullCombo = combo?.wireValue ?: highestScore.fullCombo,
         fullChain = chain?.wireValue ?: highestScore.fullChain,
     )

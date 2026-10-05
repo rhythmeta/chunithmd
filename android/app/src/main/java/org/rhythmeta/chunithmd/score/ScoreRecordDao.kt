@@ -17,6 +17,9 @@ interface ScoreRecordDao {
     @Query("SELECT * FROM score_records WHERE id = :id LIMIT 1")
     suspend fun find(id: String): ScoreRecordEntity?
 
+    @Query("SELECT * FROM score_records WHERE profileId = :profileId")
+    suspend fun forProfile(profileId: String): List<ScoreRecordEntity>
+
     @Insert
     suspend fun insert(record: ScoreRecordEntity)
 

@@ -186,6 +186,8 @@ private sealed interface AppRoute : NavKey {
 //    @Serializable data object Settings : AppRoute
     @Serializable data object Theme : AppRoute
     @Serializable data object Resources : AppRoute
+    @Serializable data object Lxns : AppRoute
+    @Serializable data object DivingFish : AppRoute
     @Serializable data object Account : AppRoute
     @Serializable data object CommunityAliases : AppRoute
     @Serializable data object Profiles : AppRoute
@@ -701,12 +703,12 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = titleOverride ?: when (page) { 16 -> tr("社区别名"); 15 -> tr("云端账户"); 14, 13 -> tr("收藏夹"); 12 -> tr("牌子进度"); 11 -> tr("定数表"); 10 -> tr("成绩查询"); 9 -> tr("吃分推荐"); 8 -> tr("随机歌曲"); 7 -> tr("Best 表"); 6 -> tr("用户档案"); 5 -> tr("静态数据"); 4 -> tr("主题"); 3 -> tr("设置"); 0 -> tr("主页"); 1 -> tr("扫描"); else -> tr("歌曲") },
+            title = titleOverride ?: when (page) { 18 -> tr("落雪导入"); 17 -> tr("水鱼导入"); 16 -> tr("社区别名"); 15 -> tr("云端账户"); 14, 13 -> tr("收藏夹"); 12 -> tr("牌子进度"); 11 -> tr("定数表"); 10 -> tr("成绩查询"); 9 -> tr("吃分推荐"); 8 -> tr("随机歌曲"); 7 -> tr("Best 表"); 6 -> tr("用户档案"); 5 -> tr("静态数据"); 4 -> tr("主题"); 3 -> tr("设置"); 0 -> tr("主页"); 1 -> tr("扫描"); else -> tr("歌曲") },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page in 4..16) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page in 4..18) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = tr("返回"))
                 }
             },
@@ -916,6 +918,8 @@ private fun CatalogApp(
                     { pushRoute(AppRoute.Account) },
                     accountClient = accountClient,
                     onSendLogs = onSendLogs,
+                    onDivingFish = { pushRoute(AppRoute.DivingFish) },
+                    onLxns = { pushRoute(AppRoute.Lxns) },
                 )
             }
         }
@@ -935,7 +939,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.CommunityAliases || navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
+            if (navBackStack.lastOrNull() == AppRoute.Lxns || navBackStack.lastOrNull() == AppRoute.DivingFish || navBackStack.lastOrNull() == AppRoute.CommunityAliases || navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
                 navBackStack.removeLastOrNull()
@@ -1026,6 +1030,26 @@ private fun CatalogApp(
                     topBarScrollConnection = connection,
                     onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
                     onLogin = { pushRoute(AppRoute.Account) },
+                )
+            }
+        }
+        entry<AppRoute.DivingFish>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(17, resourcesTopBarScrollBehavior) { padding, connection ->
+                org.rhythmeta.chunithmd.ui.settings.DivingFishImportScreen(
+                    profileRepository, scoreRepository, bundle, Modifier.padding(padding).nestedScroll(connection),
+                )
+            }
+        }
+        entry<AppRoute.Lxns>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(18, resourcesTopBarScrollBehavior) { padding, connection ->
+                org.rhythmeta.chunithmd.ui.settings.LxnsImportScreen(
+                    profileRepository, scoreRepository, bundle, Modifier.padding(padding).nestedScroll(connection),
                 )
             }
         }
