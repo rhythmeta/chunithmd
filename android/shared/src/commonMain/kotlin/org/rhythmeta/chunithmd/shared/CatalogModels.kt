@@ -116,6 +116,17 @@ object CatalogJson {
 
 fun CatalogSong.isPlayableInJp(): Boolean = sheets.any { it.regions["jp"] == true }
 
+/** Resolve regional levels without changing chart identity, availability, or note data. */
+fun CatalogSong.sheetForServer(sheet: CatalogSheet, server: ProfileServer): CatalogSheet {
+    if (server != ProfileServer.Cn) return sheet
+    val override = regionOverrides["cn"]?.charts?.get("${sheet.type}:${sheet.difficulty}") ?: return sheet
+    return sheet.copy(
+        level = override.level ?: sheet.level,
+        levelValue = override.levelValue ?: sheet.levelValue,
+        internalLevelValue = override.levelValue ?: sheet.internalLevelValue,
+    )
+}
+
 fun CatalogSong.isPlayableIn(region: String): Boolean = when {
     region.equals("cn", ignoreCase = true) -> {
         val override = regionOverrides["cn"]

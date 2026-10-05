@@ -1340,6 +1340,7 @@ private fun CatalogApp(
             ) { padding, topBarScrollConnection ->
                 SongDetailScreen(
                     song = song,
+                    activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
                     loading = bundle == null,
                     aliases = bundle?.aliases?.get(route.songId).orEmpty(),
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),

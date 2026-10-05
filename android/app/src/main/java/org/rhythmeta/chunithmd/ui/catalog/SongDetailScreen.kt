@@ -124,6 +124,8 @@ import org.rhythmeta.chunithmd.shared.ChunithmScoreRules
 import org.rhythmeta.chunithmd.shared.calculateSingleRating
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
+import org.rhythmeta.chunithmd.shared.ProfileServer
+import org.rhythmeta.chunithmd.shared.sheetForServer
 import org.rhythmeta.chunithmd.shared.CatalogNoteCounts
 import org.rhythmeta.chunithmd.shared.CatalogVersionFormatter
 import org.rhythmeta.chunithmd.shared.worldsEndStars
@@ -176,6 +178,7 @@ private val CHART_TYPE_ORDER = listOf("std", "standard", "we")
 @Composable
 fun SongDetailScreen(
     song: CatalogSong?,
+    activeServer: ProfileServer,
     loading: Boolean = false,
     aliases: List<String>,
     jacketBaseUrl: String,
@@ -232,8 +235,11 @@ fun SongDetailScreen(
             "$it/${song.imageName.trimStart('/')}"
         }
     }
-    val chartTypes = remember(song.sheets) {
-        song.sheets.map { it.type.trim() }.filter(String::isNotBlank).distinct().sortedWith(
+    val displaySheets = remember(song, activeServer) {
+        song.sheets.map { song.sheetForServer(it, activeServer) }
+    }
+    val chartTypes = remember(displaySheets) {
+        displaySheets.map { it.type.trim() }.filter(String::isNotBlank).distinct().sortedWith(
             compareBy<String> { typeOrder(it) }.thenBy(String::lowercase),
         )
     }
@@ -251,8 +257,8 @@ fun SongDetailScreen(
     LaunchedEffect(detailColors) {
         onBackgroundChanged(detailColors?.background)
     }
-    val visibleSheets = remember(song.sheets, selectedType) {
-        song.sheets
+    val visibleSheets = remember(displaySheets, selectedType) {
+        displaySheets
             .filter { selectedType == null || it.type.equals(selectedType, true) }
             .sortedWith(compareByDescending<CatalogSheet> { detailDifficultyOrder(it.difficulty) }.thenByDescending { it.levelValue ?: Double.MIN_VALUE })
     }
@@ -348,12 +354,12 @@ fun SongDetailScreen(
 
     CollectionPickerSheet(
         repository = collectionRepository,
-        entry = collectionSheetKey?.let { key -> song.sheets.firstOrNull { song.sheetKey(it) == key } }
+        entry = collectionSheetKey?.let { key -> displaySheets.firstOrNull { song.sheetKey(it) == key } }
             ?.let { CollectionEntry(song.songId, it.type, it.difficulty) },
         onDismiss = { collectionSheetKey = null },
     )
     val entrySheet = scoreEntrySheetKey?.let { key ->
-        song.sheets.firstOrNull { song.sheetKey(it) == key }
+        displaySheets.firstOrNull { song.sheetKey(it) == key }
     }
     ScoreEntrySheet(
         visible = entrySheet != null,
