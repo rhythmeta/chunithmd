@@ -430,6 +430,7 @@ private fun CatalogApp(
     var filters by remember { mutableStateOf(CatalogFilters()) }
     var filterOpen by remember { mutableStateOf(false) }
     var sortOpen by remember { mutableStateOf(false) }
+    var catalogGridMode by rememberSaveable { mutableStateOf(false) }
     var profileCreateRequested by remember { mutableStateOf(false) }
     var bestTableShareRequested by remember { mutableStateOf(false) }
     var randomSongFilterRequested by remember { mutableStateOf(false) }
@@ -484,6 +485,7 @@ private fun CatalogApp(
         }
     }
     val catalogListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val catalogGridState = org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState()
     val scope = rememberCoroutineScope()
     val latestOtogameCatalog by rememberUpdatedState(bundle)
     val otogameClient = (communityContext as ChunithmdApplication).otogameClient
@@ -757,6 +759,16 @@ private fun CatalogApp(
                 }
                 if (page == 2 && bundle != null) {
                     CatalogToolbarActions(
+                        gridMode = catalogGridMode,
+                        onGridToggle = {
+                            val lastIndex = songs.lastIndex.coerceAtLeast(0)
+                            if (catalogGridMode) {
+                                catalogListState.requestScrollToItem(catalogGridState.firstVisibleItemIndex.coerceAtMost(lastIndex))
+                            } else {
+                                catalogGridState.requestScrollToItem(catalogListState.firstVisibleItemIndex.coerceAtMost(lastIndex))
+                            }
+                            catalogGridMode = !catalogGridMode
+                        },
                         sortOpen = sortOpen,
                         sort = sort,
                         ascending = ascending,
@@ -940,6 +952,8 @@ private fun CatalogApp(
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
                     localJacketPath = repository::localJacketPath,
                     listState = catalogListState,
+                    gridState = catalogGridState,
+                    gridMode = catalogGridMode,
                     navigationBackdrop = navigationBackdrop,
                     searchScrollConnection = searchScrollConnection,
                     topBarScrollConnection = topBarScrollConnection,

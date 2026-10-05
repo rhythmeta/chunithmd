@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -72,6 +73,8 @@ fun CatalogScreen(
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
     listState: LazyListState,
+    gridState: CatalogPhotoGridState,
+    gridMode: Boolean,
     navigationBackdrop: LayerBackdrop,
     searchScrollConnection: NestedScrollConnection,
     topBarScrollConnection: NestedScrollConnection,
@@ -83,23 +86,38 @@ fun CatalogScreen(
     if (bundle == null) {
         InitialLoad(sync, error, onRetry, modifier.padding(top = contentTopPadding))
     } else {
-        SongList(
-            modifier = modifier
-                .kyantLayerBackdrop(navigationBackdrop)
-                .nestedScroll(searchScrollConnection)
-                .nestedScroll(topBarScrollConnection),
-            contentTopPadding = contentTopPadding,
-            songs = songs,
-            scoresBySheetKey = scoresBySheetKey,
-            jacketBaseUrl = jacketBaseUrl,
-            localJacketPath = localJacketPath,
-            listState = listState,
-            onSongClick = { song ->
-                focusManager.clearFocus(force = true)
-                keyboardController?.hide()
-                onSongClick(song)
-            },
-        )
+        val scrollModifier = modifier
+            .kyantLayerBackdrop(navigationBackdrop)
+            .nestedScroll(searchScrollConnection)
+            .nestedScroll(topBarScrollConnection)
+        val openSong: (CatalogSong) -> Unit = { song ->
+            focusManager.clearFocus(force = true)
+            keyboardController?.hide()
+            onSongClick(song)
+        }
+        if (gridMode) {
+            CatalogPhotoGrid(
+                modifier = scrollModifier,
+                contentTopPadding = contentTopPadding,
+                songs = songs,
+                scoresBySheetKey = scoresBySheetKey,
+                jacketBaseUrl = jacketBaseUrl,
+                localJacketPath = localJacketPath,
+                state = gridState,
+                onSongClick = openSong,
+            )
+        } else {
+            SongList(
+                modifier = scrollModifier,
+                contentTopPadding = contentTopPadding,
+                songs = songs,
+                scoresBySheetKey = scoresBySheetKey,
+                jacketBaseUrl = jacketBaseUrl,
+                localJacketPath = localJacketPath,
+                listState = listState,
+                onSongClick = openSong,
+            )
+        }
     }
 }
 
@@ -141,6 +159,8 @@ fun CatalogSearchField(
 
 @Composable
 fun CatalogToolbarActions(
+    gridMode: Boolean,
+    onGridToggle: () -> Unit,
     sortOpen: Boolean,
     sort: CatalogSort,
     ascending: Boolean,
@@ -150,8 +170,11 @@ fun CatalogToolbarActions(
     onAscending: () -> Unit,
     onFilter: () -> Unit,
 ) {
-    MiuixIconButton(onClick = {}) {
-        MiuixIcon(Icons.Rounded.GridView, contentDescription = tr("网格视图"))
+    MiuixIconButton(onClick = onGridToggle) {
+        MiuixIcon(
+            if (gridMode) Icons.AutoMirrored.Rounded.ViewList else Icons.Rounded.GridView,
+            contentDescription = if (gridMode) tr("列表视图") else tr("网格视图"),
+        )
     }
     SortAction(
         expanded = sortOpen,
