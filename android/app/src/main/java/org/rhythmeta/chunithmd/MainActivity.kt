@@ -53,6 +53,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -98,6 +99,9 @@ import org.rhythmeta.chunithmd.profile.ProfileAvatarStore
 import org.rhythmeta.chunithmd.profile.ProfileRepository
 import org.rhythmeta.chunithmd.score.ScoreRepository
 import org.rhythmeta.chunithmd.shared.BestTablePreferences
+import org.rhythmeta.chunithmd.shared.RatingChartEntry
+import org.rhythmeta.chunithmd.shared.buildBestTableEntries
+import org.rhythmeta.chunithmd.shared.calculatePlayerRating
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.CatalogFilters
 import org.rhythmeta.chunithmd.shared.CatalogJson
@@ -447,6 +451,25 @@ private fun CatalogApp(
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
     val profileScores by scoreRepository.observeCurrentProfileRecords().collectAsState(initial = emptyList())
     val bestTablePreferences by bestTablePreferencesRepository.preferences.collectAsState(initial = BestTablePreferences())
+    val profileRating by key(activeProfile?.id) {
+        produceState(0.0, bundle, profileScores, activeProfile?.server, bestTablePreferences) {
+            val catalog = bundle
+            val profile = activeProfile
+            value = if (catalog == null || profile == null) 0.0 else withContext(Dispatchers.Default) {
+                val entries = buildBestTableEntries(
+                    catalog,
+                    profileScores.filter { it.profileId == profile.id },
+                    profile.server,
+                    bestTablePreferences.selectedVersion,
+                )
+                calculatePlayerRating(
+                    entries.map { RatingChartEntry(it.chartId, it.songId, it.rating, it.isNew) },
+                    bestSlotCount = bestTablePreferences.bestCount,
+                    newSlotCount = bestTablePreferences.newCount,
+                ).rating
+            }
+        }
+    }
     val favoriteSongIds by favoriteSongRepository.favoriteSongIds.collectAsState(initial = emptySet())
     val scoresBySheetKey = remember(profileScores) {
         profileScores.groupBy(ScoreRecord::sheetKey)
@@ -831,7 +854,7 @@ private fun CatalogApp(
                         .verticalScroll(rememberScrollState())
                         .padding(bottom = navigationBarBottomSpace),
                 ) {
-                    CurrentProfileCard(activeProfile) { activeProfile?.let { quickEditProfile = it } }
+                    CurrentProfileCard(activeProfile, profileRating) { activeProfile?.let { quickEditProfile = it } }
                     BestTableHomeCard(
                         bestCount = bestTablePreferences.bestCount,
                         newCount = bestTablePreferences.newCount,

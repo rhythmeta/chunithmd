@@ -309,10 +309,13 @@ internal fun ProfileEditorSheet(
 }
 
 @Composable
-internal fun CurrentProfileCard(profile: UserProfile?, onClick: () -> Unit) {
+internal fun CurrentProfileCard(profile: UserProfile?, rating: Double, onClick: () -> Unit) {
     Card(Modifier.fillMaxWidth().padding(16.dp), onClick = onClick, showIndication = true, cornerRadius = 18.dp, insideMargin = PaddingValues(14.dp), colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AvatarImage(profile?.avatarPath, 58.dp)
+            Box(Modifier.size(64.dp)) {
+                AvatarImage(profile?.avatarPath, 58.dp)
+                ProfileRatingBadge(rating, Modifier.align(Alignment.BottomEnd))
+            }
             Column(Modifier.padding(start = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(profile?.name ?: tr("我的档案"), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
