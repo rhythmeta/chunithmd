@@ -38,7 +38,7 @@ fun buildBestTableEntries(
     selectedVersion: String? = null,
 ): List<BestTableEntry> {
     val bestScores = records.groupBy(ScoreRecord::sheetKey)
-        .mapValues { (_, values) -> values.maxByOrNull(ScoreRecord::score)!! }
+        .mapValues { (_, values) -> values.bestScoreSummary() }
     val latestVersion = selectedVersion ?: bundle.latestPlayableVersion(activeServer)
     val selectedVersionIndex = selectedVersion?.let { selected ->
         bundle.catalog.versions.indexOfFirst { it.version.equals(selected, true) }.takeIf { it >= 0 }

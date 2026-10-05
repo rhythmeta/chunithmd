@@ -3022,5 +3022,71 @@
     "zh-Hant": "落雪匯入失敗，請檢查網路後重試。",
     "en": "LXNS import failed. Check your connection and try again.",
     "ja": "LXNS のインポートに失敗しました。接続を確認して再試行してください。"
+  },
+  "Otogame 导入": {
+    "en": "Otogame Import",
+    "ja": "Otogame インポート",
+    "zh-Hans": "Otogame 导入",
+    "zh-Hant": "Otogame 匯入"
+  },
+  "Otogame 导入失败，请检查网络后重试。": {
+    "en": "Otogame import failed. Check your connection and try again.",
+    "ja": "Otogame のインポートに失敗しました。ネットワークを確認して再試行してください。",
+    "zh-Hans": "Otogame 导入失败，请检查网络后重试。",
+    "zh-Hant": "Otogame 匯入失敗，請檢查網路後重試。"
+  },
+  "Otogame 登录已失效，请重新登录。": {
+    "en": "Your Otogame session has expired. Sign in again.",
+    "ja": "Otogame のセッションが切れました。再ログインしてください。",
+    "zh-Hans": "Otogame 登录已失效，请重新登录。",
+    "zh-Hant": "Otogame 登入已失效，請重新登入。"
+  },
+  "Otogame 返回的数据格式不正确，请稍后重试。": {
+    "en": "Otogame returned an invalid response. Try again later.",
+    "ja": "Otogame の応答形式が正しくありません。後でもう一度お試しください。",
+    "zh-Hans": "Otogame 返回的数据格式不正确，请稍后重试。",
+    "zh-Hant": "Otogame 傳回的資料格式不正確，請稍後重試。"
+  },
+  "仅导入最近四页游玩记录": {
+    "en": "Import the four most recent pages of plays",
+    "ja": "最新4ページのプレイ履歴をインポート",
+    "zh-Hans": "仅导入最近四页游玩记录",
+    "zh-Hant": "僅匯入最近四頁遊玩紀錄"
+  },
+  "刷新": {
+    "en": "Refresh",
+    "ja": "再読み込み",
+    "zh-Hans": "刷新",
+    "zh-Hant": "重新整理"
+  },
+  "已获取 {0}/{1} 页": {
+    "en": "Fetched {0}/{1} pages",
+    "ja": "{0}/{1} ページ取得済み",
+    "zh-Hans": "已获取 {0}/{1} 页",
+    "zh-Hant": "已取得 {0}/{1} 頁"
+  },
+  "登录 Otogame": {
+    "en": "Sign in to Otogame",
+    "ja": "Otogame にログイン",
+    "zh-Hans": "登录 Otogame",
+    "zh-Hant": "登入 Otogame"
+  },
+  "请先登录 Otogame": {
+    "en": "Sign in to Otogame first",
+    "ja": "先に Otogame にログインしてください",
+    "zh-Hans": "请先登录 Otogame",
+    "zh-Hant": "請先登入 Otogame"
+  },
+  "重新登录": {
+    "en": "Sign in again",
+    "ja": "再ログイン",
+    "zh-Hans": "重新登录",
+    "zh-Hant": "重新登入"
+  },
+  "需要启用一个日服档案。": {
+    "en": "An active Japanese server profile is required.",
+    "ja": "日本版のプロフィールを有効にしてください。",
+    "zh-Hans": "需要启用一个日服档案。",
+    "zh-Hant": "需要啟用一個日服檔案。"
   }
 }

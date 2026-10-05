@@ -1,8 +1,5 @@
 package org.rhythmeta.chunithmd.ui.settings
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -18,6 +15,7 @@ import org.rhythmeta.chunithmd.score.ScoreRepository
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.importing.*
 import org.rhythmeta.chunithmd.shared.localization.tr
+import org.rhythmeta.chunithmd.ui.components.openInAppBrowser
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -54,9 +52,7 @@ fun LxnsImportScreen(profiles: ProfileRepository, scores: ScoreRepository, catal
                         }
                         state.authorizationUrl != null -> {
                             Button(onClick = {
-                                browserError = false
-                                try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(state.authorizationUrl))) }
-                                catch (_: ActivityNotFoundException) { browserError = true }
+                                state.authorizationUrl?.let { browserError = !context.openInAppBrowser(it) }
                             }, enabled = ready, colors = ButtonDefaults.buttonColorsPrimary(), modifier = Modifier.fillMaxWidth()) { Text(tr("前往授权")) }
                             TextField(state.code, controller::setCode, label = tr("粘贴浏览器中的授权码"), modifier = Modifier.fillMaxWidth())
                             Button(onClick = controller::exchangeAndImport, enabled = ready && state.code.isNotBlank(),

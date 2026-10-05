@@ -5,6 +5,7 @@ import org.rhythmeta.chunithmd.diagnostics.CrashLogStore
 
 class ChunithmdApplication : Application() {
     internal val crashLogStore by lazy { CrashLogStore(this) }
+    internal val otogameClient by lazy { org.rhythmeta.chunithmd.shared.importing.OtogameClient() }
 
     internal val divingFishClient by lazy {
         org.rhythmeta.chunithmd.shared.importing.DivingFishClient(

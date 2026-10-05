@@ -3,9 +3,6 @@ package org.rhythmeta.chunithmd.account
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import android.content.Context
-import android.content.Intent
-import android.content.ActivityNotFoundException
-import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,6 +55,7 @@ import org.rhythmeta.chunithmd.shared.account.CloudBackup
 import org.rhythmeta.chunithmd.shared.account.RhythmetaClient
 import org.rhythmeta.chunithmd.shared.account.RhythmetaUser
 import org.rhythmeta.chunithmd.shared.backup.BackupCoordinator
+import org.rhythmeta.chunithmd.ui.components.openInAppBrowser
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -258,9 +256,7 @@ private fun openWebAuth(
     mode: String,
     onError: (String) -> Unit,
 ) {
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(client.loginUrl(mode))))
-    } catch (_: ActivityNotFoundException) {
+    if (!context.openInAppBrowser(client.loginUrl(mode))) {
         onError(tr("未找到可用的浏览器"))
     }
 }

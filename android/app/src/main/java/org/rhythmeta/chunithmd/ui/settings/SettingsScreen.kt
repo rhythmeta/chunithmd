@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.rounded.AcUnit
+import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.material.icons.Icons
 import org.rhythmeta.chunithmd.ui.components.FishIcon
 import androidx.compose.material.icons.rounded.Cloud
@@ -49,6 +50,7 @@ fun SettingsHome(
     onSendLogs: () -> Unit,
     onDivingFish: () -> Unit,
     onLxns: () -> Unit,
+    onOtogame: () -> Unit,
 ) {
     var backendAvailable by remember(accountClient) { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(accountClient) {
@@ -97,6 +99,12 @@ fun SettingsHome(
                     title = tr("落雪导入"),
                     summary = tr("导入成绩"),
                     onClick = onLxns,
+                )
+                SettingsRow(
+                    icon = Icons.Rounded.SportsEsports,
+                    title = tr("Otogame 导入"),
+                    summary = tr("导入成绩"),
+                    onClick = onOtogame,
                 )
             }
         }

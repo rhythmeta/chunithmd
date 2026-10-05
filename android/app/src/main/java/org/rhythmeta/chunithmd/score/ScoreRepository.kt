@@ -66,6 +66,24 @@ class ScoreRepository(
 
     suspend fun exportRecords(): List<ScoreRecord> = dao.all().map { it.toDomain() }
 
+    suspend fun importOtogame(
+        profileId: String,
+        payload: org.rhythmeta.chunithmd.shared.importing.OtogamePayload,
+        catalog: org.rhythmeta.chunithmd.shared.CatalogBundle,
+    ): org.rhythmeta.chunithmd.shared.importing.ScoreImportResult =
+        profileRepository.withActiveProfile(profileId) {
+            if (!org.rhythmeta.chunithmd.shared.importing.OtogameImportPolicy.isEligible(profileRepository.activeProfile.first()?.server)) {
+                throw org.rhythmeta.chunithmd.shared.importing.OtogameException("profile_ineligible")
+            }
+            database.withTransaction {
+                val plan = org.rhythmeta.chunithmd.shared.importing.OtogameImportPolicy.plan(
+                    payload, catalog, profileId, dao.forProfile(profileId).map { it.toDomain() },
+                )
+                plan.records.forEach { dao.insert(ScoreRecordEntity.fromDomain(it)) }
+                plan.result
+            }
+        }
+
     suspend fun replaceRecords(records: List<ScoreRecord>) = database.withTransaction {
         dao.deleteAll()
         records.forEach { dao.insert(ScoreRecordEntity.fromDomain(it)) }

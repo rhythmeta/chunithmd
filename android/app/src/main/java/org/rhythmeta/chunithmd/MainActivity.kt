@@ -59,6 +59,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
@@ -191,6 +192,8 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Theme : AppRoute
     @Serializable data object Resources : AppRoute
     @Serializable data object Lxns : AppRoute
+    @Serializable data object Otogame : AppRoute
+    @Serializable data object OtogameLogin : AppRoute
     @Serializable data object DivingFish : AppRoute
     @Serializable data object Account : AppRoute
     @Serializable data object CommunityAliases : AppRoute
@@ -482,6 +485,18 @@ private fun CatalogApp(
     }
     val catalogListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val latestOtogameCatalog by rememberUpdatedState(bundle)
+    val otogameClient = (communityContext as ChunithmdApplication).otogameClient
+    val otogameController = remember(otogameClient, scoreRepository, scope) {
+        org.rhythmeta.chunithmd.shared.importing.OtogameImportController(otogameClient, scope) { id, payload ->
+            scoreRepository.importOtogame(id, payload, latestOtogameCatalog
+                ?: throw org.rhythmeta.chunithmd.shared.importing.OtogameException("catalog_empty"))
+        }
+    }
+    LaunchedEffect(activeProfile?.id, activeProfile?.server) {
+        otogameController.selectProfile(activeProfile?.id, activeProfile?.server)
+    }
+    DisposableEffect(otogameController) { onDispose { otogameController.disconnect() } }
     val recommendationSwitcherShowThreshold = with(LocalDensity.current) { 56.dp.toPx() }
     val recommendationSwitcherHideThreshold = with(LocalDensity.current) { 36.dp.toPx() }
     val recommendationSwitcherScrollConnection = remember(
@@ -726,12 +741,13 @@ private fun CatalogApp(
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         AppPageScaffold(
-            title = titleOverride ?: when (page) { 18 -> tr("落雪导入"); 17 -> tr("水鱼导入"); 16 -> tr("社区别名"); 15 -> tr("云端账户"); 14, 13 -> tr("收藏夹"); 12 -> tr("牌子进度"); 11 -> tr("定数表"); 10 -> tr("成绩查询"); 9 -> tr("吃分推荐"); 8 -> tr("随机歌曲"); 7 -> tr("Best 表"); 6 -> tr("用户档案"); 5 -> tr("静态数据"); 4 -> tr("主题"); 3 -> tr("设置"); 0 -> tr("主页"); 1 -> tr("扫描"); else -> tr("歌曲") },
+            title = titleOverride ?: when (page) { 20 -> tr("登录 Otogame"); 19 -> tr("Otogame 导入"); 18 -> tr("落雪导入"); 17 -> tr("水鱼导入"); 16 -> tr("社区别名"); 15 -> tr("云端账户"); 14, 13 -> tr("收藏夹"); 12 -> tr("牌子进度"); 11 -> tr("定数表"); 10 -> tr("成绩查询"); 9 -> tr("吃分推荐"); 8 -> tr("随机歌曲"); 7 -> tr("Best 表"); 6 -> tr("用户档案"); 5 -> tr("静态数据"); 4 -> tr("主题"); 3 -> tr("设置"); 0 -> tr("主页"); 1 -> tr("扫描"); else -> tr("歌曲") },
+            largeTitle = page != 20,
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page in 4..18) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page in 4..20) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = tr("返回"))
                 }
             },
@@ -943,6 +959,7 @@ private fun CatalogApp(
                     onSendLogs = onSendLogs,
                     onDivingFish = { pushRoute(AppRoute.DivingFish) },
                     onLxns = { pushRoute(AppRoute.Lxns) },
+                    onOtogame = { pushRoute(AppRoute.Otogame) },
                 )
             }
         }
@@ -962,7 +979,7 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
         onBack = {
-            if (navBackStack.lastOrNull() == AppRoute.Lxns || navBackStack.lastOrNull() == AppRoute.DivingFish || navBackStack.lastOrNull() == AppRoute.CommunityAliases || navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
+            if (navBackStack.lastOrNull() == AppRoute.Otogame || navBackStack.lastOrNull() == AppRoute.OtogameLogin || navBackStack.lastOrNull() == AppRoute.Lxns || navBackStack.lastOrNull() == AppRoute.DivingFish || navBackStack.lastOrNull() == AppRoute.CommunityAliases || navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
                 navBackStack.removeLastOrNull()
@@ -1082,6 +1099,28 @@ private fun CatalogApp(
         ) {
             AppFrame(15, resourcesTopBarScrollBehavior) { padding, connection ->
                 org.rhythmeta.chunithmd.account.RhythmetaScreen(accountClient, backupCoordinator, Modifier.padding(padding).nestedScroll(connection))
+            }
+        }
+        entry<AppRoute.Otogame>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(19, resourcesTopBarScrollBehavior) { padding, connection ->
+                org.rhythmeta.chunithmd.ui.settings.OtogameImportScreen(
+                    otogameController, activeProfile, bundle?.catalog?.songs?.isNotEmpty() == true,
+                    onLogin = { otogameController.disconnect(); pushRoute(AppRoute.OtogameLogin) },
+                    modifier = Modifier.padding(padding).nestedScroll(connection),
+                )
+            }
+        }
+        entry<AppRoute.OtogameLogin>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            AppFrame(20, resourcesTopBarScrollBehavior) { padding, _ ->
+                org.rhythmeta.chunithmd.ui.settings.OtogameLoginScreen(
+                    otogameController, onDone = { navBackStack.removeLastOrNull() }, modifier = Modifier.padding(padding),
+                )
             }
         }
         entry<AppRoute.Profiles>(

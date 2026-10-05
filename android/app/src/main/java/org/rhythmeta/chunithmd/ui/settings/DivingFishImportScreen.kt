@@ -1,12 +1,10 @@
 package org.rhythmeta.chunithmd.ui.settings
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.selection.SelectionContainer
 import org.rhythmeta.chunithmd.ui.components.FishIcon
+import org.rhythmeta.chunithmd.ui.components.openInAppBrowser
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -99,9 +97,7 @@ fun DivingFishImportScreen(
                         state.authorizationUrl?.let { url ->
                             Button(
                                 onClick = {
-                                    browserError = false
-                                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-                                    catch (_: ActivityNotFoundException) { browserError = true }
+                                    browserError = !context.openInAppBrowser(url)
                                 },
                                 colors = ButtonDefaults.buttonColorsPrimary(),
                                 modifier = Modifier.fillMaxWidth(),
