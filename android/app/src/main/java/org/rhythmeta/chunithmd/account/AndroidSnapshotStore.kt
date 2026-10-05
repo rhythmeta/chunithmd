@@ -47,13 +47,14 @@ class AndroidSnapshotStore(
         }
         BackupSnapshot(magic="RHYTHMETA_BACKUP", formatVersion=1, game="chunithmd", createdAt=System.currentTimeMillis(), clientVersion=BuildConfig.VERSION_NAME,
             profiles=profileList,
-            scores=retainedSnapshot?.scores.orEmpty().filter { score -> profileList.any { it.id == score.profileId } },
+            scores=retainedSnapshot?.scores.orEmpty(),
             playRecords=scores.exportRecords().map { it.toBackup() },
             collections=localCollections.mapIndexed { index, item -> BackupCollection(id=item.id, name=item.name, sortIndex=index) },
             collectionItems=localCollections.flatMap { collection -> collection.entries.mapIndexed { index, entry ->
                 BackupCollectionItem(id=UUID.nameUUIDFromBytes("${collection.id}:${entry.key}".encodeToByteArray()).toString(), collectionId=collection.id, songId=entry.songId, chartType=entry.chartType, difficulty=entry.difficulty, position=index)
             } }, favoriteSongIds=favorites.favoriteSongIds.first().sorted(),
             settings=stores.flatMap { (name, store) -> store.data.first().asMap().map { (key,value) -> setting("$prefix$name.${key.name}", value) } } + retainedSnapshot?.settings.orEmpty().filterNot { it.key.startsWith(prefix) })
+            .withScoresForExistingProfiles()
             .also(BackupCodec::validate)
     }
     override suspend fun replaceSnapshot(snapshot: BackupSnapshot) = withContext(Dispatchers.IO) {

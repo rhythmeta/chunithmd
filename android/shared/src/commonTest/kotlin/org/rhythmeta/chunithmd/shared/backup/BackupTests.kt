@@ -62,6 +62,58 @@ class BackupTests {
         assertFails { BackupSettings.validate(wrongType.copy(kind="int",integerValue=Long.MAX_VALUE)) }
         assertFails { BackupSettings.validate(BackupSetting(key="android.chunithmd.catalog.min_level",kind="float",doubleValue=Double.NaN)) }
     }
+    @Test fun gridColumnsRoundTripForAllThreePages() {
+        val keys = listOf("catalog_grid_columns", "score_query_grid_columns", "collections_grid_columns")
+        for (columns in listOf(3L, 5L)) {
+            val settings = keys.map { key ->
+                BackupSetting(key = "android.chunithmd.catalog.$key", kind = "int", integerValue = columns)
+            }
+            val restored = BackupCodec.decode(BackupCodec.encode(snapshot().copy(settings = settings)))
+            assertEquals(
+                settings.map { Triple(it.key, it.kind, it.integerValue) },
+                restored.settings.map { Triple(it.key, it.kind, it.integerValue) },
+            )
+            for (setting in settings) {
+                assertFails { BackupSettings.validate(setting.copy(kind = "string", stringValue = "$columns")) }
+            }
+        }
+        // Backups created before grid preferences existed remain valid.
+        assertTrue(BackupCodec.decode(BackupCodec.encode(snapshot())).settings.isEmpty())
+        assertFails {
+            BackupSettings.validate(BackupSetting(key = "android.chunithmd.catalog.unknown", kind = "int"))
+        }
+    }
+    @Test fun deletedProfileScoresDoNotPreventExport() {
+        val current = snapshot()
+        val inactiveProfile = current.profiles.single().copy(
+            id = "10000000-0000-4000-8000-000000000002", active = false,
+        )
+        val activeScore = BackupScore(profileId = current.profiles.single().id,
+            chartKey = "song:std:master", songId = "song", score = 1_002_990)
+        val inactiveScore = activeScore.copy(profileId = inactiveProfile.id)
+        val deletedScore = activeScore.copy(profileId = "10000000-0000-4000-8000-000000000003")
+        val activeRecord = BackupPlayRecord("20000000-0000-4000-8000-000000000001", activeScore)
+        val inactiveRecord = BackupPlayRecord("20000000-0000-4000-8000-000000000002", inactiveScore)
+        val deletedRecord = BackupPlayRecord("20000000-0000-4000-8000-000000000003", deletedScore)
+        val source = current.copy(
+            profiles = current.profiles + inactiveProfile,
+            scores = listOf(activeScore, inactiveScore, deletedScore),
+            playRecords = listOf(activeRecord, inactiveRecord, deletedRecord),
+        )
+        assertEquals(org.rhythmeta.chunithmd.shared.localization.tr("Invalid score reference."), assertFailsWith<IllegalArgumentException> {
+            BackupCodec.validate(source.copy(scores = emptyList()))
+        }.message)
+        val exported = source.withScoresForExistingProfiles()
+        val restored = BackupCodec.decode(BackupCodec.encode(exported))
+        assertEquals(listOf(activeScore, inactiveScore), restored.scores)
+        assertEquals(listOf(activeRecord, inactiveRecord), restored.playRecords)
+        assertEquals(3, source.playRecords.size)
+        // Existing-profile corruption must still fail, rather than silently disappearing.
+        assertFails { BackupCodec.validate(exported.copy(playRecords = listOf(
+            activeRecord.copy(result = activeScore.copy(score = 1_010_001)),
+        )).withScoresForExistingProfiles()) }
+    }
+
     @Test fun successfulRestoreReplacesAndClearsJournal()=runTest {
         val store=MemoryStore(snapshot())
         BackupCoordinator(Remote(snapshot("After")),store).restore(metadata)

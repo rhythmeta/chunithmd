@@ -14,6 +14,8 @@ object BackupSettings {
         "catalog.difficulties" to "strings", "catalog.types" to "strings",
         "catalog.min_level" to "float", "catalog.max_level" to "float",
         "catalog.playable_only" to "bool", "catalog.hide_deleted" to "bool", "catalog.favorites_only" to "bool",
+        "catalog.catalog_grid_columns" to "int", "catalog.score_query_grid_columns" to "int",
+        "catalog.collections_grid_columns" to "int",
         "best.best_count" to "int", "best.new_count" to "int", "best.selected_version" to "string",
         "plate.selected_version" to "string", "plate.plate_type" to "string", "plate.difficulty" to "string",
         "plate.remaining_only" to "bool",
