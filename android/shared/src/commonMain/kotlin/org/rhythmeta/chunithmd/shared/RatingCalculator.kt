@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.shared
 
+import kotlin.math.floor
+
 /**
  * A chart result that can participate in the player's B30/N20 calculation.
  *
@@ -39,9 +41,9 @@ data class PlayerRatingSummary(
 /**
  * Calculates one chart's Rating from its internal constant and score.
  *
- * The score bands are the current post-VERSE formula. The returned value is
- * deliberately not rounded: values such as C - 3.333... are display-rounded
- * later, while the unrounded value is used by B30/N20 aggregation.
+ * Each chart Rating is truncated to two decimal places before display and
+ * B30/N20 aggregation, matching the prober's score-band calculation:
+ * https://github.com/Diving-Fish/maimaidx-prober/blob/main/database/routes/chunithm.py
  */
 fun calculateSingleRating(constant: Double, score: Long): Double {
     if (!constant.isFinite() || constant <= 0.0 || score < SCORE_CUTOFF) return 0.0
@@ -51,13 +53,15 @@ fun calculateSingleRating(constant: Double, score: Long): Double {
         clampedScore >= SCORE_SSS_PLUS -> constant + 2.15
         clampedScore >= 1_007_500L -> constant + 2.00 + (clampedScore - 1_007_500L) / 10_000.0
         clampedScore >= 1_005_000L -> constant + 1.50 + (clampedScore - 1_005_000L) / 5_000.0
-        clampedScore >= 1_000_000L -> constant + 1.00 + (clampedScore - 1_000_000L) / 5_000.0
+        clampedScore >= 1_000_000L -> constant + 1.00 + (clampedScore - 1_000_000L) / 10_000.0
         clampedScore >= 975_000L -> constant + (clampedScore - 975_000L) / 25_000.0
-        clampedScore >= 900_000L -> constant - 5.00 + (clampedScore - 900_000L) / 15_000.0
+        clampedScore >= 925_000L -> constant - 3.00 + (clampedScore - 925_000L) * 3.0 / 50_000.0
+        clampedScore >= 900_000L -> constant - 5.00 + (clampedScore - 900_000L) / 12_500.0
         clampedScore >= 800_000L -> (constant - 5.00) * (clampedScore - 700_000L) / 200_000.0
         else -> (constant - 5.00) * (clampedScore - 500_000L) / 600_000.0
     }
-    return value.coerceAtLeast(0.0)
+    // Correct binary floating-point noise at exact hundredths without rounding up scores.
+    return floor(value.coerceAtLeast(0.0) * 100.0 + 1e-9) / 100.0
 }
 
 fun calculateSingleRating(constant: Double, score: Int): Double =

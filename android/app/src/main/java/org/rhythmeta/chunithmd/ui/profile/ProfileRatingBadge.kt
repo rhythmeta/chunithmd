@@ -16,16 +16,11 @@ import java.util.Locale
 import org.rhythmeta.chunithmd.shared.localization.tr
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import org.rhythmeta.chunithmd.ui.components.playerRatingColors
 
 @Composable
 internal fun ProfileRatingBadge(rating: Double, modifier: Modifier = Modifier) {
-    // Match the Rating palette used by the Best table export.
-    val colors = when {
-        rating >= 15.0 -> listOf(Color(0xFFFF5E5E), Color(0xFFFFF75E), Color(0xFF5EFF5E), Color(0xFF5EBAFF), Color(0xFFBA5EFF))
-        rating >= 14.5 -> listOf(Color.LightGray, Color.White, Color.LightGray)
-        rating >= 14.0 -> listOf(Color(0xFFFFD700), Color(0xFFFFA500))
-        else -> listOf(Color(0xFFFF9500), Color(0xFFFF9500))
-    }
+    val colors = playerRatingColors(rating)
     val text = String.format(Locale.ROOT, "%.2f", rating)
     val label = tr("玩家 Rating")
     Text(

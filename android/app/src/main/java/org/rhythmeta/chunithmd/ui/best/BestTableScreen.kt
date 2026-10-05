@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -87,6 +88,7 @@ import org.rhythmeta.chunithmd.ui.components.clearStatusColor
 import org.rhythmeta.chunithmd.ui.components.comboStatusColor
 import org.rhythmeta.chunithmd.ui.components.chainStatusColor
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.playerRatingColors
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
@@ -361,8 +363,10 @@ private fun BestRatingSummary(
                 )
                 Text(
                     formatRating(summary.rating),
-                    style = MiuixTheme.textStyles.headline1.copy(fontWeight = FontWeight.Black),
-                    color = BestAccent,
+                    style = MiuixTheme.textStyles.headline1.copy(
+                        fontWeight = FontWeight.Black,
+                        brush = Brush.horizontalGradient(playerRatingColors(summary.rating)),
+                    ),
                 )
             }
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {

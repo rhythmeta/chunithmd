@@ -2,6 +2,7 @@ package org.rhythmeta.chunithmd.shared
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class RatingCalculatorTest {
     @Test
@@ -21,12 +22,44 @@ class RatingCalculatorTest {
     }
 
     @Test
-    fun aaaAndAaValuesRemainLinearBeforeDisplayRounding() {
+    fun lowerScoreBandsMeetAtTheirThresholds() {
         val constant = 13.0
 
-        assertEquals(13.0 - 5.0 + 50_000.0 / 15_000.0, calculateSingleRating(constant, 950_000L), absoluteTolerance = 0.0000001)
-        assertEquals(13.0 - 5.0 + 25_000.0 / 15_000.0, calculateSingleRating(constant, 925_000L), absoluteTolerance = 0.0000001)
+        assertEquals(11.5, calculateSingleRating(constant, 950_000L), absoluteTolerance = 0.0000001)
+        assertEquals(10.0, calculateSingleRating(constant, 925_000L), absoluteTolerance = 0.0000001)
         assertEquals(8.0, calculateSingleRating(constant, 900_000L), absoluteTolerance = 0.0000001)
+    }
+
+    @Test
+    fun screenshotScoreMatchesLxnsAndTruncatesInsteadOfRounding() {
+        assertEquals(15.19, calculateSingleRating(13.9, 1_002_990L))
+        assertEquals(15.19, calculateSingleRating(13.9, 1_002_999))
+        assertEquals(15.20, calculateSingleRating(13.9, 1_003_000))
+        assertEquals(15.39, calculateSingleRating(13.9, 1_004_999))
+        assertEquals(15.40, calculateSingleRating(13.9, 1_005_000))
+    }
+
+    @Test
+    fun ratingNeverDropsAtAScoreBandBoundary() {
+        val boundaries = listOf(500_000, 800_000, 900_000, 925_000, 975_000,
+            1_000_000, 1_005_000, 1_007_500, 1_009_000)
+        for (constant in listOf(1.0, 5.0, 13.9, 15.4)) {
+            for (score in boundaries) {
+                val before = calculateSingleRating(constant, score - 1)
+                val at = calculateSingleRating(constant, score)
+                val after = calculateSingleRating(constant, score + 1)
+                assertTrue(before <= at && at <= after, "constant=$constant, score=$score")
+            }
+        }
+    }
+
+    @Test
+    fun exactHundredthsAreNotLostToFloatingPointNoise() {
+        for (tenths in 10..154) {
+            val constant = tenths / 10.0
+            assertEquals((tenths * 10 + 215) / 100.0, calculateSingleRating(constant, 1_009_000))
+            assertEquals((tenths * 10 + 101) / 100.0, calculateSingleRating(constant, 1_000_100))
+        }
     }
 
     @Test

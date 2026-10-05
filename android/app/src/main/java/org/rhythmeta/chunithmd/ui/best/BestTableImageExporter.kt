@@ -16,6 +16,8 @@ import android.graphics.Shader
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withClip
+import androidx.compose.ui.graphics.toArgb
+import org.rhythmeta.chunithmd.ui.components.playerRatingColors
 import java.io.File
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -305,12 +307,7 @@ internal object BestTableImageExporter {
             0f,
             right,
             0f,
-            when {
-                value >= 15.0 -> intArrayOf(Color.rgb(255, 94, 94), Color.rgb(255, 247, 94), Color.rgb(94, 255, 94), Color.rgb(94, 186, 255), Color.rgb(186, 94, 255))
-                value >= 14.5 -> intArrayOf(Color.LTGRAY, Color.WHITE, Color.LTGRAY)
-                value >= 14.0 -> intArrayOf(Color.rgb(255, 215, 0), Color.rgb(255, 165, 0))
-                else -> intArrayOf(BestAccent, BestAccent)
-            },
+            playerRatingColors(value).map { it.toArgb() }.toIntArray(),
             null,
             Shader.TileMode.CLAMP,
         )
