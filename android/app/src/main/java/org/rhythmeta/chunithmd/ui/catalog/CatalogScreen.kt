@@ -64,7 +64,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 
 @Composable
-fun CatalogScreen(
+internal fun CatalogScreen(
     modifier: Modifier,
     contentTopPadding: Dp,
     bundle: CatalogBundle?,
@@ -83,6 +83,7 @@ fun CatalogScreen(
     onRetry: () -> Unit,
     onSongClick: (CatalogSong) -> Unit,
     onGridCoverClick: ((CatalogSong, Rect, Painter?) -> Unit)? = null,
+    onListTransitionClick: ((CatalogSong, CatalogListTransitionSource) -> Unit)? = null,
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -124,6 +125,11 @@ fun CatalogScreen(
                 localJacketPath = localJacketPath,
                 listState = listState,
                 onSongClick = openSong,
+                onTransitionClick = onListTransitionClick?.let { open -> { song, source ->
+                    focusManager.clearFocus(force = true)
+                    keyboardController?.hide()
+                    open(song, source)
+                } },
             )
         }
     }
@@ -256,6 +262,7 @@ private fun SongList(
     localJacketPath: (String) -> String?,
     listState: LazyListState,
     onSongClick: (CatalogSong) -> Unit,
+    onTransitionClick: ((CatalogSong, CatalogListTransitionSource) -> Unit)?,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -264,7 +271,8 @@ private fun SongList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(songs, key = CatalogSong::songId) { song ->
-            SongCard(song, jacketBaseUrl, localJacketPath, scoresBySheetKey, onClick = { onSongClick(song) })
+            SongCard(song, jacketBaseUrl, localJacketPath, scoresBySheetKey, onClick = { onSongClick(song) },
+                onTransitionClick = onTransitionClick?.let { open -> { source -> open(song, source) } })
         }
     }
 }

@@ -18,8 +18,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.currentCompositeKeyHashCode
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +48,6 @@ import org.rhythmeta.chunithmd.shared.VersionPalette
 import org.rhythmeta.chunithmd.shared.ScoreRecord
 import org.rhythmeta.chunithmd.shared.progressSheets
 import org.rhythmeta.chunithmd.shared.sheetKey
-import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -58,7 +61,16 @@ internal fun SongCard(
     onClick: () -> Unit,
     actualSheet: CatalogSheet? = null,
     onLongClick: (() -> Unit)? = null,
+    onTransitionClick: ((CatalogListTransitionSource) -> Unit)? = null,
 ) {
+    val host = LocalSongNavigationHost.current
+    val cardIdentity = "$currentCompositeKeyHashCode:${song.songId}:${actualSheet?.type}:${actualSheet?.difficulty}"
+    val openTransition = onTransitionClick ?: host?.let { { source: CatalogListTransitionSource -> it.openList(song.songId, source) } }
+    val transition = (LocalCatalogCoverTransition.current ?: host?.active)?.takeIf {
+        it.listSource?.identityKey == cardIdentity && openTransition != null
+    }
+    val localSource = if (openTransition != null) remember(cardIdentity) { CatalogListTransitionSource(cardIdentity) } else null
+    val transitionSource = transition?.listSource ?: localSource
     val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
     val sheets = actualSheet?.let(::listOf) ?: song.sheets
     val hasWorldsEnd = sheets.any { it.type.equals("we", ignoreCase = true) }
@@ -73,42 +85,46 @@ internal fun SongCard(
     val palette = VersionPalette.forVersion(song.version, isDark)
     val badgeBackground = if (isDark) palette.darkBackground else palette.lightBackground
     val badgeForeground = if (isDark) palette.darkForeground else palette.lightForeground
+    val appearance = CatalogListCardAppearance(
+        MiuixTheme.colorScheme.surfaceContainer.copy(alpha = if (isDark) 0.82f else 0.88f),
+        accentColor, hasWorldsEnd, hasUltima,
+    )
+    val progressSheets = actualSheet?.let(::listOf) ?: song.progressSheets()
+    val badges = CatalogListBadgesData(CatalogVersionFormatter.badge(song.version),
+        Color(badgeBackground.toInt()), Color(badgeForeground.toInt()),
+        progressSheets.map { it to scoresBySheetKey[song.sheetKey(it)] })
+    SideEffect {
+        transitionSource?.appearance = appearance
+        transitionSource?.badges = badges
+    }
     val interactionSource = remember { MutableInteractionSource() }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(76.dp)
+            .graphicsLayer { alpha = if (transition?.hidesSource == true) 0f else 1f }
+            .onGloballyPositioned { transitionSource?.cardBounds = it.catalogBoundsInRoot() }
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
                 role = Role.Button,
-                onClick = onClick,
+                onClick = {
+                    if (transitionSource?.painter != null && transitionSource.cardBounds != null &&
+                        transitionSource.coverBounds != null && transitionSource.texts.size == 2) {
+                        openTransition?.invoke(transitionSource)
+                    } else onClick()
+                },
                 onLongClick = onLongClick,
             )
             .squircleSurface(
-                color = MiuixTheme.colorScheme.surfaceContainer.copy(alpha = if (isDark) 0.82f else 0.88f),
+                color = appearance.surface,
                 cornerRadius = 14.dp,
             )
             .squircleBorder(width = 1.dp, color = accentColor.copy(alpha = 0.12f), cornerRadius = 14.dp)
             .padding(vertical = 12.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxHeight()
-                .width(4.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .let { barModifier ->
-                    if (hasWorldsEnd) {
-                        barModifier.background(Brush.verticalGradient(WORLDS_END_GRADIENT_COLORS))
-                    } else if (hasUltima) {
-                        barModifier.background(ultimaStripedBrush())
-                    } else {
-                        barModifier.squircleSurface(color = accentColor, cornerRadius = 2.dp)
-                    }
-                },
-        )
+        CatalogListCardAccent(appearance, Modifier.padding(vertical = 8.dp).fillMaxHeight().width(4.dp))
         Row(
             modifier = Modifier.weight(1f).fillMaxHeight().padding(start = 10.dp, end = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -118,11 +134,18 @@ internal fun SongCard(
                     ?: (jacketBaseUrl.trimEnd('/') + "/" + song.imageName.trimStart('/')),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(MiuixTheme.colorScheme.surfaceVariant),
+                placeholder = transition?.coverPainter,
+                error = transition?.coverPainter,
+                onSuccess = { transitionSource?.painter = it.painter },
+                modifier = Modifier.size(52.dp)
+                    .onGloballyPositioned { transitionSource?.coverBounds = it.catalogBoundsInRoot() }
+                    .graphicsLayer { alpha = if (transition?.hidesSource == true) 0f else 1f }
+                    .clip(RoundedCornerShape(12.dp)).background(MiuixTheme.colorScheme.surfaceVariant),
             )
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                MiuixText(
+                CatalogListText(
+                    element = CatalogTextElement.Title, source = transitionSource, transition = transition,
                     text = CatalogSongFormatter.displayTitle(song),
                     style = MiuixTheme.textStyles.body1.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
                     color = MiuixTheme.colorScheme.onSurface,
@@ -130,7 +153,8 @@ internal fun SongCard(
                     overflow = TextOverflow.Clip,
                     modifier = Modifier.fillMaxWidth().height(20.dp).basicMarquee(),
                 )
-                MiuixText(
+                CatalogListText(
+                    element = CatalogTextElement.Artist, source = transitionSource, transition = transition,
                     text = song.artist.ifBlank { tr("未知艺术家") },
                     style = MiuixTheme.textStyles.footnote1.copy(fontSize = 12.sp),
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
@@ -140,26 +164,9 @@ internal fun SongCard(
                 )
             }
             Spacer(Modifier.width(8.dp))
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                MiuixText(
-                    text = CatalogVersionFormatter.badge(song.version),
-                    modifier = Modifier.squircleSurface(color = Color(badgeBackground.toInt()), cornerRadius = 4.dp).padding(horizontal = 7.dp, vertical = 3.dp),
-                    color = Color(badgeForeground.toInt()),
-                    style = MiuixTheme.textStyles.footnote1.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val progressSheets = actualSheet?.let(::listOf) ?: song.progressSheets()
-                    progressSheets.forEachIndexed { index, sheet ->
-                        Box(
-                            Modifier
-                                .padding(start = if (index == 0) 0.dp else 3.dp)
-                        ) {
-                            SongScoreProgressDot(sheet, scoresBySheetKey[song.sheetKey(sheet)])
-                        }
-                    }
-                }
-            }
+            CatalogListCardBadges(badges, Modifier.onGloballyPositioned {
+                transitionSource?.badgeBounds = it.catalogBoundsInRoot()
+            })
         }
     }
 }

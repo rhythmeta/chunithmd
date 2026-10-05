@@ -1,5 +1,8 @@
 package org.rhythmeta.chunithmd.ui.plate
 
+import org.rhythmeta.chunithmd.ui.catalog.rememberSongCoverNavigation
+import org.rhythmeta.chunithmd.ui.catalog.SongCoverDecorations
+
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import androidx.compose.foundation.background
@@ -266,6 +269,8 @@ private fun PlateJacket(
     localJacketPath: (String) -> String?,
     onClick: () -> Unit,
 ) {
+    val coverNavigation = rememberSongCoverNavigation(chart.song.songId, onClick, 9.dp, key = chart,
+        saturation = if (chart.achieved) 1f else 0.08f, imageAlpha = if (chart.achieved) 1f else 0.55f, cardColor = MiuixTheme.colorScheme.surfaceVariant)
     val accent = plateColor(plateType)
     val title = CatalogSongFormatter.displayTitle(chart.song)
     val status = if (chart.achieved) tr("已完成") else tr("未完成")
@@ -274,39 +279,43 @@ private fun PlateJacket(
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${chart.song.imageName.trimStart('/')}" }
     }
     Box(
-        Modifier.fillMaxWidth().aspectRatio(1f).clip(squircleShape(9.dp))
+        Modifier.fillMaxWidth().aspectRatio(1f).then(coverNavigation.modifier).clip(squircleShape(9.dp))
             .background(MiuixTheme.colorScheme.surfaceVariant)
             .semantics { contentDescription = "$title ${chart.sheet.difficulty.uppercase()} $status" }
-            .clickable(onClick = onClick),
+            .clickable(onClick = coverNavigation::open),
     ) {
         AsyncImage(
+            placeholder = coverNavigation.source.painter, error = coverNavigation.source.painter,
+            onSuccess = { coverNavigation.onPainter(it.painter) },
             model = imageModel, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
             colorFilter = if (chart.achieved) null else ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.08f) }),
             alpha = if (chart.achieved) 1f else 0.55f,
         )
-        if (chart.achieved) {
-            Box(
-                Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(24.dp)
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, accent.copy(alpha = 0.78f)))),
-            )
-        }
-        chart.achievementLabel?.let { label ->
-            Text(
-                label, color = Color.White, fontWeight = FontWeight.Bold,
-                style = MiuixTheme.textStyles.footnote2.copy(fontSize = 9.sp),
-                modifier = Modifier.align(Alignment.BottomEnd).padding(3.dp)
-                    .squircleSurface(achievementColor(label).copy(alpha = 0.96f), 4.dp).padding(horizontal = 4.dp, vertical = 1.dp),
-            )
-        }
-        if (showDifficultyBorder || chart.achieved) {
-            Box(
-                Modifier.fillMaxSize().squircleBorder(
-                    width = if (chart.achieved) 2.dp else 1.dp,
-                    color = if (showDifficultyBorder) difficultyColor(chart.sheet.difficulty) else accent,
-                    cornerRadius = 9.dp,
-                    extension = SquircleExtension,
-                ),
-            )
+        SongCoverDecorations(coverNavigation) {
+            if (chart.achieved) {
+                Box(
+                    Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(24.dp)
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, accent.copy(alpha = 0.78f)))),
+                )
+            }
+            chart.achievementLabel?.let { label ->
+                Text(
+                    label, color = Color.White, fontWeight = FontWeight.Bold,
+                    style = MiuixTheme.textStyles.footnote2.copy(fontSize = 9.sp),
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(3.dp)
+                        .squircleSurface(achievementColor(label).copy(alpha = 0.96f), 4.dp).padding(horizontal = 4.dp, vertical = 1.dp),
+                )
+            }
+            if (showDifficultyBorder || chart.achieved) {
+                Box(
+                    Modifier.fillMaxSize().squircleBorder(
+                        width = if (chart.achieved) 2.dp else 1.dp,
+                        color = if (showDifficultyBorder) difficultyColor(chart.sheet.difficulty) else accent,
+                        cornerRadius = 9.dp,
+                        extension = SquircleExtension,
+                    ),
+                )
+            }
         }
     }
 }

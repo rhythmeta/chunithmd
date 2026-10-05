@@ -1,5 +1,8 @@
 package org.rhythmeta.chunithmd.ui.recommendation
 
+import org.rhythmeta.chunithmd.ui.catalog.rememberSongCoverNavigation
+import org.rhythmeta.chunithmd.ui.catalog.SongCardTransitionContent
+
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import androidx.compose.animation.AnimatedVisibility
@@ -164,6 +167,7 @@ private fun RecommendationRow(
     localJacketPath: (String) -> String?,
     onClick: () -> Unit,
 ) {
+    val coverNavigation = rememberSongCoverNavigation(result.song.songId, onClick, 10.dp, key = result, cardColor = MiuixTheme.colorScheme.surfaceContainer, cardCornerRadius = 16.dp)
     val accent = difficultyColor(result.sheet.difficulty)
     val isUltima = result.sheet.difficulty.equals("ultima", ignoreCase = true)
     val imageModel = remember(result.song.imageName, jacketBaseUrl) {
@@ -171,86 +175,90 @@ private fun RecommendationRow(
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${result.song.imageName.trimStart('/')}" }
     }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().then(coverNavigation.cardModifier),
         cornerRadius = 16.dp,
         insideMargin = PaddingValues(start = 8.dp),
         colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
-        onClick = onClick,
+        onClick = coverNavigation::open,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(84.dp).padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier.height(52.dp).width(4.dp).then(
-                    if (isUltima) Modifier.clip(RoundedCornerShape(2.dp)).background(ultimaStripedBrush())
-                    else Modifier.squircleSurface(accent, 2.dp, SquircleExtension)
-                ),
-            )
-            Spacer(Modifier.width(10.dp))
-            Box(
-                Modifier.size(56.dp).squircleSurface(
-                    color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                    cornerRadius = 10.dp,
-                    extension = SquircleExtension,
-                ),
+        SongCardTransitionContent(coverNavigation) { showCover ->
+            Row(
+                modifier = Modifier.fillMaxWidth().height(84.dp).padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (imageModel == null) {
-                    Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = accent, modifier = Modifier.align(Alignment.Center))
-                } else {
-                    AsyncImage(imageModel, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)))
-                }
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                val currentRank = result.currentScore?.let(ChunithmScoreRules::rank)
-                Text(
-                    CatalogSongFormatter.displayTitle(result.song),
-                    style = MiuixTheme.textStyles.body1,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Clip,
-                    modifier = Modifier.fillMaxWidth().basicMarquee(),
+                Box(
+                    Modifier.height(52.dp).width(4.dp).then(
+                        if (isUltima) Modifier.clip(RoundedCornerShape(2.dp)).background(ultimaStripedBrush())
+                        else Modifier.squircleSurface(accent, 2.dp, SquircleExtension)
+                    ),
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (currentRank == null) {
-                        Text(tr("未游玩"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
-                    } else {
-                        Text(
-                            currentRank,
-                            style = MiuixTheme.textStyles.footnote1,
-                            fontWeight = FontWeight.Black,
-                            color = rankColor(currentRank),
-                        )
-                        Text(
-                            formatScore(result.currentScore!!),
-                            style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),
-                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                        )
+                Spacer(Modifier.width(10.dp))
+                Box(
+                    Modifier.size(56.dp).then(if (showCover) coverNavigation.modifier else Modifier).squircleSurface(
+                        color = if (showCover) MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f) else Color.Transparent,
+                        cornerRadius = 10.dp,
+                        extension = SquircleExtension,
+                    ),
+                ) {
+                    if (showCover) {
+                        if (imageModel == null) {
+                            Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = accent, modifier = Modifier.align(Alignment.Center))
+                        } else {
+                            AsyncImage(imageModel, placeholder = coverNavigation.source.painter, error = coverNavigation.source.painter, onSuccess = { coverNavigation.onPainter(it.painter) }, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)))
+                        }
                     }
                 }
-                Text(
-                    formatLevel(result.constant),
-                    style = MiuixTheme.textStyles.footnote2.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-                    color = accent,
-                    modifier = Modifier
-                        .squircleSurface(accent.copy(alpha = 0.13f), 4.dp, SquircleExtension)
-                        .padding(horizontal = 5.dp, vertical = 2.dp),
-                )
-            }
-            Column(modifier = Modifier.padding(end = 14.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    "+${formatRating(result.potentialGain)}",
-                    style = MiuixTheme.textStyles.title3,
-                    fontWeight = FontWeight.Black,
-                    color = RecommendationAccent,
-                )
-                Text(
-                    tr("目标 {0}", result.targetRank),
-                    style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),
-                    fontWeight = FontWeight.Bold,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                )
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    val currentRank = result.currentScore?.let(ChunithmScoreRules::rank)
+                    Text(
+                        CatalogSongFormatter.displayTitle(result.song),
+                        style = MiuixTheme.textStyles.body1,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Clip,
+                        modifier = Modifier.fillMaxWidth().basicMarquee(),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (currentRank == null) {
+                            Text(tr("未游玩"), style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                        } else {
+                            Text(
+                                currentRank,
+                                style = MiuixTheme.textStyles.footnote1,
+                                fontWeight = FontWeight.Black,
+                                color = rankColor(currentRank),
+                            )
+                            Text(
+                                formatScore(result.currentScore!!),
+                                style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            )
+                        }
+                    }
+                    Text(
+                        formatLevel(result.constant),
+                        style = MiuixTheme.textStyles.footnote2.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                        color = accent,
+                        modifier = Modifier
+                            .squircleSurface(accent.copy(alpha = 0.13f), 4.dp, SquircleExtension)
+                            .padding(horizontal = 5.dp, vertical = 2.dp),
+                    )
+                }
+                Column(modifier = Modifier.padding(end = 14.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        "+${formatRating(result.potentialGain)}",
+                        style = MiuixTheme.textStyles.title3,
+                        fontWeight = FontWeight.Black,
+                        color = RecommendationAccent,
+                    )
+                    Text(
+                        tr("目标 {0}", result.targetRank),
+                        style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),
+                        fontWeight = FontWeight.Bold,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
             }
         }
     }

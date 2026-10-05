@@ -1,5 +1,9 @@
 package org.rhythmeta.chunithmd.ui.scorequery
 
+import org.rhythmeta.chunithmd.ui.catalog.rememberSongCoverNavigation
+import org.rhythmeta.chunithmd.ui.catalog.SongCardTransitionContent
+import org.rhythmeta.chunithmd.ui.catalog.SongCoverDecorations
+
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import androidx.compose.foundation.basicMarquee
@@ -255,6 +259,8 @@ private fun ScoreQueryGridCell(
     animateCoverChanges: Boolean,
     onClick: () -> Unit,
 ) {
+    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 8.dp, key = entry, enabled = !filler,
+        cardColor = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     val accent = difficultyColor(if (entry.type.equals("we", true)) "world's end" else entry.difficulty)
     val accentBrush = scoreDifficultyBrush(entry)
     val model = remember(entry.imageName, jacketBaseUrl, localJacketPath) {
@@ -262,34 +268,37 @@ private fun ScoreQueryGridCell(
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { it + "/" + entry.imageName.trimStart('/') }
     }
     Box(
-        Modifier.fillMaxWidth().aspectRatio(1f)
+        Modifier.fillMaxWidth().aspectRatio(1f).then(coverNavigation.modifier)
             .squircleSurface(MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f), 8.dp, extension = SquircleExtension)
-            .clickable(enabled = !filler, onClick = onClick)
+            .clickable(enabled = !filler, onClick = coverNavigation::open)
             .then(if (filler) Modifier.clearAndSetSemantics {} else Modifier.semantics(mergeDescendants = true) {
                 contentDescription = "${entry.title}, ${entry.difficulty}, ${entry.rank}"
             }),
     ) {
         ZoomableCoverImage(model, imageSize, animateCoverChanges,
-            Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)))
-        Box(
-            Modifier
-                .fillMaxSize()
-                .then(
-                    if (accentBrush != null) {
-                        Modifier.border(2.dp, accentBrush, RoundedCornerShape(8.dp))
-                    } else {
-                        Modifier.squircleBorder(2.dp, accent, 8.dp, extension = SquircleExtension)
-                    },
-                ),
-        )
-        Column(Modifier.align(Alignment.BottomEnd).padding(4.dp).graphicsLayer {
-            scaleX = badgeScale()
-            scaleY = scaleX
-            transformOrigin = TransformOrigin(1f, 1f)
-        }, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            ScoreBadge(entry.rank, rankColor(entry.rank))
-            displayFullCombo(entry.fullCombo)?.let { ScoreBadge(it, comboColor(it)) }
-            displayFullChain(entry.fullChain)?.let { ScoreBadge(it, chainColor(it), small = true) }
+            Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)),
+            onPainterChanged = coverNavigation::onPainter, fallbackPainter = coverNavigation.source.painter)
+        SongCoverDecorations(coverNavigation) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (accentBrush != null) {
+                            Modifier.border(2.dp, accentBrush, RoundedCornerShape(8.dp))
+                        } else {
+                            Modifier.squircleBorder(2.dp, accent, 8.dp, extension = SquircleExtension)
+                        },
+                    ),
+            )
+            Column(Modifier.align(Alignment.BottomEnd).padding(4.dp).graphicsLayer {
+                scaleX = badgeScale()
+                scaleY = scaleX
+                transformOrigin = TransformOrigin(1f, 1f)
+            }, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                ScoreBadge(entry.rank, rankColor(entry.rank))
+                displayFullCombo(entry.fullCombo)?.let { ScoreBadge(it, comboColor(it)) }
+                displayFullChain(entry.fullChain)?.let { ScoreBadge(it, chainColor(it), small = true) }
+            }
         }
     }
 }
@@ -372,53 +381,56 @@ private fun ScoreQueryListRow(
     localJacketPath: (String) -> String?,
     onClick: () -> Unit,
 ) {
+    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 10.dp, key = entry, cardColor = MiuixTheme.colorScheme.surfaceContainer)
     val accent = difficultyColor(if (entry.type.equals("we", true)) "world's end" else entry.difficulty)
     val accentBrush = scoreDifficultyBrush(entry, vertical = true)
     val model = remember(entry.imageName, jacketBaseUrl) {
         localJacketPath(entry.imageName)?.let(::File)
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { it + "/" + entry.imageName.trimStart('/') }
     }
-    Row(
-        Modifier.fillMaxWidth().height(78.dp)
-            .squircleSurface(MiuixTheme.colorScheme.surfaceContainer, 14.dp, extension = SquircleExtension)
-            .clickable(onClick = onClick)
-            .padding(vertical = 9.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier
-                .width(4.dp)
-                .height(56.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .then(
-                    if (accentBrush != null) {
-                        Modifier.background(accentBrush)
-                    } else {
-                        Modifier.squircleSurface(accent, 2.dp, extension = SquircleExtension)
-                    },
-                ),
-        )
-        Spacer(Modifier.width(10.dp))
-        Box(Modifier.size(58.dp).clip(RoundedCornerShape(10.dp))) {
-            if (model != null) AsyncImage(model, null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
-        }
-        Spacer(Modifier.width(10.dp))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().basicMarquee())
-            Text(
-                String.format(Locale.ROOT, "%,d", entry.score),
-                style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+    SongCardTransitionContent(coverNavigation) { showCover ->
+        Row(
+            Modifier.fillMaxWidth().height(78.dp).then(if (showCover) coverNavigation.cardModifier else Modifier)
+                .squircleSurface(if (showCover) MiuixTheme.colorScheme.surfaceContainer else Color.Transparent, 14.dp, extension = SquircleExtension)
+                .clickable(enabled = showCover, onClick = coverNavigation::open)
+                .padding(vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                Modifier
+                    .width(4.dp)
+                    .height(56.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .then(
+                        if (accentBrush != null) {
+                            Modifier.background(accentBrush)
+                        } else {
+                            Modifier.squircleSurface(accent, 2.dp, extension = SquircleExtension)
+                        },
+                    ),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
-                ScoreTintBadge(entry.difficulty.uppercase(Locale.ROOT), accent, brush = scoreDifficultyTintBrush(entry))
-                displayFullCombo(entry.fullCombo)?.let { ScoreTintBadge(it, comboColor(it)) }
-                displayFullChain(entry.fullChain)?.let { ScoreTintBadge(it, chainColor(it), compact = true) }
+            Spacer(Modifier.width(10.dp))
+            Box(Modifier.size(58.dp).then(if (showCover) coverNavigation.modifier else Modifier).clip(RoundedCornerShape(10.dp))) {
+                if (showCover && model != null) AsyncImage(model, null, Modifier.fillMaxSize(), placeholder = coverNavigation.source.painter, error = coverNavigation.source.painter, onSuccess = { coverNavigation.onPainter(it.painter) }, contentScale = androidx.compose.ui.layout.ContentScale.Crop)
             }
-        }
-        Column(Modifier.padding(end = 12.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(entry.rank, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Black, color = rankColor(entry.rank))
-            Text(String.format(Locale.ROOT, "%.2f", entry.rating), style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().basicMarquee())
+                Text(
+                    String.format(Locale.ROOT, "%,d", entry.score),
+                    style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ScoreTintBadge(entry.difficulty.uppercase(Locale.ROOT), accent, brush = scoreDifficultyTintBrush(entry))
+                    displayFullCombo(entry.fullCombo)?.let { ScoreTintBadge(it, comboColor(it)) }
+                    displayFullChain(entry.fullChain)?.let { ScoreTintBadge(it, chainColor(it), compact = true) }
+                }
+            }
+            Column(Modifier.padding(end = 12.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(entry.rank, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Black, color = rankColor(entry.rank))
+                Text(String.format(Locale.ROOT, "%.2f", entry.rating), style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+            }
         }
     }
 }

@@ -1,5 +1,8 @@
 package org.rhythmeta.chunithmd.ui.best
 
+import org.rhythmeta.chunithmd.ui.catalog.rememberSongCoverNavigation
+import org.rhythmeta.chunithmd.ui.catalog.SongCardTransitionContent
+
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import android.content.Intent
@@ -421,6 +424,7 @@ private fun BestTableEntryCard(
     localJacketPath: (String) -> String?,
     onClick: () -> Unit,
 ) {
+    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 10.dp, key = entry, cardColor = MiuixTheme.colorScheme.surfaceContainer, cardCornerRadius = 16.dp)
     val accent = difficultyColor(entry.difficulty)
     val isUltima = entry.difficulty.equals("ultima", ignoreCase = true)
     val imageModel = remember(entry.imageName, jacketBaseUrl) {
@@ -428,73 +432,77 @@ private fun BestTableEntryCard(
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${entry.imageName.trimStart('/')}" }
     }
     Card(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().then(coverNavigation.cardModifier).clip(RoundedCornerShape(16.dp)).clickable(onClick = coverNavigation::open),
         cornerRadius = 16.dp,
         insideMargin = PaddingValues(start = 8.dp),
         colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(84.dp).padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier
-                    .height(52.dp)
-                    .width(4.dp)
-                    .then(
-                        if (isUltima) {
-                            Modifier.clip(RoundedCornerShape(2.dp)).background(ultimaStripedBrush())
-                        } else {
-                            Modifier.squircleSurface(
-                                color = accent,
-                                cornerRadius = 2.dp,
-                                extension = SquircleExtension,
-                            )
-                        },
-                    ),
-            )
-            Spacer(Modifier.width(10.dp))
-            Box(
-                Modifier.size(56.dp).squircleSurface(
-                    color = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                    cornerRadius = 10.dp,
-                    extension = SquircleExtension,
-                ),
+        SongCardTransitionContent(coverNavigation) { showCover ->
+            Row(
+                modifier = Modifier.fillMaxWidth().height(84.dp).padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (imageModel == null) {
-                    Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = accent, modifier = Modifier.align(Alignment.Center))
-                } else {
-                    AsyncImage(imageModel, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-                }
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().basicMarquee())
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        entry.rank,
-                        style = MiuixTheme.textStyles.footnote1,
-                        fontWeight = FontWeight.Black,
-                        color = rankColor(entry.rank).takeUnless { it == Color.Unspecified }
-                            ?: MiuixTheme.colorScheme.onSurface,
-                    )
-                    Text(formatScore(entry.score), style = MiuixTheme.textStyles.footnote1.copy(fontFamily = FontFamily.Monospace), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    ClearType.displayName(entry.clear)?.let { display ->
-                        EntryBadge(display, clearStatusColor(entry.clear))
+                Box(
+                    Modifier
+                        .height(52.dp)
+                        .width(4.dp)
+                        .then(
+                            if (isUltima) {
+                                Modifier.clip(RoundedCornerShape(2.dp)).background(ultimaStripedBrush())
+                            } else {
+                                Modifier.squircleSurface(
+                                    color = accent,
+                                    cornerRadius = 2.dp,
+                                    extension = SquircleExtension,
+                                )
+                            },
+                        ),
+                )
+                Spacer(Modifier.width(10.dp))
+                Box(
+                    Modifier.size(56.dp).then(if (showCover) coverNavigation.modifier else Modifier).squircleSurface(
+                        color = if (showCover) MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f) else Color.Transparent,
+                        cornerRadius = 10.dp,
+                        extension = SquircleExtension,
+                    ),
+                ) {
+                    if (showCover) {
+                        if (imageModel == null) {
+                            Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = accent, modifier = Modifier.align(Alignment.Center))
+                        } else {
+                            AsyncImage(imageModel, placeholder = coverNavigation.source.painter, error = coverNavigation.source.painter, onSuccess = { coverNavigation.onPainter(it.painter) }, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                        }
                     }
-                    FullComboType.displayName(entry.fullCombo)?.let { display ->
-                        EntryBadge(display, comboStatusColor(entry.fullCombo))
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().basicMarquee())
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            entry.rank,
+                            style = MiuixTheme.textStyles.footnote1,
+                            fontWeight = FontWeight.Black,
+                            color = rankColor(entry.rank).takeUnless { it == Color.Unspecified }
+                                ?: MiuixTheme.colorScheme.onSurface,
+                        )
+                        Text(formatScore(entry.score), style = MiuixTheme.textStyles.footnote1.copy(fontFamily = FontFamily.Monospace), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                     }
-                    FullChainType.displayName(entry.fullChain)?.let { display ->
-                        EntryBadge(display, chainStatusColor(entry.fullChain))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        ClearType.displayName(entry.clear)?.let { display ->
+                            EntryBadge(display, clearStatusColor(entry.clear))
+                        }
+                        FullComboType.displayName(entry.fullCombo)?.let { display ->
+                            EntryBadge(display, comboStatusColor(entry.fullCombo))
+                        }
+                        FullChainType.displayName(entry.fullChain)?.let { display ->
+                            EntryBadge(display, chainStatusColor(entry.fullChain))
+                        }
                     }
                 }
-            }
-            Column(modifier = Modifier.padding(end = 14.dp), horizontalAlignment = Alignment.End) {
-                Text(formatRating(entry.rating), style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Black, color = BestAccent)
-                Text(tr("定数 {0}", formatLevel(entry.constant)), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                Column(modifier = Modifier.padding(end = 14.dp), horizontalAlignment = Alignment.End) {
+                    Text(formatRating(entry.rating), style = MiuixTheme.textStyles.title3, fontWeight = FontWeight.Black, color = BestAccent)
+                    Text(tr("定数 {0}", formatLevel(entry.constant)), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                }
             }
         }
     }

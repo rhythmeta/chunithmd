@@ -1,5 +1,6 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,8 +19,10 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.nav.transition.NavMotion
 import top.yukonga.miuix.kmp.nav.transition.NavSettleSpec
+import top.yukonga.miuix.kmp.nav.transition.NavTransition
 import top.yukonga.miuix.kmp.nav.transition.NavTransitionScope
 import top.yukonga.miuix.kmp.nav.transition.navGraphicsTransition
 
@@ -31,11 +34,30 @@ internal class CatalogCoverTransition(
     source: Rect,
     val coverPainter: Painter?,
     private val deviceCornerRadius: Dp,
+    private val isReturning: () -> Boolean = { false },
     private val navigationOrigin: () -> Offset,
 ) {
     var isPresented by mutableStateOf(true)
         private set
     private var source by mutableStateOf(source)
+    var genericSource by mutableStateOf<SongCoverSource?>(null)
+    var listSource by mutableStateOf<CatalogListTransitionSource?>(null)
+    private val sourceCover: Rect get() = (genericSource?.bounds ?: listSource?.coverBounds)?.translate(-navigationOrigin()) ?: source
+    private val sourceContainer: Rect get() = (genericSource?.cardBounds ?: genericSource?.bounds ?: listSource?.cardBounds)?.translate(-navigationOrigin()) ?: source
+    val usesListMotion: Boolean get() = listSource != null || genericSource?.cardBounds != null
+    fun genericBodyBounds(): Rect? = genericSource?.bodyBounds?.translate(-navigationOrigin())
+
+    fun listCardBounds(): Rect? = listSource?.cardBounds?.translate(-navigationOrigin())
+    fun listBadgeBounds(): Rect? = listSource?.badgeBounds?.translate(-navigationOrigin())
+
+    fun sourceText(element: CatalogTextElement): CatalogTextAnchor? = listSource?.texts?.get(element)?.let {
+        it.copy(bounds = it.bounds.translate(-navigationOrigin()))
+    }
+
+    // Both outgoing and incoming text groups share this vertical displacement. Only the jacket
+    // has its own persistent path; text never travels sideways to chase individual destinations.
+    fun listContentTranslation(progress: Float): Float = sourceContainer.top * (1f - progress.coerceIn(0f, 1f))
+
     private var navigation by mutableStateOf<NavTransitionScope?>(null)
     val hidesSource: Boolean get() = isPresented && navigation?.let {
         catalogContainerProgress(it.relativeDepth) > 0f
@@ -79,7 +101,7 @@ internal class CatalogCoverTransition(
         detailClip = visible.takeIf { detailBounds != null }
     }
 
-    fun sharedCoverBounds(target: Rect, progress: Float): Rect = catalogSharedCoverBounds(source, target, progress)
+    fun sharedCoverBounds(target: Rect, progress: Float): Rect = catalogSharedCoverBounds(sourceCover, target, progress)
 
     var progressBadge by mutableStateOf<CatalogProgressBadgeData?>(null)
         private set
@@ -117,10 +139,31 @@ internal class CatalogCoverTransition(
         detailClip = null
     }
 
-    fun bounds(pageSize: Size, progress: Float): Rect = catalogContainerBounds(source, pageSize, progress)
+    fun bounds(pageSize: Size, progress: Float): Rect = catalogContainerBounds(sourceContainer, pageSize, progress)
+    fun fallbackCoverBounds(pageSize: Size, progress: Float): Rect = catalogContainerBounds(sourceCover, pageSize, progress)
 
-    val transition = navGraphicsTransition(
-        motion = NavMotion(programmatic = NavSettleSpec.Tween(400, FastOutSlowInEasing)),
+    fun coverCornerRadiusPx(density: Density): Float = with(density) {
+        val cover = genericSource
+        if (cover != null) {
+            // Pinch grids scale their cells outside layout; match the visible jacket's radius.
+            val scale = if (cover.layoutSize.width > 0) sourceCover.width / cover.layoutSize.width else 1f
+            cover.cornerRadius.toPx() * scale
+        } else if (listSource != null) 12.dp.toPx() else 0f
+    }
+
+    // Both layouts share the driver timing, so cover, labels, badges and color settle together.
+    // Keep velocity continuity for gesture commits; a tween here would introduce a release hitch.
+    private val commitMotion = NavSettleSpec.Spring(dampingRatio = 1f, stiffness = 700f)
+    private val enterMotion = NavMotion(
+        commit = commitMotion,
+        programmatic = NavSettleSpec.Tween(400, FastOutSlowInEasing),
+    )
+    private val returnMotion = NavMotion(
+        commit = commitMotion,
+        programmatic = NavSettleSpec.Tween(350, CubicBezierEasing(0.3f, 0f, 0.65f, 1f)),
+    )
+
+    private val visualTransition = navGraphicsTransition(
         scrim = { 0f },
     ) { scope ->
         scaleX = 1f
@@ -140,9 +183,23 @@ internal class CatalogCoverTransition(
                 translationY = catalogContainerDragOffset(gesture.touchY - gesture.initialTouchY, progress)
             }
             clip = progress < 1f
+            val sourceRadius = with(scope.density) {
+                val card = genericSource?.takeIf { it.cardBounds != null }
+                when {
+                    card != null -> card.cardCornerRadius.toPx()
+                    listSource != null -> 14.dp.toPx()
+                    else -> coverCornerRadiusPx(scope.density)
+                }
+            }
+            val radius = interpolate(sourceRadius, with(scope.density) { deviceCornerRadius.toPx() }, progress)
             shape = CoverContainerShape(bounds(size, progress),
-                with(scope.density) { deviceCornerRadius.toPx() } * progress)
+                if (usesListMotion) radius else radius.coerceAtLeast(sourceRadius))
         }
+    }
+
+    val transition: NavTransition = object : NavTransition by visualTransition {
+        // Read the target stack when the driver resolves its motion, before entry scopes update.
+        override val motion: NavMotion get() = if (isReturning()) returnMotion else enterMotion
     }
 }
 

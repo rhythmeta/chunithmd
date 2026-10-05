@@ -1,7 +1,8 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -13,6 +14,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.isSpecified
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
@@ -42,20 +45,40 @@ internal fun CatalogContainerTransform(
     DisposableEffect(state) {
         onDispose { state.detach() }
     }
-    Box(Modifier.fillMaxSize().background(background)) {
+    Box(Modifier.fillMaxSize().drawBehind {
+        val progress = catalogContainerProgress(navigation.relativeDepth)
+        val color = if (state.usesListMotion) {
+            val sourceColor = state.genericSource?.cardColor ?: state.listSource?.appearance?.surface
+            // A card owns the whole starting container; its surface can blend into the page.
+            if (sourceColor != null) lerp(sourceColor, background, (progress / 0.56f).coerceIn(0f, 1f))
+                else background
+        } else {
+            // A jacket's translucent placeholder is not a page surface. Fade away the page
+            // around the hero instead of spreading that pale placeholder over the whole container.
+            background.copy(alpha = background.alpha * catalogDetailAlpha(progress))
+        }
+        drawRect(color)
+    }) {
         Box(Modifier.fillMaxSize().graphicsLayer {
             val progress = catalogContainerProgress(navigation.relativeDepth)
             val bounds = state.bounds(size, progress)
             alpha = catalogDetailAlpha(progress)
-            // Fit the page uniformly to the container; its changing aspect ratio is clipped,
-            // so text and controls scale together without stretching.
-            val scale = max(bounds.width / size.width.coerceAtLeast(1f),
-                bounds.height / size.height.coerceAtLeast(1f))
             transformOrigin = TransformOrigin(0f, 0f)
-            scaleX = scale
-            scaleY = scale
-            translationX = bounds.center.x - size.width * scale / 2f
-            translationY = bounds.top
+            if (state.usesListMotion) {
+                // One upward/downward axis for all detail content. The jacket alone stays shared.
+                scaleX = 1f
+                scaleY = 1f
+                translationX = 0f
+                translationY = state.listContentTranslation(progress)
+            } else {
+                // The grid retains its existing proportional container transform.
+                val scale = max(bounds.width / size.width.coerceAtLeast(1f),
+                    bounds.height / size.height.coerceAtLeast(1f))
+                scaleX = scale
+                scaleY = scale
+                translationX = bounds.center.x - size.width * scale / 2f
+                translationY = bounds.top
+            }
         }) {
             Box(Modifier.fillMaxSize().onGloballyPositioned(state::updateDetailRoot)) {
                 CompositionLocalProvider(LocalCatalogCoverTransition provides state) {
@@ -73,26 +96,40 @@ internal fun CatalogContainerTransform(
             val painter = state.coverPainter
             if (coverAlpha > 0f && painter != null) {
                 val bounds = if (target != null) state.sharedCoverBounds(target, progress)
-                    else state.bounds(size, progress)
+                    else state.fallbackCoverBounds(size, progress)
                 val intrinsic = painter.intrinsicSize
                 val imageSize = if (intrinsic.isSpecified && intrinsic.width.isFinite() && intrinsic.height.isFinite() &&
                     intrinsic.width > 0f && intrinsic.height > 0f) intrinsic else Size(1f, 1f)
                 val scale = max(bounds.width / imageSize.width, bounds.height / imageSize.height)
                 val drawSize = Size(imageSize.width * scale, imageSize.height * scale)
                 val visible = if (shared) state.sharedCoverBounds(state.detailClip ?: target, progress) else bounds
-                val radius = if (shared) 26.dp.toPx() * progress else 0f
+                val sourceRadius = state.coverCornerRadiusPx(this)
+                val radius = if (shared) interpolate(sourceRadius, 26.dp.toPx(), progress) else sourceRadius
                 val path = Path().apply { addRoundRect(RoundRect(bounds, CornerRadius(radius))) }
                 // Keep one opaque jacket moving between the two real positions. Only the rest of
                 // the page fades; the in-page jacket takes over at the exact settled endpoint.
                 clipRect(visible.left, visible.top, visible.right, visible.bottom) {
                     clipPath(path) {
+                        if (!state.usesListMotion) {
+                            state.genericSource?.cardColor?.let { surface ->
+                                drawRect(surface, topLeft = bounds.topLeft, size = bounds.size, alpha = coverAlpha)
+                            }
+                        }
                         translate(bounds.center.x - drawSize.width / 2f, bounds.center.y - drawSize.height / 2f) {
-                            with(painter) { draw(drawSize, alpha = coverAlpha) }
+                            val source = state.genericSource
+                            val imageAlpha = interpolate(source?.imageAlpha ?: 1f, 1f, progress)
+                            val filter = source?.takeIf { it.saturation != 1f }?.let {
+                                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(interpolate(it.saturation, 1f, progress)) })
+                            }
+                            with(painter) { draw(drawSize, alpha = coverAlpha * imageAlpha, colorFilter = filter) }
                         }
                     }
                 }
             }
         }
+        SongCardContentOverlay(state, { catalogContainerProgress(navigation.relativeDepth) })
+        SongCoverDecorationsOverlay(state, { catalogContainerProgress(navigation.relativeDepth) },
+            { Size(navigation.layoutSize.width.toFloat(), navigation.layoutSize.height.toFloat()) })
         state.progressBadge?.takeIf { it.entries.isNotEmpty() }?.let { badge ->
             CatalogProgressBadge(badge, Modifier.clearAndSetSemantics {}.graphicsLayer {
                 val progress = catalogContainerProgress(navigation.relativeDepth)
@@ -111,6 +148,11 @@ internal fun CatalogContainerTransform(
                     translationY = bounds.top
                 }
             })
+        }
+        if (state.listSource != null) {
+            CatalogListDecorationsOverlay(state, { catalogContainerProgress(navigation.relativeDepth) })
+            CatalogListTextOverlay(state, { catalogContainerProgress(navigation.relativeDepth) },
+                Modifier.fillMaxSize().clearAndSetSemantics {})
         }
     }
 }

@@ -125,6 +125,10 @@ import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
 import org.rhythmeta.chunithmd.ui.catalog.CatalogToolbarActions
 import org.rhythmeta.chunithmd.ui.catalog.FavoriteSongRepository
+import org.rhythmeta.chunithmd.ui.catalog.CatalogListTransitionSource
+import org.rhythmeta.chunithmd.ui.catalog.SongCoverSource
+import org.rhythmeta.chunithmd.ui.catalog.SongNavigationHost
+import org.rhythmeta.chunithmd.ui.catalog.LocalSongNavigationHost
 import org.rhythmeta.chunithmd.ui.catalog.CatalogCoverTransition
 import org.rhythmeta.chunithmd.ui.catalog.CatalogContainerTransform
 import org.rhythmeta.chunithmd.ui.catalog.LocalCatalogCoverTransition
@@ -212,7 +216,7 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Collections : AppRoute
     @Serializable data class CollectionDetail(val collectionId: String) : AppRoute
     @Serializable data class SongDetail(val songId: String) : AppRoute
-    @Serializable data class CatalogSongDetail(val songId: String) : AppRoute
+    @Serializable data class CatalogSongDetail(val songId: String, val transitionId: String = "") : AppRoute
 }
 
 /** Keeps the decoded catalog across Activity recreation caused by rotation. */
@@ -492,6 +496,7 @@ private fun CatalogApp(
     }
     val catalogListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val catalogGridState = org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState()
+    val songCoverTransitions = remember { androidx.compose.runtime.mutableStateMapOf<String, CatalogCoverTransition>() }
     var catalogCoverTransition by remember { mutableStateOf<CatalogCoverTransition?>(null) }
     val navigationCornerRadius = rememberNavSystemCornerRadius()
     var navigationOrigin by remember { mutableStateOf(Offset.Zero) }
@@ -694,6 +699,20 @@ private fun CatalogApp(
             navBackStack.add(route)
         }
     }
+
+    fun openSongWithCover(songId: String, bounds: androidx.compose.ui.geometry.Rect,
+        painter: androidx.compose.ui.graphics.painter.Painter?, listSource: CatalogListTransitionSource? = null,
+        genericSource: SongCoverSource? = null) {
+        if (navBackStack.lastOrNull() is AppRoute.CatalogSongDetail || navBackStack.lastOrNull() is AppRoute.SongDetail) return
+        val route = AppRoute.CatalogSongDetail(songId, java.util.UUID.randomUUID().toString())
+        val transition = CatalogCoverTransition(songId, bounds.translate(-navigationOrigin), painter,
+            navigationCornerRadius, isReturning = { route !in navBackStack }, navigationOrigin = { navigationOrigin })
+            .also { it.listSource = listSource; it.genericSource = genericSource }
+        songCoverTransitions[route.transitionId] = transition
+        catalogCoverTransition = transition
+        pushRoute(route)
+    }
+
     LaunchedEffect(pendingCollectionLink) {
         pendingCollectionLink?.let { link ->
             collectionsUiState.importValue = link
@@ -969,13 +988,10 @@ private fun CatalogApp(
                     topBarScrollConnection = topBarScrollConnection,
                     onRetry = ::refresh,
                     onSongClick = { song -> pushRoute(AppRoute.SongDetail(song.songId)) },
-                    onGridCoverClick = { song, bounds, painter ->
-                        if (navBackStack.lastOrNull() == AppRoute.Home) {
-                            catalogCoverTransition = CatalogCoverTransition(song.songId,
-                                bounds.translate(-navigationOrigin), painter, navigationCornerRadius, { navigationOrigin })
-                            pushRoute(AppRoute.CatalogSongDetail(song.songId))
-                        }
+                    onListTransitionClick = { song, source ->
+                        source.coverBounds?.let { openSongWithCover(song.songId, it, source.painter, listSource = source) }
                     },
+                    onGridCoverClick = { song, bounds, painter -> openSongWithCover(song.songId, bounds, painter) },
                 )
                 }
                 else -> SettingsHome(
@@ -1054,6 +1070,10 @@ private fun CatalogApp(
         }
     }
 
+    val songNavigationHost = SongNavigationHost(catalogCoverTransition,
+        openCover = { source -> source.bounds?.let { openSongWithCover(source.songId, it, source.painter, genericSource = source) } },
+        openList = { songId, source -> source.coverBounds?.let { openSongWithCover(songId, it, source.painter, listSource = source) } })
+    CompositionLocalProvider(LocalSongNavigationHost provides songNavigationHost) {
     NavigationEventGate(predictiveBackEnabled) {
     NavDisplay(
         backStack = navBackStack,
@@ -1396,7 +1416,21 @@ private fun CatalogApp(
         entry<AppRoute.CatalogSongDetail>(
             transition = catalogCoverTransition?.transition ?: SettingsDetailTransition,
             swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
-        ) { route -> SongDetailPage(route.songId, catalogCoverTransition) }
+        ) { route ->
+            val transition = songCoverTransitions[route.transitionId]
+            DisposableEffect(route) {
+                onDispose {
+                    if (route !in navBackStack) {
+                        songCoverTransitions.remove(route.transitionId)
+                        if (catalogCoverTransition === transition) {
+                            catalogCoverTransition = navBackStack.asReversed().filterIsInstance<AppRoute.CatalogSongDetail>()
+                                .firstNotNullOfOrNull { songCoverTransitions[it.transitionId] }
+                        }
+                    }
+                }
+            }
+            SongDetailPage(route.songId, transition)
+        }
         entry<AppRoute.Home> {
             Box(
                 Modifier.fillMaxSize()
@@ -1451,6 +1485,7 @@ private fun CatalogApp(
     }
     }
 
+    }
     if (bundle != null) {
         CatalogFilterDialog(
             show = filterOpen,

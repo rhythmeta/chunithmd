@@ -1,5 +1,8 @@
 package org.rhythmeta.chunithmd.ui.community
 
+import org.rhythmeta.chunithmd.ui.catalog.rememberSongCoverNavigation
+import org.rhythmeta.chunithmd.ui.catalog.SongCardTransitionContent
+
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import androidx.compose.foundation.clickable
@@ -123,35 +126,41 @@ private fun CommunitySongHeader(
     localJacketPath: (String) -> String?,
     onOpenSong: (String) -> Unit,
 ) {
-    Row(
-        Modifier.fillMaxWidth()
-            .clickable(enabled = song != null, role = Role.Button) { song?.let { onOpenSong(it.songId) } }
-            .padding(top = 8.dp, bottom = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        val model = remember(song?.imageName, jacketBaseUrl, localJacketPath) {
-            song?.imageName?.let { name ->
-                localJacketPath(name)?.let(::File) ?: jacketBaseUrl.takeIf { it.isNotBlank() }?.let { "${it.trimEnd('/')}/$name" }
-            }
-        }
-        Box(
-            Modifier.size(46.dp).squircleSurface(MiuixTheme.colorScheme.surfaceContainer, 9.dp, SquircleExtension),
-            contentAlignment = Alignment.Center,
+    val coverNavigation = rememberSongCoverNavigation(song?.songId ?: fallbackTitle,
+        { song?.let { onOpenSong(it.songId) } }, 9.dp, cardColor = androidx.compose.ui.graphics.Color.Transparent, cardCornerRadius = 0.dp)
+    SongCardTransitionContent(coverNavigation) { showCover ->
+        Row(
+            Modifier.fillMaxWidth().then(if (showCover) coverNavigation.cardModifier else Modifier)
+                .clickable(enabled = showCover && song != null, role = Role.Button) { coverNavigation.open() }
+                .padding(top = 8.dp, bottom = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (model != null) AsyncImage(model, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-            else Icon(Icons.Rounded.MusicNote, null)
-        }
-        Column(Modifier.weight(1f)) {
-            Text(
-                song?.let(CatalogSongFormatter::displayTitle) ?: fallbackTitle,
-                style = MiuixTheme.textStyles.body1,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Clip,
-                modifier = Modifier.fillMaxWidth().basicMarquee(),
-            )
-            Text(tr("{0} 个候选别名", count), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+            val model = remember(song?.imageName, jacketBaseUrl, localJacketPath) {
+                song?.imageName?.let { name ->
+                    localJacketPath(name)?.let(::File) ?: jacketBaseUrl.takeIf { it.isNotBlank() }?.let { "${it.trimEnd('/')}/$name" }
+                }
+            }
+            Box(
+                Modifier.size(46.dp).then(if (showCover) coverNavigation.modifier else Modifier).squircleSurface(if (showCover) MiuixTheme.colorScheme.surfaceContainer else androidx.compose.ui.graphics.Color.Transparent, 9.dp, SquircleExtension),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (showCover) {
+                    if (model != null) AsyncImage(model, null, Modifier.fillMaxSize(), placeholder = coverNavigation.source.painter, error = coverNavigation.source.painter, onSuccess = { coverNavigation.onPainter(it.painter) }, contentScale = ContentScale.Crop)
+                    else Icon(Icons.Rounded.MusicNote, null)
+                }
+            }
+            Column(Modifier.weight(1f)) {
+                Text(
+                    song?.let(CatalogSongFormatter::displayTitle) ?: fallbackTitle,
+                    style = MiuixTheme.textStyles.body1,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip,
+                    modifier = Modifier.fillMaxWidth().basicMarquee(),
+                )
+                Text(tr("{0} 个候选别名", count), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+            }
         }
     }
 }

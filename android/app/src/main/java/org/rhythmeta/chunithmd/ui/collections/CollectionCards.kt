@@ -1,5 +1,8 @@
 package org.rhythmeta.chunithmd.ui.collections
 
+import org.rhythmeta.chunithmd.ui.catalog.rememberSongCoverNavigation
+import org.rhythmeta.chunithmd.ui.catalog.SongCoverDecorations
+
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import androidx.compose.foundation.background
@@ -108,25 +111,30 @@ internal fun CollectionChartCard(
                 Text("${card.entry.chartType.uppercase()} · ${card.entry.difficulty.uppercase()}", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
         } else if (grid) {
+            val coverNavigation = rememberSongCoverNavigation(song.songId, onOpen, 8.dp, key = card.entry.key, enabled = !filler,
+                cardColor = MiuixTheme.colorScheme.surfaceVariant)
             Box(
-                Modifier.fillMaxWidth().aspectRatio(1f).clip(squircleShape(8.dp))
+                Modifier.fillMaxWidth().aspectRatio(1f).then(coverNavigation.modifier).clip(squircleShape(8.dp))
                     .semantics { contentDescription = "${CatalogSongFormatter.displayTitle(song)} ${sheet.difficulty.uppercase()}" }
-                    .combinedClickable(enabled = !filler, onClick = onOpen, onLongClick = { menuExpanded = true }),
+                    .combinedClickable(enabled = !filler, onClick = coverNavigation::open, onLongClick = { menuExpanded = true }),
             ) {
-                CollectionCover(song, jacketBaseUrl, localJacketPath, Modifier.fillMaxSize(), gridImageSize, animateCoverChanges)
-                Row(
-                    Modifier.align(Alignment.BottomEnd).padding(if (gridColumns == 3) 6.dp else 4.dp)
-                        .graphicsLayer {
-                            scaleX = progressScale()
-                            scaleY = scaleX
-                            transformOrigin = TransformOrigin(1f, 1f)
-                        }
-                        .squircleSurface(
-                            if (MiuixTheme.colorScheme.background.luminance() < 0.5f) Color(0xFFF9F7FC).copy(alpha = 0.88f)
-                            else MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.88f), 50.dp,
-                        ).padding(horizontal = if (gridColumns == 3) 6.dp else 4.dp,
-                            vertical = if (gridColumns == 3) 3.dp else 2.dp),
-                ) { SongScoreProgressDot(sheet, null) }
+                CollectionCover(song, jacketBaseUrl, localJacketPath, Modifier.fillMaxSize(), gridImageSize, animateCoverChanges,
+                    onPainterChanged = coverNavigation::onPainter, fallbackPainter = coverNavigation.source.painter)
+                SongCoverDecorations(coverNavigation) {
+                    Row(
+                        Modifier.align(Alignment.BottomEnd).padding(if (gridColumns == 3) 6.dp else 4.dp)
+                            .graphicsLayer {
+                                scaleX = progressScale()
+                                scaleY = scaleX
+                                transformOrigin = TransformOrigin(1f, 1f)
+                            }
+                            .squircleSurface(
+                                if (MiuixTheme.colorScheme.background.luminance() < 0.5f) Color(0xFFF9F7FC).copy(alpha = 0.88f)
+                                else MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.88f), 50.dp,
+                            ).padding(horizontal = if (gridColumns == 3) 6.dp else 4.dp,
+                                vertical = if (gridColumns == 3) 3.dp else 2.dp),
+                    ) { SongScoreProgressDot(sheet, null) }
+                }
             }
         } else {
             SongCard(song, jacketBaseUrl, localJacketPath, emptyMap(), onClick = onOpen, actualSheet = sheet, onLongClick = { menuExpanded = true })
@@ -165,15 +173,19 @@ private fun chartBrush(sheet: CatalogSheet): Brush = when {
 private fun CollectionCover(
     song: CatalogSong?, baseUrl: String, localPath: (String) -> String?, modifier: Modifier,
     imageSize: Int? = null, animateCoverChanges: Boolean = false,
+    onPainterChanged: ((androidx.compose.ui.graphics.painter.Painter?) -> Unit)? = null,
+    fallbackPainter: androidx.compose.ui.graphics.painter.Painter? = null,
 ) {
     val model = remember(song?.imageName, baseUrl, localPath) {
         song?.imageName?.let { name -> localPath(name)?.let(::File) ?: baseUrl.takeIf { it.isNotBlank() }?.let { "${it.trimEnd('/')}/${name.trimStart('/')}" } }
     }
     val coverModifier = modifier.background(MiuixTheme.colorScheme.surfaceVariant)
     if (imageSize != null) {
-        ZoomableCoverImage(model, imageSize, animateCoverChanges, coverModifier)
+        ZoomableCoverImage(model, imageSize, animateCoverChanges, coverModifier,
+            onPainterChanged = onPainterChanged, fallbackPainter = fallbackPainter)
     } else {
-        AsyncImage(model, null, coverModifier, contentScale = ContentScale.Crop)
+        AsyncImage(model, null, coverModifier, contentScale = ContentScale.Crop,
+            placeholder = fallbackPainter, error = fallbackPainter, onSuccess = { onPainterChanged?.invoke(it.painter) })
     }
 }
 

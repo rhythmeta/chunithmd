@@ -1,5 +1,8 @@
 package org.rhythmeta.chunithmd.ui.constanttable
 
+import org.rhythmeta.chunithmd.ui.catalog.rememberSongCoverNavigation
+import org.rhythmeta.chunithmd.ui.catalog.SongCoverDecorations
+
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import android.content.Context
@@ -345,6 +348,7 @@ private fun ConstantTableJacket(
     localJacketPath: (String) -> String?,
     onClick: () -> Unit,
 ) {
+    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 9.dp, key = entry)
     val accent = difficultyColor(if (entry.type.equals("we", true)) "world's end" else entry.difficulty)
     val brush = constantTableBrush(entry)
     val imageModel = remember(entry.imageName, jacketBaseUrl) {
@@ -352,30 +356,32 @@ private fun ConstantTableJacket(
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${entry.imageName.trimStart('/')}" }
     }
     Box(
-        modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(squircleShape(9.dp)).clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().aspectRatio(1f).then(coverNavigation.modifier).clip(squircleShape(9.dp)).clickable(onClick = coverNavigation::open),
     ) {
         if (imageModel != null) {
-            AsyncImage(imageModel, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            AsyncImage(imageModel, null, Modifier.fillMaxSize(), placeholder = coverNavigation.source.painter, error = coverNavigation.source.painter, onSuccess = { coverNavigation.onPainter(it.painter) }, contentScale = ContentScale.Crop)
         } else {
             Box(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surfaceVariant))
         }
-        if (includeScores) {
-            Column(
-                modifier = Modifier.align(Alignment.BottomEnd).padding(2.dp),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(1.dp),
-            ) {
-                entry.rank?.let { ConstantTableBadge(it, rankColor(it)) }
-                entry.fullCombo?.let { ConstantTableBadge(it, comboColor(it)) }
-                entry.fullChain?.let { ConstantTableBadge(it, chainColor(it), compact = true) }
+        SongCoverDecorations(coverNavigation) {
+            if (includeScores) {
+                Column(
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(2.dp),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
+                    entry.rank?.let { ConstantTableBadge(it, rankColor(it)) }
+                    entry.fullCombo?.let { ConstantTableBadge(it, comboColor(it)) }
+                    entry.fullChain?.let { ConstantTableBadge(it, chainColor(it), compact = true) }
+                }
             }
+            Box(
+                Modifier.fillMaxSize().then(
+                    if (brush != null) Modifier.border(1.5.dp, brush, RoundedCornerShape(9.dp))
+                    else Modifier.squircleBorder(1.5.dp, accent, 9.dp, extension = SquircleExtension),
+                ),
+            )
         }
-        Box(
-            Modifier.fillMaxSize().then(
-                if (brush != null) Modifier.border(1.5.dp, brush, RoundedCornerShape(9.dp))
-                else Modifier.squircleBorder(1.5.dp, accent, 9.dp, extension = SquircleExtension),
-            ),
-        )
     }
 }
 
