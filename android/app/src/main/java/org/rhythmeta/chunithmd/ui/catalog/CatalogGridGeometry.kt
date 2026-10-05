@@ -30,13 +30,15 @@ internal class CatalogGridGeometry(val width: Float, val gap: Float, val count: 
         return rows.first * columns until ((rows.last + 1) * columns).coerceAtMost(count)
     }
 
-    /** Exposed side slots repeat their own row instead of leaving holes during a pinch. */
-    fun visibleSlots(left: Float, top: Float, right: Float, bottom: Float, fillEdges: Boolean, fillRows: Boolean = false): List<PhotoGridSlot> {
+    /** Repeat exposed sides and optionally leading rows, never rows below the final chart. */
+    fun visibleSlots(left: Float, top: Float, right: Float, bottom: Float, fillEdges: Boolean, fillLeadingRows: Boolean = false): List<PhotoGridSlot> {
         if (count == 0 || right <= left || bottom <= top) return emptyList()
         val firstColumn = floor((left - originX - cellSize) / step).toInt() + 1
         val lastColumn = ceil((right - originX) / step).toInt() - 1
-        val visibleRows = if (fillRows) {
-            (floor((top - cellSize) / step).toInt() + 1)..(ceil(bottom / step).toInt() - 1)
+        val visibleRows = if (fillLeadingRows) {
+            val first = floor((top - cellSize) / step).toInt() + 1
+            val last = (ceil(bottom / step).toInt() - 1).coerceAtMost(rows - 1)
+            first..last
         } else visibleRows(top, bottom)
         return buildList {
             for (row in visibleRows) {

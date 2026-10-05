@@ -23,10 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
@@ -49,6 +45,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
@@ -75,6 +76,10 @@ import org.rhythmeta.chunithmd.shared.buildScoreQueryResponse
 import org.rhythmeta.chunithmd.shared.displayFullChain
 import org.rhythmeta.chunithmd.shared.displayFullCombo
 import org.rhythmeta.chunithmd.shared.filterAndSortScoreQueryEntries
+import org.rhythmeta.chunithmd.ui.catalog.CatalogPhotoGridState
+import org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState
+import org.rhythmeta.chunithmd.ui.components.ZoomableCoverImage
+import org.rhythmeta.chunithmd.ui.components.ZoomableCoverGrid
 import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
 import org.rhythmeta.chunithmd.ui.catalog.ultimaStripedBrush
 import org.rhythmeta.chunithmd.ui.catalog.WORLDS_END_GRADIENT_COLORS
@@ -114,6 +119,7 @@ fun ScoreQueryScreen(
     onFilterDismiss: () -> Unit,
     onOpenSong: (String) -> Unit,
 ) {
+    val gridState = rememberCatalogPhotoGridState()
     if (bundle == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
@@ -129,7 +135,7 @@ fun ScoreQueryScreen(
         filterAndSortScoreQueryEntries(response!!.entries, searchText, filterSettings, sortMode, ascending)
     }
     if (displayMode == org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode.Grid) {
-        ScoreQueryGrid(entries, response!!.stats, contentTopPadding, jacketBaseUrl, localJacketPath, searchScrollConnection, topBarScrollConnection, onOpenSong)
+        ScoreQueryGrid(entries, response!!.stats, gridState, contentTopPadding, jacketBaseUrl, localJacketPath, searchScrollConnection, topBarScrollConnection, onOpenSong)
     } else {
         ScoreQueryList(entries, response!!.stats, contentTopPadding, jacketBaseUrl, localJacketPath, searchScrollConnection, topBarScrollConnection, onOpenSong)
     }
@@ -199,6 +205,7 @@ fun ScoreQueryToolbarActions(
 private fun ScoreQueryGrid(
     entries: List<ScoreQueryEntry>,
     stats: ScoreQueryStats,
+    state: CatalogPhotoGridState,
     contentTopPadding: Dp,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
@@ -206,24 +213,34 @@ private fun ScoreQueryGrid(
     topBarScrollConnection: androidx.compose.ui.input.nestedscroll.NestedScrollConnection,
     onOpenSong: (String) -> Unit,
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(4),
-        modifier = Modifier
-            .fillMaxSize()
+    if (entries.isEmpty()) {
+        ScoreQueryList(entries, stats, contentTopPadding, jacketBaseUrl, localJacketPath,
+            searchScrollConnection, topBarScrollConnection, onOpenSong)
+        return
+    }
+    val itemKeys = remember(entries) { entries.map(ScoreQueryEntry::sheetKey) }
+    val badgeScale = remember(state) { {
+        state.zoom
+        state.geometry?.let { it.maxCellSize / it.cellSize } ?: 1f
+    } }
+    ZoomableCoverGrid(
+        modifier = Modifier.fillMaxSize()
             .nestedScroll(searchScrollConnection)
             .nestedScroll(topBarScrollConnection),
-        contentPadding = PaddingValues(start = 12.dp, top = contentTopPadding + 8.dp, end = 12.dp, bottom = 32.dp),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
-    ) {
-        item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { ScoreQueryStatsHeader(stats) }
-        if (entries.isEmpty()) {
-            item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { ScoreQueryEmpty() }
-        } else {
-            gridItems(entries, key = ScoreQueryEntry::sheetKey) { entry ->
-                ScoreQueryGridCell(entry, jacketBaseUrl, localJacketPath) { onOpenSong(entry.songId) }
+        contentTopPadding = contentTopPadding,
+        contentBottomPadding = 32.dp,
+        itemKeys = itemKeys,
+        state = state,
+        header = {
+            Box(Modifier.fillMaxWidth().background(MiuixTheme.colorScheme.background)
+                .padding(horizontal = 12.dp, vertical = 8.dp)) {
+                ScoreQueryStatsHeader(stats)
             }
-        }
+        },
+    ) { index, _, imageSize, filler ->
+        val entry = entries[index]
+        ScoreQueryGridCell(entry, jacketBaseUrl, localJacketPath, badgeScale, filler,
+            imageSize, state.transforming) { onOpenSong(entry.songId) }
     }
 }
 
@@ -232,20 +249,28 @@ private fun ScoreQueryGridCell(
     entry: ScoreQueryEntry,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
+    badgeScale: () -> Float,
+    filler: Boolean,
+    imageSize: Int,
+    animateCoverChanges: Boolean,
     onClick: () -> Unit,
 ) {
     val accent = difficultyColor(if (entry.type.equals("we", true)) "world's end" else entry.difficulty)
     val accentBrush = scoreDifficultyBrush(entry)
-    val model = remember(entry.imageName, jacketBaseUrl) {
+    val model = remember(entry.imageName, jacketBaseUrl, localJacketPath) {
         localJacketPath(entry.imageName)?.let(::File)
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { it + "/" + entry.imageName.trimStart('/') }
     }
     Box(
         Modifier.fillMaxWidth().aspectRatio(1f)
             .squircleSurface(MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f), 8.dp, extension = SquircleExtension)
-            .clickable(onClick = onClick),
+            .clickable(enabled = !filler, onClick = onClick)
+            .then(if (filler) Modifier.clearAndSetSemantics {} else Modifier.semantics(mergeDescendants = true) {
+                contentDescription = "${entry.title}, ${entry.difficulty}, ${entry.rank}"
+            }),
     ) {
-        if (model != null) AsyncImage(model, null, Modifier.fillMaxSize().clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+        ZoomableCoverImage(model, imageSize, animateCoverChanges,
+            Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)))
         Box(
             Modifier
                 .fillMaxSize()
@@ -257,7 +282,11 @@ private fun ScoreQueryGridCell(
                     },
                 ),
         )
-        Column(Modifier.align(Alignment.BottomEnd).padding(4.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(Modifier.align(Alignment.BottomEnd).padding(4.dp).graphicsLayer {
+            scaleX = badgeScale()
+            scaleY = scaleX
+            transformOrigin = TransformOrigin(1f, 1f)
+        }, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             ScoreBadge(entry.rank, rankColor(entry.rank))
             displayFullCombo(entry.fullCombo)?.let { ScoreBadge(it, comboColor(it)) }
             displayFullChain(entry.fullChain)?.let { ScoreBadge(it, chainColor(it), small = true) }

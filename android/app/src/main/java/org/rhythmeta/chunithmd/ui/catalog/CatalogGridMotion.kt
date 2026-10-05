@@ -34,6 +34,9 @@ internal class CatalogGridMotion(private val state: CatalogPhotoGridState, priva
                     state.transform(interpolate(initialZoom, targetZoom, progress), anchor,
                         scrollCorrection = interpolate(initialCorrection, finalCorrection, progress))
                 }
+                // Finish exactly inside the bounds; rounding must not leave edge fillers active.
+                state.transform(targetZoom, anchor, scrollCorrection = finalCorrection)
+                state.scrollBy(0f)
             } finally {
                 if (current == generation) state.transforming = false
             }

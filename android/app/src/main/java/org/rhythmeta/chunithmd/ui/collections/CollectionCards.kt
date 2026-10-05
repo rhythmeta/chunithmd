@@ -21,9 +21,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +38,7 @@ import org.rhythmeta.chunithmd.shared.CatalogSheet
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.ui.catalog.*
+import org.rhythmeta.chunithmd.ui.components.ZoomableCoverImage
 import org.rhythmeta.chunithmd.ui.components.squircleShape
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
@@ -81,13 +85,25 @@ internal fun CollectionSummaryCard(collection: SongCollection, previews: List<Co
 }
 
 @Composable
-internal fun CollectionChartCard(card: CollectionCard, grid: Boolean, jacketBaseUrl: String, localJacketPath: (String) -> String?, onOpen: () -> Unit, onDelete: () -> Unit) {
+internal fun CollectionChartCard(
+    card: CollectionCard,
+    grid: Boolean,
+    jacketBaseUrl: String,
+    localJacketPath: (String) -> String?,
+    onOpen: () -> Unit,
+    onDelete: () -> Unit,
+    gridImageSize: Int? = null,
+    gridColumns: Int = 3,
+    animateCoverChanges: Boolean = false,
+    progressScale: () -> Float = { 1f },
+    filler: Boolean = false,
+) {
     var menuExpanded by remember(card.entry.key) { mutableStateOf(false) }
-    Box(Modifier.fillMaxWidth()) {
+    Box(Modifier.fillMaxWidth().then(if (filler) Modifier.clearAndSetSemantics {} else Modifier)) {
         val song = card.song
         val sheet = card.sheet
         if (song == null || sheet == null) {
-            Card(Modifier.fillMaxWidth().combinedClickable(onClick = { if (song != null) onOpen() }, onLongClick = { menuExpanded = true }), cornerRadius = 14.dp, insideMargin = PaddingValues(14.dp)) {
+            Card(Modifier.fillMaxWidth().combinedClickable(enabled = !filler, onClick = { if (song != null) onOpen() }, onLongClick = { menuExpanded = true }), cornerRadius = 14.dp, insideMargin = PaddingValues(14.dp)) {
                 Text(card.entry.songId)
                 Text("${card.entry.chartType.uppercase()} · ${card.entry.difficulty.uppercase()}", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
@@ -95,21 +111,27 @@ internal fun CollectionChartCard(card: CollectionCard, grid: Boolean, jacketBase
             Box(
                 Modifier.fillMaxWidth().aspectRatio(1f).clip(squircleShape(8.dp))
                     .semantics { contentDescription = "${CatalogSongFormatter.displayTitle(song)} ${sheet.difficulty.uppercase()}" }
-                    .combinedClickable(onClick = onOpen, onLongClick = { menuExpanded = true }),
+                    .combinedClickable(enabled = !filler, onClick = onOpen, onLongClick = { menuExpanded = true }),
             ) {
-                CollectionCover(song, jacketBaseUrl, localJacketPath, Modifier.fillMaxSize())
+                CollectionCover(song, jacketBaseUrl, localJacketPath, Modifier.fillMaxSize(), gridImageSize, animateCoverChanges)
                 Row(
-                    Modifier.align(Alignment.BottomEnd).padding(6.dp)
+                    Modifier.align(Alignment.BottomEnd).padding(if (gridColumns == 3) 6.dp else 4.dp)
+                        .graphicsLayer {
+                            scaleX = progressScale()
+                            scaleY = scaleX
+                            transformOrigin = TransformOrigin(1f, 1f)
+                        }
                         .squircleSurface(
                             if (MiuixTheme.colorScheme.background.luminance() < 0.5f) Color(0xFFF9F7FC).copy(alpha = 0.88f)
                             else MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.88f), 50.dp,
-                        ).padding(horizontal = 6.dp, vertical = 3.dp),
+                        ).padding(horizontal = if (gridColumns == 3) 6.dp else 4.dp,
+                            vertical = if (gridColumns == 3) 3.dp else 2.dp),
                 ) { SongScoreProgressDot(sheet, null) }
             }
         } else {
             SongCard(song, jacketBaseUrl, localJacketPath, emptyMap(), onClick = onOpen, actualSheet = sheet, onLongClick = { menuExpanded = true })
         }
-        CollectionContextMenu(menuExpanded, { menuExpanded = false }) {
+        CollectionContextMenu(menuExpanded && !filler, { menuExpanded = false }) {
             CollectionMenuItem(tr("移出收藏夹"), Icons.Rounded.DeleteOutline, destructive = true) { menuExpanded = false; onDelete() }
         }
     }
@@ -140,11 +162,19 @@ private fun chartBrush(sheet: CatalogSheet): Brush = when {
 }
 
 @Composable
-private fun CollectionCover(song: CatalogSong?, baseUrl: String, localPath: (String) -> String?, modifier: Modifier) {
+private fun CollectionCover(
+    song: CatalogSong?, baseUrl: String, localPath: (String) -> String?, modifier: Modifier,
+    imageSize: Int? = null, animateCoverChanges: Boolean = false,
+) {
     val model = remember(song?.imageName, baseUrl, localPath) {
         song?.imageName?.let { name -> localPath(name)?.let(::File) ?: baseUrl.takeIf { it.isNotBlank() }?.let { "${it.trimEnd('/')}/${name.trimStart('/')}" } }
     }
-    AsyncImage(model, null, modifier.background(MiuixTheme.colorScheme.surfaceVariant), contentScale = ContentScale.Crop)
+    val coverModifier = modifier.background(MiuixTheme.colorScheme.surfaceVariant)
+    if (imageSize != null) {
+        ZoomableCoverImage(model, imageSize, animateCoverChanges, coverModifier)
+    } else {
+        AsyncImage(model, null, coverModifier, contentScale = ContentScale.Crop)
+    }
 }
 
 @Composable

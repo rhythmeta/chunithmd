@@ -19,6 +19,7 @@ class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0
     internal var topPadding = 0f
         private set
     private var bottomPadding = 0f
+    private var hasHeader = false
     private var songIds = emptyList<String>()
     // Keep composition identities attached to lattice slots, even when rows are reassigned.
     private var rowKeyOffset = 0
@@ -55,7 +56,7 @@ class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0
         requestedPosition = index.coerceAtLeast(0) to scrollOffset
     }
 
-    internal fun prepareLayout(width: Float, height: Float, gap: Float, top: Float, bottom: Float, ids: List<String>): CatalogGridGeometry {
+    internal fun prepareLayout(width: Float, height: Float, gap: Float, top: Float, bottom: Float, ids: List<String>, hasHeader: Boolean = false): CatalogGridGeometry {
         val layoutChanged = geometry?.width != width || songIds != ids || viewportHeight != height ||
             topPadding != top || bottomPadding != bottom
         val mustClamp = layoutChanged || requestedPosition != null
@@ -68,6 +69,7 @@ class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0
         viewportHeight = height
         topPadding = top
         bottomPadding = bottom
+        this.hasHeader = hasHeader
         songIds = ids
         requestedPosition?.let { (index, offset) ->
             scrollOffset = geometry!!.cell(index.coerceIn(0, (ids.size - 1).coerceAtLeast(0))).y + offset
@@ -87,6 +89,12 @@ class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0
     internal fun anchorAt(point: Offset, centerOnCover: Boolean = false): PhotoGridAnchor? {
         val grid = geometry ?: return null
         if (grid.count == 0) return null
+        // At the page top, scale from the first row's upper edge so the header
+        // and the start of the grid stay together instead of being pulled down.
+        if (hasHeader && scrollOffset == 0f) {
+            return PhotoGridAnchor(grid.centerColumn.coerceAtMost(grid.count - 1),
+                0f, Offset(grid.width / 2f, topPadding))
+        }
         val row = floor((point.y - topPadding + scrollOffset + grid.gap / 2f) / grid.step)
             .toInt().coerceIn(0, grid.rows - 1)
         val index = (row * grid.columns + grid.centerColumn).coerceAtMost(grid.count - 1)

@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.LibraryMusic
@@ -28,6 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.rhythmeta.chunithmd.collection.*
 import org.rhythmeta.chunithmd.shared.*
+import org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState
 import org.rhythmeta.chunithmd.ui.components.SongListScrollBar
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -53,6 +51,7 @@ fun SongCollectionsScreen(
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
+    val gridState = key(collectionId) { rememberCatalogPhotoGridState() }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     fun perform(failureMessage: String? = null, action: suspend () -> Unit) {
@@ -158,17 +157,13 @@ fun SongCollectionsScreen(
                 message = tr("在歌曲详情中长按谱面标题，选择这个收藏夹，即可加入。"),
                 modifier = emptyModifier,
             )
-            uiState.grid -> LazyVerticalGrid(
-                columns = GridCells.Fixed(3), modifier = scrollModifier,
-                contentPadding = PaddingValues(start = 12.dp, top = contentTopPadding + 12.dp, end = 12.dp, bottom = 96.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                gridItems(cards, key = { it.entry.key }) { card ->
-                    CollectionChartCard(card, true, jacketBaseUrl, localJacketPath,
-                        onOpen = { onOpenSong(card.entry.songId) },
-                        onDelete = { perform { repository.setMembership(collectionId, card.entry, false) } })
-                }
-            }
+            uiState.grid -> CollectionChartGrid(
+                cards = cards, state = gridState, modifier = scrollModifier,
+                contentTopPadding = contentTopPadding,
+                jacketBaseUrl = jacketBaseUrl, localJacketPath = localJacketPath,
+                onOpen = { onOpenSong(it.entry.songId) },
+                onDelete = { card -> perform { repository.setMembership(collectionId, card.entry, false) } },
+            )
             else -> LazyColumn(
                 state = listState, modifier = scrollModifier,
                 contentPadding = PaddingValues(start = 16.dp, top = contentTopPadding + 8.dp, end = 16.dp, bottom = 96.dp),

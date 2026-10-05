@@ -5,6 +5,30 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CatalogGridGeometryTest {
+    @Test fun headerAndFirstRowStayAtPageTopWhilePinchingBetweenThreeAndFiveColumns() {
+        val ids = (0 until 193).map(Int::toString)
+        for (initialZoom in listOf(1f, 2f)) {
+            val state = CatalogPhotoGridState(zoom = initialZoom)
+            state.prepareLayout(390f, 800f, 2f, 340f, 32f, ids, hasHeader = true)
+            val anchor = state.anchorAt(Offset(195f, 550f), centerOnCover = true)!!
+            for (zoom in listOf(1.8f, 1.5001f, 1.4999f, 1f, 1.3f, 1.7f, 2f)) {
+                state.transform(zoom, anchor)
+                val grid = state.prepareLayout(390f, 800f, 2f, 340f, 32f, ids, hasHeader = true)
+                assertEquals(0f, state.scrollOffset, 0f)
+                assertEquals(340f, grid.cell(0).y + state.topPadding - state.scrollOffset, 0f)
+                assertFalse(state.outsideScrollBounds)
+            }
+            // Away from the top, keep the usual cover-centered pinch behavior.
+            state.scrollBy(-600f)
+            val scrolledAnchor = state.anchorAt(Offset(195f, 550f), centerOnCover = true)!!
+            assertEquals(0.5f, scrolledAnchor.fractionY, 0f)
+            state.transform(1.4f, scrolledAnchor)
+            val cell = state.geometry!!.cell(scrolledAnchor.index)
+            assertEquals(scrolledAnchor.point.y,
+                cell.y + state.topPadding - state.scrollOffset + cell.size / 2f, 0.001f)
+        }
+    }
+
     @Test fun settledLayoutsHaveExactSquareCellsAndTwoPixelGaps() {
         for ((zoom, columns) in listOf(1f to 5, 2f to 3)) {
             val grid = CatalogGridGeometry(390f, 2f, 100, zoom)
@@ -192,20 +216,24 @@ class CatalogGridGeometryTest {
         assertTrue(extendedPastBoundary)
     }
 
-    @Test fun repeatedBoundaryRowsFillTemporaryOverscrollWithoutInvalidSongIndices() {
-        for (count in listOf(1, 11, 2000)) {
-            val grid = CatalogGridGeometry(390f, 2f, count, 1.4f)
+    @Test fun overscrollFillsLeadingRowsButNeverExtendsBelowTheLastRow() {
+        for (count in listOf(1, 11, 2000)) for (zoom in listOf(1f, 1.4f, 1.6f, 2f)) {
+            val grid = CatalogGridGeometry(390f, 2f, count, zoom)
             for (top in listOf(-300f, grid.contentHeight - 300f)) {
-                val slots = grid.visibleSlots(0f, top, 390f, top + 800f, true, fillRows = true)
+                val slots = grid.visibleSlots(0f, top, 390f, top + 800f, true, fillLeadingRows = true)
                 assertTrue(slots.isNotEmpty())
                 assertTrue(slots.all { it.index in 0 until count })
                 assertEquals(slots.size, slots.map { it.row to it.column }.distinct().size)
                 val rows = slots.map { it.row }.distinct()
                 assertTrue(grid.slotCell(rows.first(), 0).y <= top + grid.gap)
                 val last = grid.slotCell(rows.last(), 0)
-                assertTrue(last.y + last.size >= top + 800f - grid.gap)
+                assertTrue(last.y + last.size >= minOf(top + 800f, grid.contentHeight) - grid.gap)
+                assertTrue(slots.all { it.row < grid.rows })
                 slots.filter { it.row !in 0 until grid.rows }.forEach { assertTrue(it.filler) }
+                if (top < 0f) assertTrue(slots.any { it.row < 0 })
             }
+            assertTrue(grid.visibleSlots(0f, grid.contentHeight + grid.step,
+                390f, grid.contentHeight + 800f, true, fillLeadingRows = true).isEmpty())
         }
     }
 
