@@ -123,6 +123,7 @@ import org.rhythmeta.chunithmd.ui.catalog.CatalogFilterDialog
 import org.rhythmeta.chunithmd.ui.catalog.CatalogPreferencesRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
+import org.rhythmeta.chunithmd.ui.components.rememberDebouncedSearch
 import org.rhythmeta.chunithmd.ui.catalog.CatalogToolbarActions
 import org.rhythmeta.chunithmd.ui.catalog.FavoriteSongRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogListTransitionSource
@@ -435,6 +436,7 @@ private fun CatalogApp(
     var animateRootTransition by remember { mutableStateOf(true) }
     val rootBackProgress = remember { Animatable(0f) }
     var search by remember { mutableStateOf("") }
+    val debouncedSearch by rememberDebouncedSearch(search)
     var sort by remember { mutableStateOf(CatalogSort.Default) }
     var ascending by remember { mutableStateOf(true) }
     var filters by remember { mutableStateOf(CatalogFilters()) }
@@ -448,6 +450,7 @@ private fun CatalogApp(
     var recommendationSelectedPage by rememberSaveable { mutableIntStateOf(0) }
     var recommendationSwitcherVisible by rememberSaveable { mutableStateOf(true) }
     var scoreQuerySearch by rememberSaveable { mutableStateOf("") }
+    val debouncedScoreQuerySearch by rememberDebouncedSearch(scoreQuerySearch)
     var scoreQueryFilterSettings by remember { mutableStateOf(ScoreQueryFilterSettings()) }
     var scoreQueryDisplayMode by rememberSaveable { mutableStateOf(ScoreQueryDisplayMode.List) }
     var scoreQuerySortMode by rememberSaveable { mutableStateOf(ScoreQuerySortMode.Rating) }
@@ -675,11 +678,11 @@ private fun CatalogApp(
     LaunchedEffect(repository, catalogState) { catalogState.loadLocal(repository) }
 
     val playableRegion = activeProfile?.server?.wireValue ?: "jp"
-    val songs = remember(bundle, search, sort, ascending, filters, playableRegion, favoriteSongIds) {
+    val songs = remember(bundle, debouncedSearch, sort, ascending, filters, playableRegion, favoriteSongIds) {
         bundle?.let {
             CatalogQuery.filterAndSort(
                 it,
-                search,
+                debouncedSearch,
                 sort,
                 ascending,
                 filters,
@@ -1322,7 +1325,7 @@ private fun CatalogApp(
                     contentTopPadding = padding.calculateTopPadding(),
                     searchScrollConnection = scoreQuerySearchScrollConnection,
                     topBarScrollConnection = topBarScrollConnection,
-                    searchText = scoreQuerySearch,
+                    searchText = debouncedScoreQuerySearch,
                     filterSettings = scoreQueryFilterSettings,
                     displayMode = scoreQueryDisplayMode,
                     sortMode = scoreQuerySortMode,

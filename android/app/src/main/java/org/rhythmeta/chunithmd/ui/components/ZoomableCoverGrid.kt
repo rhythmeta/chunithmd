@@ -39,15 +39,17 @@ private data object CoverGridHeaderKey
 
 /** Shared pinch/placement behavior. Callers retain their own item identity and presentation. */
 @Composable
-internal fun ZoomableCoverGrid(
+internal fun <T> ZoomableCoverGrid(
     modifier: Modifier,
     contentTopPadding: Dp,
-    itemKeys: List<String>,
+    items: List<T>,
     state: CatalogPhotoGridState,
+    itemKey: (T) -> String,
     contentBottomPadding: Dp = 96.dp,
     header: (@Composable () -> Unit)? = null,
-    itemContent: @Composable (index: Int, columns: Int, imageSize: Int, filler: Boolean) -> Unit,
+    itemContent: @Composable (item: T, columns: Int, imageSize: Int, filler: Boolean) -> Unit,
 ) {
+    val itemKeys = remember(items, itemKey) { items.map(itemKey) }
     val scope = rememberCoroutineScope()
     val motion = remember(state, scope) { CatalogGridMotion(state, scope) }
     val scrollState = rememberScrollableState(state::scrollBy)
@@ -134,8 +136,12 @@ internal fun ZoomableCoverGrid(
         // Measure/decode at a fixed maximum size; only placement and layer transforms change each frame.
         val baseSize = grid.maxCellSize.roundToInt().coerceAtLeast(1)
         val tiles = slots.map { slot ->
+            // Resolve against this measure pass's data, before entering the retained composition.
+            // Search can update itemContent before old slots are remeasured: those slots must
+            // keep their item instead of using an old index against the new, shorter list.
+            val item = items[slot.index]
             val placeable = subcompose(state.slotKey(slot)) {
-                itemContent(slot.index, grid.columns, baseSize, slot.filler)
+                itemContent(item, grid.columns, baseSize, slot.filler)
             }.single().measure(Constraints.fixed(baseSize, baseSize))
             slot to placeable
         }

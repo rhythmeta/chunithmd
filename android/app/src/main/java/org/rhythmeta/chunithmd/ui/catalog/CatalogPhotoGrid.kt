@@ -48,13 +48,11 @@ internal fun CatalogPhotoGrid(
     onSongClick: (CatalogSong) -> Unit,
     onCoverClick: ((CatalogSong, Rect, Painter?) -> Unit)? = null,
 ) {
-    val itemKeys = remember(songs) { songs.map(CatalogSong::songId) }
     val progressScale = remember(state) { {
         state.zoom // Observe continuous scale without recomposing the progress dots.
         state.geometry?.let { it.maxCellSize / it.cellSize } ?: 1f
     } }
-    ZoomableCoverGrid(modifier, contentTopPadding, itemKeys, state) { index, columns, imageSize, filler ->
-        val song = songs[index]
+    ZoomableCoverGrid(modifier, contentTopPadding, songs, state, CatalogSong::songId) { song, columns, imageSize, filler ->
         PhotoTile(song, jacketBaseUrl, localJacketPath, scoresBySheetKey, progressScale, Modifier,
             filler = filler, imageSize = imageSize, columns = columns,
             animateCoverChanges = state.transforming, onClick = { bounds, painter ->

@@ -223,7 +223,6 @@ private fun ScoreQueryGrid(
             searchScrollConnection, topBarScrollConnection, onOpenSong)
         return
     }
-    val itemKeys = remember(entries) { entries.map(ScoreQueryEntry::sheetKey) }
     val badgeScale = remember(state) { {
         state.zoom
         state.geometry?.let { it.maxCellSize / it.cellSize } ?: 1f
@@ -234,16 +233,16 @@ private fun ScoreQueryGrid(
             .nestedScroll(topBarScrollConnection),
         contentTopPadding = contentTopPadding,
         contentBottomPadding = 32.dp,
-        itemKeys = itemKeys,
+        items = entries,
         state = state,
+        itemKey = ScoreQueryEntry::sheetKey,
         header = {
             Box(Modifier.fillMaxWidth().background(MiuixTheme.colorScheme.background)
                 .padding(horizontal = 12.dp, vertical = 8.dp)) {
                 ScoreQueryStatsHeader(stats)
             }
         },
-    ) { index, _, imageSize, filler ->
-        val entry = entries[index]
+    ) { entry, _, imageSize, filler ->
         ScoreQueryGridCell(entry, jacketBaseUrl, localJacketPath, badgeScale, filler,
             imageSize, state.transforming) { onOpenSong(entry.songId) }
     }
