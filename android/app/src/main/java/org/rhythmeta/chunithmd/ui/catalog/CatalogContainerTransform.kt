@@ -53,16 +53,16 @@ internal fun CatalogContainerTransform(
             if (sourceColor != null) lerp(sourceColor, background, (progress / 0.56f).coerceIn(0f, 1f))
                 else background
         } else {
-            // A jacket's translucent placeholder is not a page surface. Fade away the page
-            // around the hero instead of spreading that pale placeholder over the whole container.
-            background.copy(alpha = background.alpha * catalogDetailAlpha(progress))
+            // Keep the actual page surface until its clip reaches the jacket bounds.
+            // The navigation layer hands drawing back to the tile at that exact endpoint.
+            background
         }
         drawRect(color)
     }) {
         Box(Modifier.fillMaxSize().graphicsLayer {
             val progress = catalogContainerProgress(navigation.relativeDepth)
             val bounds = state.bounds(size, progress)
-            alpha = catalogDetailAlpha(progress)
+            alpha = if (state.usesListMotion) catalogDetailAlpha(progress) else 1f
             transformOrigin = TransformOrigin(0f, 0f)
             if (state.usesListMotion) {
                 // One upward/downward axis for all detail content. The jacket alone stays shared.
@@ -106,8 +106,8 @@ internal fun CatalogContainerTransform(
                 val sourceRadius = state.coverCornerRadiusPx(this)
                 val radius = if (shared) interpolate(sourceRadius, 26.dp.toPx(), progress) else sourceRadius
                 val path = Path().apply { addRoundRect(RoundRect(bounds, CornerRadius(radius))) }
-                // Keep one opaque jacket moving between the two real positions. Only the rest of
-                // the page fades; the in-page jacket takes over at the exact settled endpoint.
+                // Keep one opaque jacket moving between the two real positions; the in-page
+                // jacket takes over at the exact settled endpoint.
                 clipRect(visible.left, visible.top, visible.right, visible.bottom) {
                     clipPath(path) {
                         if (!state.usesListMotion) {
