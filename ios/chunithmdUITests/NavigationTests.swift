@@ -27,6 +27,50 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testScoreImportPagesAndOtogameLoginNavigation() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        for appearance in ["light", "dark"] {
+            app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", appearance]
+            app.launch()
+            XCTAssertTrue(app.tabBars.buttons["设置"].waitForExistence(timeout: 20))
+            app.tabBars.buttons["设置"].tap()
+            for (provider, title) in [("fish", "从水鱼查分器导入"), ("lxns", "从落雪咖啡屋导入"), ("otogame", "从 Otogame 导入")] {
+                app.buttons[title].tap()
+                XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5))
+                capture(app, name: "import-" + provider + "-" + appearance)
+                if provider == "fish" {
+                    XCTAssertTrue(app.staticTexts["连接水鱼查分器"].exists)
+                    XCTAssertTrue(app.buttons["import-authorize"].isEnabled)
+                } else if provider == "lxns" {
+                    XCTAssertTrue(app.textFields["import-code"].exists)
+                    XCTAssertFalse(app.buttons["import-exchange"].isEnabled)
+                    app.textFields["import-code"].tap()
+                    app.textFields["import-code"].typeText("   ")
+                    XCTAssertFalse(app.buttons["import-exchange"].isEnabled)
+                    app.swipeDown()
+                } else {
+                    XCTAssertTrue(app.staticTexts["请先登录 Otogame"].exists)
+                    XCTAssertFalse(app.buttons["import-sync"].isEnabled)
+                }
+                if provider == "otogame" {
+                    app.buttons["import-otogame-login"].tap()
+                    XCTAssertTrue(app.navigationBars["登录 Otogame"].waitForExistence(timeout: 5))
+                    XCTAssertTrue(app.buttons["otogame-reload"].exists)
+                    capture(app, name: "import-otogame-login-" + appearance)
+                    app.buttons["otogame-reload"].tap()
+                    app.navigationBars.buttons.firstMatch.tap()
+                    XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5))
+                    XCTAssertFalse(app.buttons["import-sync"].isEnabled)
+                    XCTAssertTrue(app.buttons["import-otogame-login"].isEnabled)
+                }
+                app.navigationBars.buttons.firstMatch.tap()
+                XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 5))
+            }
+            app.terminate()
+        }
+    }
+
     func testCloudAccountSignedOutActionsAndSummary() {
         continueAfterFailure = false
         let app = XCUIApplication()

@@ -2,53 +2,136 @@ import Shared
 import SwiftUI
 
 struct ScoreImportView: View {
-    var provider: String? = nil
+    let provider: String
     @Environment(CatalogStore.self) private var catalog
     @Environment(PersonalStore.self) private var personal
+    @Environment(\.openURL) private var openURL
     @State private var store = ScoreImportStore()
     @State private var code = ""
     @State private var showOtogame = false
+    @State private var awaitingBrowser = false
+
+    private var state: ScoreImportStore.Provider { store.states[provider] ?? .init() }
+    private var title: String {
+        switch provider {
+        case "fish": tr("从水鱼查分器导入")
+        case "lxns": tr("从落雪咖啡屋导入")
+        default: tr("从 Otogame 导入")
+        }
+    }
+    private struct SessionID: Hashable {
+        let profile: String?
+        let server: String?
+        let bundle: ObjectIdentifier?
+    }
+    private var sessionID: SessionID {
+        SessionID(profile: personal.snapshot.activeProfile?.id,
+                  server: personal.snapshot.activeProfile?.server,
+                  bundle: catalog.bundle.map(ObjectIdentifier.init))
+    }
+
     var body: some View {
-        Form {
-            Section { Text(tr("导入到档案：{0}", personal.snapshot.activeProfile?.name ?? tr("我的档案"))).font(.headline); Text(tr("已有成绩会保留，重复记录会自动跳过。")).font(.subheadline).foregroundStyle(.secondary) }
-            ForEach(provider.map { [$0] } ?? ["fish", "lxns", "otogame"], id: \.self) { provider in
-                let state = store.states[provider] ?? ScoreImportStore.Provider()
-                Section(provider == "fish" ? tr("水鱼查分器") : provider == "lxns" ? tr("落雪咖啡屋") : "Otogame") {
-                    if provider == "otogame" && personal.snapshot.activeProfile?.server != "jp" { Text(tr("需要启用一个日服档案。")).foregroundStyle(.secondary) }
-                    else {
-                        if state.connected {
-                            Button(tr("导入成绩")) { store.bridge?.importScores(provider: provider) }.disabled(state.busy)
-                            Button(tr("断开连接"), role: .destructive) { store.bridge?.disconnect(provider: provider) }.disabled(state.busy)
-                        } else {
-                            Button(provider == "otogame" ? tr("登录 Otogame") : tr("授权并导入")) {
-                                if provider == "otogame" { showOtogame = true } else { store.bridge?.authorize(provider: provider) }
-                            }.disabled(state.busy)
+        List {
+            Group {
+                switch provider {
+                case "fish":
+                    DivingFishImportSections(state: state, authorize: authorize, sync: synchronize) {
+                        store.bridge?.disconnect(provider: provider)
+                    }
+                case "lxns":
+                    LxnsImportSections(state: state, code: $code, authorize: authorize, sync: synchronize,
+                                       disconnect: { store.bridge?.disconnect(provider: provider) }) {
+                        store.bridge?.exchange(code: code)
+                        code = ""
+                    }
+                default:
+                    otogameSections
+                }
+            }
+            .disabled(store.bridge == nil)
+            ScoreImportStatusSection(state: state, error: store.error) {
+                awaitingBrowser = false
+                store.bridge?.cancel()
+            }
+            if catalog.bundle == nil {
+                Section { Text(tr("请先在静态数据中下载歌曲目录。")).foregroundStyle(.secondary) }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollDismissesKeyboard(.interactively)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $showOtogame) {
+            if let profileID = personal.snapshot.activeProfile?.id {
+                OtogameLoginView(connected: state.connected) { header in
+                    store.bridge?.captureOtogame(profileId: profileID, header: header)
+                }
+            }
+        }
+        .task(id: sessionID) {
+            guard let bundle = catalog.bundle, let profile = personal.snapshot.activeProfile else {
+                store.close()
+                return
+            }
+            if store.start(bundle: bundle, profile: profile) {
+                code = ""
+                awaitingBrowser = false
+                showOtogame = false
+            }
+        }
+        .onChange(of: state.url) { _, value in
+            guard awaitingBrowser, let value, let url = URL(string: value) else { return }
+            awaitingBrowser = false
+            openURL(url)
+        }
+        .onChange(of: state.error) { _, error in
+            if error != nil { awaitingBrowser = false }
+        }
+        .onDisappear {
+            if !showOtogame { store.close() }
+            personal.reload(catalog: catalog)
+        }
+    }
+
+    private var otogameSections: some View {
+        Group {
+            Section {
+                Label {
+                    VStack(alignment: .leading) {
+                        Text(state.connected ? tr("Otogame 会话已就绪") : tr("请先登录 Otogame"))
+                        if let profile = personal.snapshot.activeProfile {
+                            Text(tr("当前档案：{0}", profile.name)).font(.caption).foregroundStyle(.secondary)
                         }
-                        if let urlString = state.url, let url = URL(string: urlString) { Link(tr("打开授权页面"), destination: url) }
-                        if let code = state.code { LabeledContent(tr("授权码"), value: code).textSelection(.enabled) }
-                        if provider == "lxns", state.url != nil {
-                            TextField(tr("粘贴浏览器中的授权码"), text: $code).textInputAutocapitalization(.never).autocorrectionDisabled()
-                            Button(tr("确认授权并导入")) { store.bridge?.exchange(code: code); code = "" }.disabled(state.busy || code.isEmpty)
-                        }
-                        if state.busy { ProgressView(tr("正在处理…")); Button(tr("取消")) { store.bridge?.cancel() } }
-                        if let error = state.error { Text(error).foregroundStyle(.red) }
-                        if let result = state.result { Text(result).foregroundStyle(.secondary) }
+                    }
+                } icon: {
+                    Image(systemName: state.connected ? "checkmark.circle.fill" : "person.crop.circle.badge.exclamationmark")
+                        .foregroundStyle(state.connected ? .green : .secondary)
+                }
+            } footer: {
+                Text(state.eligible ? tr("仅导入最近四页游玩记录") : tr("需要启用一个日服档案。"))
+            }
+            Section {
+                Button { showOtogame = true } label: {
+                    HStack {
+                        Label(tr("登录 Otogame"), systemImage: "person.crop.circle.badge.checkmark")
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                     }
                 }
+                .tint(.primary)
+                .disabled(!state.eligible || state.busy)
+                .accessibilityIdentifier("import-otogame-login")
+                Button(tr("同步游玩记录"), systemImage: "arrow.triangle.2.circlepath", action: synchronize)
+                    .disabled(!state.eligible || !state.connected || state.busy)
+                    .accessibilityIdentifier("import-sync")
             }
-            if catalog.bundle == nil { Text(tr("请先在静态数据中下载歌曲目录。")).foregroundStyle(.secondary) }
-        }.navigationTitle(tr("导入成绩"))
-            .task(id: personal.snapshot.activeProfile?.id) {
-                guard let bundle = catalog.bundle, let profile = personal.snapshot.activeProfile else { return }
-                store.start(bundle: bundle, profile: profile)
-            }
-            .onDisappear { store.close(); personal.reload(catalog: catalog) }
-            .sheet(isPresented: $showOtogame) {
-                OtogameLoginView { header in
-                    guard let profile = personal.snapshot.activeProfile else { return }
-                    store.bridge?.captureOtogame(profileId: profile.id, header: header)
-                    showOtogame = false
-                }
-            }
+        }
     }
+
+    private func authorize() {
+        awaitingBrowser = true
+        store.bridge?.authorize(provider: provider)
+    }
+
+    private func synchronize() { store.bridge?.importScores(provider: provider) }
 }

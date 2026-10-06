@@ -34,13 +34,17 @@ class NativeImportBridge(secrets: RhythmetaSecretStore, files: SnapshotFiles, pr
     private fun emit() {
         listener?.invoke(buildJsonObject {
             val f = fish.state.value; val l = lxns.state.value; val o = otogame.state.value
-            put("fish", state(f.connected, f.busy, f.authorizationUrl, f.userCode, f.error, f.result))
+            put("fish", state(f.connected, f.busy, f.authorizationUrl, f.userCode, f.error, f.result, phase = f.phase.name))
             put("lxns", state(l.connected, l.busy, l.authorizationUrl, null, l.error, l.result))
-            put("otogame", state(o.connected, o.busy, null, null, o.error, o.result))
+            put("otogame", state(o.connected, o.busy, null, null, o.error, o.result, eligible = o.eligible, page = o.page, totalPages = o.totalPages))
         }.toString())
     }
-    private fun state(connected: Boolean, busy: Boolean, url: String?, code: String?, error: String?, result: ScoreImportResult?) = buildJsonObject {
+    private fun state(
+        connected: Boolean, busy: Boolean, url: String?, code: String?, error: String?, result: ScoreImportResult?,
+        phase: String? = null, eligible: Boolean = true, page: Int = 0, totalPages: Int = 0,
+    ) = buildJsonObject {
         put("connected", connected); put("busy", busy); put("url", url); put("code", code); put("error", error)
+        put("phase", phase); put("eligible", eligible); put("page", page); put("totalPages", totalPages)
         put("result", result?.let { tr("读取 {0} 条，新增 {1} 条，跳过 {2} 条", it.fetched, it.updated, it.skipped) })
     }
 }

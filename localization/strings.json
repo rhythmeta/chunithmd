@@ -4162,5 +4162,137 @@
     "ja": "Rhythmeta アカウントは maimaid と chunithmd で共通です。バックアップは手動で作成してください。",
     "zh-Hans": "Rhythmeta 账号可用于 maimaid 和 chunithmd，备份需要手动创建。",
     "zh-Hant": "Rhythmeta 帳號可用於 maimaid 和 chunithmd，備份需要手動建立。"
+  },
+  "连接水鱼查分器": {
+    "en": "Connect to Diving Fish",
+    "ja": "水魚に接続",
+    "zh-Hans": "连接水鱼查分器",
+    "zh-Hant": "連接水魚查分器"
+  },
+  "已获得成绩读取授权，可直接同步成绩。": {
+    "en": "Score access is authorized. You can sync directly.",
+    "ja": "スコアの読み取りが許可されています。そのまま同期できます。",
+    "zh-Hans": "已获得成绩读取授权，可直接同步成绩。",
+    "zh-Hant": "已獲得成績讀取授權，可直接同步成績。"
+  },
+  "同步成绩": {
+    "en": "Sync scores",
+    "ja": "スコアを同期",
+    "zh-Hans": "同步成绩",
+    "zh-Hant": "同步成績"
+  },
+  "连接并导入": {
+    "en": "Connect and import",
+    "ja": "接続してインポート",
+    "zh-Hans": "连接并导入",
+    "zh-Hant": "連接並匯入"
+  },
+  "OAuth 授权": {
+    "en": "OAuth authorization",
+    "ja": "OAuth 認証",
+    "zh-Hans": "OAuth 授权",
+    "zh-Hant": "OAuth 授權"
+  },
+  "授权将在水鱼查分器网页中完成，chunithmd 不会读取或保存你的密码。": {
+    "en": "Authorize on the Diving Fish website. chunithmd will not read or store your password.",
+    "ja": "認証は水魚のウェブサイトで行います。chunithmd がパスワードを読み取ったり保存したりすることはありません。",
+    "zh-Hans": "授权将在水鱼查分器网页中完成，chunithmd 不会读取或保存你的密码。",
+    "zh-Hant": "授權將在水魚查分器網頁中完成，chunithmd 不會讀取或儲存你的密碼。"
+  },
+  "已绑定 LXNS": {
+    "en": "Connected to LXNS",
+    "ja": "LXNS に接続済み",
+    "zh-Hans": "已绑定 LXNS",
+    "zh-Hant": "已綁定 LXNS"
+  },
+  "授权状态": {
+    "en": "Authorization status",
+    "ja": "認証状態",
+    "zh-Hans": "授权状态",
+    "zh-Hant": "授權狀態"
+  },
+  "正在同步…": {
+    "en": "Syncing…",
+    "ja": "同期中…",
+    "zh-Hans": "正在同步…",
+    "zh-Hant": "正在同步…"
+  },
+  "账号管理": {
+    "en": "Account management",
+    "ja": "アカウント管理",
+    "zh-Hans": "账号管理",
+    "zh-Hant": "帳號管理"
+  },
+  "断开连接并重新登录": {
+    "en": "Disconnect and sign in again",
+    "ja": "接続を解除して再ログイン",
+    "zh-Hans": "断开连接并重新登录",
+    "zh-Hant": "中斷連接並重新登入"
+  },
+  "在浏览器中打开授权页面": {
+    "en": "Open authorization page in browser",
+    "ja": "ブラウザで認証ページを開く",
+    "zh-Hans": "在浏览器中打开授权页面",
+    "zh-Hant": "在瀏覽器中開啟授權頁面"
+  },
+  "第一步：获取授权码": {
+    "en": "Step 1: Get an authorization code",
+    "ja": "ステップ1：認証コードを取得",
+    "zh-Hans": "第一步：获取授权码",
+    "zh-Hant": "第一步：取得授權碼"
+  },
+  "前往落雪咖啡屋登录并授权，完成后复制页面上的授权码。": {
+    "en": "Sign in and authorize on LXNS, then copy the authorization code shown on the page.",
+    "ja": "落雪珈琲屋でログインして認証し、ページに表示された認証コードをコピーしてください。",
+    "zh-Hans": "前往落雪咖啡屋登录并授权，完成后复制页面上的授权码。",
+    "zh-Hant": "前往落雪咖啡屋登入並授權，完成後複製頁面上的授權碼。"
+  },
+  "开始导入": {
+    "en": "Start import",
+    "ja": "インポート開始",
+    "zh-Hans": "开始导入",
+    "zh-Hant": "開始匯入"
+  },
+  "第二步：输入授权码并导入": {
+    "en": "Step 2: Enter the code and import",
+    "ja": "ステップ2：認証コードを入力してインポート",
+    "zh-Hans": "第二步：输入授权码并导入",
+    "zh-Hant": "第二步：輸入授權碼並匯入"
+  },
+  "将授权码粘贴到上方，点击开始导入即可同步成绩。": {
+    "en": "Paste the code above, then start the import to sync your scores.",
+    "ja": "上に認証コードを貼り付けてインポートを開始すると、スコアが同期されます。",
+    "zh-Hans": "将授权码粘贴到上方，点击开始导入即可同步成绩。",
+    "zh-Hant": "將授權碼貼到上方，點擊開始匯入即可同步成績。"
+  },
+  "Otogame 会话已就绪": {
+    "en": "Otogame session ready",
+    "ja": "Otogame セッション準備完了",
+    "zh-Hans": "Otogame 会话已就绪",
+    "zh-Hant": "Otogame 工作階段已就緒"
+  },
+  "当前档案：{0}": {
+    "en": "Current profile: {0}",
+    "ja": "現在のプロフィール：{0}",
+    "zh-Hans": "当前档案：{0}",
+    "zh-Hant": "目前檔案：{0}"
+  },
+  "同步游玩记录": {
+    "en": "Sync play history",
+    "ja": "プレイ履歴を同期",
+    "zh-Hans": "同步游玩记录",
+    "zh-Hant": "同步遊玩紀錄"
+  },
+  "正在读取第 {0} / {1} 页": {
+    "en": "Reading page {0} of {1}",
+    "ja": "{0} / {1} ページを読み込み中",
+    "zh-Hans": "正在读取第 {0} / {1} 页",
+    "zh-Hant": "正在讀取第 {0} / {1} 頁"
+  },
+  "重新加载": {
+    "en": "Reload",
+    "ja": "再読み込み",
+    "zh-Hans": "重新加载",
+    "zh-Hant": "重新載入"
   }
 }
