@@ -190,6 +190,17 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
         PlateProgressCalculator.calculate(bundle, records(it), server(it), version, PlateType.entries.firstOrNull { it.name == kind } ?: PlateType.Spirit)
     }
 
+    @Throws(Exception::class)
+    fun playHistory(): List<ScoreRecord> = read().let { state ->
+        val profileId = state.profiles.firstOrNull { it.active }?.id
+        state.playRecords.filter { it.result.profileId == profileId }.map { it.toRecord() }
+    }
+
+    fun chartHistory(records: List<ScoreRecord>, songId: String, sheetId: String, sort: ScoreHistorySort): List<ScoreRecord> =
+        records.filter { it.songId == songId && it.sheetKey == "$songId:$sheetId" }.sortForHistory(sort)
+
+    fun bestHistoryRecordId(records: List<ScoreRecord>): String? = records.bestScore()?.id
+
     fun ratingTable(constant: Double): List<RatingTableRow> = buildRatingTable(constant)
     fun randomSongs(songs: List<CatalogSong>, count: Int): List<CatalogSong> = RandomSongQuery.draw(songs, count)
 

@@ -2,6 +2,7 @@ import Shared
 import SwiftUI
 
 struct CommunityAliasView: View {
+    var showsSongLinks = true
     @Environment(RhythmetaAccountStore.self) private var account
     @Environment(CatalogStore.self) private var catalog
     var body: some View {
@@ -12,7 +13,10 @@ struct CommunityAliasView: View {
             if let error = account.community.boardError ?? account.community.syncError { Text(error).foregroundStyle(.red) }
             ForEach(account.community.board) { candidate in
                 VStack(alignment: .leading, spacing: 12) {
-                    if let song = catalog.allSongs.first(where: { $0.id == candidate.songIdentifier }) { SongRow(song: song) }
+                    if let song = catalog.allSongs.first(where: { $0.id == candidate.songIdentifier }) {
+                        if showsSongLinks { SongRow(song: song) }
+                        else { Text(song.title).font(.subheadline).foregroundStyle(.secondary) }
+                    }
                     Text(candidate.aliasText).font(.title3.bold())
                     HStack {
                         Button { account.bridge.voteCommunity(id: candidate.id, vote: 1) } label: { Label("\(candidate.supportCount)", systemImage: candidate.myVote == 1 ? "hand.thumbsup.fill" : "hand.thumbsup") }

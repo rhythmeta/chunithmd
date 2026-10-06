@@ -2,6 +2,7 @@ import SwiftUI
 
 struct JacketImage: View {
     let url: URL?
+    var allowsSharing = false
     @State private var image: UIImage?
     @State private var failed = false
     private static let cache = NSCache<NSURL, UIImage>()
@@ -15,7 +16,16 @@ struct JacketImage: View {
             }
         }
         .clipped()
-        .accessibilityHidden(true)
+        .accessibilityHidden(!allowsSharing)
+        .accessibilityLabel(tr("分享封面"))
+        .contextMenu {
+            if allowsSharing, let image {
+                Button(tr("复制封面"), systemImage: "doc.on.doc") { UIPasteboard.general.image = image }
+                ShareLink(item: Image(uiImage: image), preview: SharePreview(tr("分享封面"), image: Image(uiImage: image))) {
+                    Label(tr("分享封面"), systemImage: "square.and.arrow.up")
+                }
+            }
+        }
         .task(id: url) { await load() }
     }
 

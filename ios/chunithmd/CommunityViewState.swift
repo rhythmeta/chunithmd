@@ -20,6 +20,7 @@ struct CommunityViewState: Decodable {
         let error: String?
     }
     var accountId: String?
+    var dailyUsed: Int?
     var approvedAliases: [String: [String]] = [:]
     var personalAliases: [String: [String]] = [:]
     var songs: [String: Song] = [:]

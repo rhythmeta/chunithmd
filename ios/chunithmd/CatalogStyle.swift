@@ -40,8 +40,11 @@ let ultimaGradient = LinearGradient(
     endPoint: UnitPoint(x: 1, y: 0),
 )
 
-func difficultyStyle(_ difficulty: String) -> AnyShapeStyle {
-    switch difficulty.lowercased() {
+func difficultyStyle(_ difficulty: String, type: String? = nil, vertical: Bool = false) -> AnyShapeStyle {
+    if type?.lowercased() == "we" || ["we", "world's end"].contains(difficulty.lowercased()) {
+        return AnyShapeStyle(vertical ? WorldsEndStyle.vertical : WorldsEndStyle.horizontal)
+    }
+    return switch difficulty.lowercased() {
     case "basic": AnyShapeStyle(Color(red: 0.31, green: 0.68, blue: 0.24))
     case "advanced": AnyShapeStyle(Color(red: 0.83, green: 0.67, blue: 0.12))
     case "expert": AnyShapeStyle(Color(red: 0.83, green: 0.20, blue: 0.20))

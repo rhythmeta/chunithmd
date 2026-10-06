@@ -55,4 +55,28 @@ class PersonalDataBridgeTest {
         bridge.deleteCollection(folder)
         assertTrue(files.snapshot().collectionItems.isEmpty())
     }
+    @Test fun chartHistoryUsesActiveProfileAndSharedSortAndBestRules() {
+        val files = Files(); val bridge = PersonalDataBridge(files)
+        bridge.snapshotJson()
+        val state = files.snapshot()
+        val profile = state.profiles.single().id
+        fun record(id: String, score: Int, time: Long, owner: String = profile, chart: String = "song:std:master") =
+            BackupPlayRecord(id, BackupScore(profileId = owner, songId = "song", chartKey = chart,
+                score = score, rank = ChunithmScoreRules.rank(score), achievedAt = time))
+        files.write("personal.pb.gz", BackupCodec.encode(state.copy(profiles = state.profiles + BackupProfile(id = "00000000-0000-4000-8000-000000000006", name = "Other", server = "jp"), playRecords = listOf(
+            record("00000000-0000-4000-8000-000000000001", 1_009_000, 1), record("00000000-0000-4000-8000-000000000002", 950_000, 3), record("00000000-0000-4000-8000-000000000003", 1_009_000, 2),
+            record("00000000-0000-4000-8000-000000000004", 1_010_000, 4, owner = "00000000-0000-4000-8000-000000000006"),
+            record("00000000-0000-4000-8000-000000000005", 1_010_000, 5, chart = "song:std:expert"),
+        ))))
+        val records = bridge.playHistory()
+        assertFalse(records.any { it.id == "00000000-0000-4000-8000-000000000004" })
+        val byTime = bridge.chartHistory(records, "song", "std:master", ScoreHistorySort.Time)
+        assertEquals(listOf("00000000-0000-4000-8000-000000000002", "00000000-0000-4000-8000-000000000003", "00000000-0000-4000-8000-000000000001"), byTime.map { it.id })
+        assertEquals(listOf("00000000-0000-4000-8000-000000000003", "00000000-0000-4000-8000-000000000001", "00000000-0000-4000-8000-000000000002"),
+            bridge.chartHistory(records, "song", "std:master", ScoreHistorySort.Score).map { it.id })
+        assertEquals("00000000-0000-4000-8000-000000000003", bridge.bestHistoryRecordId(byTime))
+        bridge.deleteRecord("00000000-0000-4000-8000-000000000003")
+        assertEquals("00000000-0000-4000-8000-000000000001", bridge.bestHistoryRecordId(bridge.chartHistory(bridge.playHistory(), "song", "std:master", ScoreHistorySort.Time)))
+    }
+
 }

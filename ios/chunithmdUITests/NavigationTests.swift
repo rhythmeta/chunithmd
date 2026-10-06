@@ -7,10 +7,11 @@ final class NavigationTests: XCTestCase {
         try? app.screenshot().pngRepresentation.write(to: url)
     }
 
-    private func catalog() -> XCUIApplication {
+    private func catalog(appearance: String? = nil) -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if let appearance { app.launchArguments += ["-appearance", appearance] }
         app.launch()
         capture(app, name: "home")
         let tab = app.tabBars.buttons["歌曲"]
@@ -44,6 +45,35 @@ final class NavigationTests: XCTestCase {
         XCTAssertEqual(search.value as? String, "Garakuta")
     }
 
+    func testSongDetailCopyActions() {
+        let app = catalog()
+        let search = app.searchFields.firstMatch
+        search.tap(); search.typeText("Garakuta")
+        let row = app.buttons["song-row-Garakuta Doll Play"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        row.tap()
+        XCTAssertTrue(app.navigationBars["Garakuta Doll Play"].waitForExistence(timeout: 5))
+        let toast = app.staticTexts["song-copy-toast"]
+        for field in ["title", "artist", "bpm", "category", "version", "date"] {
+            let copy = app.buttons["song-copy-" + field]
+            XCTAssertTrue(copy.exists)
+            copy.tap()
+            XCTAssertTrue(toast.waitForExistence(timeout: 2))
+            XCTAssertEqual(toast.label, "已复制")
+            if field == "title" { capture(app, name: "detail-copy-toast") }
+            XCTAssertTrue(toast.waitForNonExistence(timeout: 4))
+        }
+        app.buttons["song-copy-title"].tap()
+        app.buttons["song-detail-back"].tap()
+        search.tap()
+        search.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 8))
+        search.press(forDuration: 1.2)
+        let paste = app.menuItems["粘贴"]
+        if paste.waitForExistence(timeout: 2) { paste.tap() }
+        else { app.buttons["粘贴"].tap() }
+        XCTAssertEqual(search.value as? String, "Garakuta Doll Play")
+    }
+
     func testChartCardsAndSettings() {
         let app = catalog()
         capture(app, name: "catalog")
@@ -74,6 +104,98 @@ final class NavigationTests: XCTestCase {
         app.buttons["重置"].tap()
         XCTAssertFalse(master.isSelected)
         app.buttons["完成"].tap()
+    }
+
+    func testChartDetailSectionsAndDarkAppearance() {
+        let app = catalog(appearance: "dark")
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-row-")).firstMatch.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        capture(app, name: "detail-dark")
+        let card = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "chart-card-")).firstMatch
+        for _ in 0..<3 where !card.isHittable { app.swipeUp() }
+        card.tap()
+        app.swipeUp()
+
+        let notes = app.buttons["音符统计"]
+        XCTAssertTrue(notes.waitForExistence(timeout: 5))
+        notes.tap()
+        XCTAssertEqual(notes.value as? String, "已展开")
+        XCTAssertTrue(app.staticTexts["TAP"].exists)
+        XCTAssertFalse(app.staticTexts["总物量"].exists)
+        XCTAssertFalse(app.staticTexts["定数"].exists)
+        capture(app, name: "chart-notes-dark")
+        notes.tap()
+
+        let rating = app.buttons["分数 → Rating"]
+        rating.tap()
+        XCTAssertEqual(rating.value as? String, "已展开")
+        XCTAssertTrue(app.staticTexts["Rating"].exists)
+        XCTAssertTrue(app.staticTexts["差值"].exists)
+        XCTAssertTrue(app.staticTexts["↑0.15"].exists)
+        capture(app, name: "chart-rating-dark")
+        rating.tap()
+
+        let target = app.buttons["SSS"]
+        for _ in 0..<3 where !target.isHittable { app.swipeUp() }
+        target.tap()
+        assertSelected(target)
+        capture(app, name: "chart-tolerance-dark")
+        let record = app.buttons["录入成绩"]
+        for _ in 0..<3 where !record.isHittable { app.swipeUp() }
+        record.tap()
+        XCTAssertTrue(app.navigationBars["录入成绩"].waitForExistence(timeout: 5))
+        app.buttons["取消"].tap()
+        app.buttons["加入收藏夹"].tap()
+        XCTAssertTrue(app.navigationBars["加入收藏夹"].waitForExistence(timeout: 5))
+        app.buttons["完成"].tap()
+        app.buttons["song-detail-back"].tap()
+    }
+
+    func testHistorySortingAndStatusBadges() {
+        let app = catalog()
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-row-")).firstMatch.tap()
+        let card = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "chart-card-")).firstMatch
+        for _ in 0..<3 where !card.isHittable { app.swipeUp() }
+        card.tap()
+        app.swipeUp()
+        for score in ["950001", "940001"] {
+            let record = app.buttons["录入成绩"]
+            for _ in 0..<4 where !record.isHittable { app.swipeUp() }
+            record.tap()
+            let field = app.textFields["0–1,010,000"]
+            XCTAssertTrue(field.waitForExistence(timeout: 5))
+            field.tap(); field.typeText(score)
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "连击")).firstMatch.tap()
+            app.buttons["AJ"].tap()
+            app.buttons["保存"].tap()
+            XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        }
+        let history = app.buttons["历史成绩"]
+        for _ in 0..<4 where !history.isHittable { app.swipeUp() }
+        XCTAssertTrue(history.exists)
+        history.tap()
+        let rows = app.otherElements.matching(NSPredicate(format: "identifier BEGINSWITH %@", "score-history-row-"))
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(rows.firstMatch.staticTexts["940,001"].exists)
+        XCTAssertTrue(rows.firstMatch.staticTexts["AJ"].exists)
+        app.buttons["分数"].tap()
+        assertSelected(app.buttons["分数"])
+        let scores = rows.allElementsBoundByIndex.compactMap { row in
+            row.staticTexts.allElementsBoundByIndex.map(\.label).first {
+                $0.range(of: "^[0-9]{1,3}(,[0-9]{3})+$", options: .regularExpression) != nil
+            }.flatMap { Int($0.replacingOccurrences(of: ",", with: "")) }
+        }
+        XCTAssertGreaterThanOrEqual(scores.count, 2)
+        XCTAssertEqual(scores, scores.sorted(by: >))
+        capture(app, name: "history-score-badges")
+        app.buttons["时间"].tap()
+        assertSelected(app.buttons["时间"])
+        XCTAssertTrue(rows.firstMatch.staticTexts["940,001"].exists)
+        for _ in 0..<2 {
+            rows.firstMatch.buttons["删除成绩"].tap()
+            app.buttons["删除"].tap()
+        }
+        app.buttons["song-detail-back"].tap()
     }
 
     func testSortMenuMatchesReferenceAndPersists() {

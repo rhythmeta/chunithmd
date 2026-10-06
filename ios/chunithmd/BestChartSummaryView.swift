@@ -7,19 +7,19 @@ struct BestChartSummaryView: View {
     @Environment(PersonalStore.self) private var personal
     var body: some View {
         if let best = personal.best.first(where: { $0.chartId == song.id + ":" + sheet.id }) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack { Text(tr("个人最佳")).font(.system(size: 13, weight: .semibold)); Spacer(); Text(best.rank).font(.system(size: 13, weight: .semibold)).foregroundStyle(.orange) }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(tr("个人最佳")).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
                 HStack(alignment: .firstTextBaseline) {
-                    Text(Int(best.score).formatted()).font(.system(size: 28, weight: .black, design: .monospaced))
+                    Text(Int(best.score).formatted()).font(.system(size: 19, weight: .bold, design: .rounded))
+                    Text(best.rank).font(.system(size: 19, weight: .bold, design: .rounded)).foregroundStyle(scoreRankColor(best.rank))
                     Spacer()
-                    Text("R \(best.rating.formatted(.number.precision(.fractionLength(2))))").font(.headline.monospacedDigit()).foregroundStyle(.secondary)
-                }
-                HStack {
-                    if let clear = best.clear { Text(ClearType.companion.displayName(value: clear) ?? clear.uppercased()) }
-                    if let combo = best.fullCombo { Text(FullComboType.companion.displayName(value: combo) ?? combo) }
-                    if let chain = best.fullChain { Text(tr(FullChainType.companion.displayName(value: chain) ?? chain)) }
-                }.font(.caption.bold()).foregroundStyle(.orange)
-            }.padding(12).background(.secondary.opacity(0.06), in: .rect(cornerRadius: 12))
+                }.lineLimit(1).minimumScaleFactor(0.75)
+                ScoreStatusBadges(clear: best.clear, combo: best.fullCombo, chain: best.fullChain,
+                                  tint: difficultyStyle(sheet.difficulty, type: sheet.type))
+            }.padding(.horizontal, 16)
+        } else {
+            Text(tr("暂无成绩")).font(.system(size: 13)).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 16)
         }
     }
 }

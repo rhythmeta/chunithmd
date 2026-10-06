@@ -15,7 +15,7 @@ struct ScoreEntryView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section { Text(song.title).font(.headline); Text(sheet.difficulty.uppercased()).foregroundStyle(difficultyStyle(sheet.difficulty)) }
+                Section { Text(song.title).font(.headline); Text(sheet.difficulty.uppercased()).foregroundStyle(difficultyStyle(sheet.difficulty, type: sheet.type)) }
                 Section(tr("成绩")) {
                     TextField("0–1,010,000", value: $score, format: .number.grouping(.never)).keyboardType(.numberPad)
                     Picker(tr("通关"), selection: $clear) {

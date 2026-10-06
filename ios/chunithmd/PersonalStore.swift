@@ -6,6 +6,7 @@ import Shared
 final class PersonalStore {
     let bridge = PersonalDataBridge(files: RhythmetaSnapshotFiles())
     private(set) var snapshot = PersonalSnapshot()
+    private(set) var playRecords: [ScoreRecord] = []
     private(set) var best: [BestTableEntry] = []
     private(set) var rating = 0.0
     private(set) var revision = 0
@@ -14,6 +15,7 @@ final class PersonalStore {
     func reload(catalog: CatalogStore) {
         do {
             snapshot = try JSONDecoder().decode(PersonalSnapshot.self, from: Data(try bridge.snapshotJson().utf8))
+            playRecords = try bridge.playHistory()
             if let bundle = catalog.bundle {
                 best = try bridge.bestEntries(bundle: bundle)
                 rating = try bridge.rating(bundle: bundle).rating
@@ -29,9 +31,7 @@ final class PersonalStore {
         catch { self.error = error.localizedDescription }
     }
 
-    func history(songID: String, sheetID: String) -> [PersonalSnapshot.Record] {
-        snapshot.playRecords.filter {
-            $0.result.profileId == snapshot.activeProfile?.id && $0.result.songId == songID && $0.result.chartKey == songID + ":" + sheetID
-        }.sorted { $0.result.achievedAt > $1.result.achievedAt }
+    func history(songID: String, sheetID: String, sort: ScoreHistorySort = .time) -> [ScoreRecord] {
+        bridge.chartHistory(records: playRecords, songId: songID, sheetId: sheetID, sort: sort)
     }
 }

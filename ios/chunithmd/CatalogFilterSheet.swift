@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 struct CatalogFilterSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -25,7 +26,10 @@ struct CatalogFilterSheet: View {
                         Text(tr("选择难度后，按该难度的定数范围筛选。")).font(.system(size: 11)).foregroundStyle(.secondary)
                     }
                     FilterSection(title: tr("分类")) { FilterChoices(options: store.categories, selection: $store.selectedCategories) }
-                    FilterSection(title: tr("版本")) { FilterChoices(options: Array(store.versions.reversed()), selection: $store.selectedVersions) }
+                    FilterSection(title: tr("版本")) {
+                        FilterChoices(options: Array(store.versions.reversed()), selection: $store.selectedVersions,
+                                      displayValue: { CatalogVersionFormatter.shared.badge(version: $0) })
+                    }
                 }.padding(16)
             }
             .background(AppTheme.page).navigationTitle(tr("筛选歌曲")).navigationBarTitleDisplayMode(.inline)

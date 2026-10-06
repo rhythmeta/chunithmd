@@ -7,7 +7,7 @@ struct VersionBadge: View {
 
     var body: some View {
         let palette = VersionPalette.shared.forVersion(version: version, dark: dark)
-        Text(version.replacingOccurrences(of: " PLUS", with: " +"))
+        Text(CatalogVersionFormatter.shared.badge(version: version))
             .font(.system(size: 9, weight: .bold))
             .lineLimit(1)
             .padding(.horizontal, 5)
@@ -16,4 +16,3 @@ struct VersionBadge: View {
             .background(argbColor(dark ? palette.darkBackground : palette.lightBackground), in: RoundedRectangle(cornerRadius: 4))
     }
 }
-

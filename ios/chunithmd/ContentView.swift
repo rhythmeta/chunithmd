@@ -4,6 +4,7 @@ import SwiftUI
 struct ContentView: View {
     enum TabSelection { case home, collections, settings, search }
     @State private var navigation = SongNavigation()
+    @Namespace private var songTransitionNamespace
     @State private var catalog = CatalogStore()
     @State private var personal = PersonalStore()
     @State private var account = RhythmetaAccountStore()
@@ -14,6 +15,7 @@ struct ContentView: View {
     @AppStorage("appearance") private var appearance = "system"
 
     var body: some View {
+        @Bindable var navigation = navigation
         TabView(selection: $selection) {
             Tab(tr("首页"), systemImage: "house", value: .home) {
                 NavigationStack { HomeView() }
@@ -32,8 +34,13 @@ struct ContentView: View {
                 }
             }
         }
-        .accessibilityHidden(navigation.song != nil)
-        .overlay { if navigation.song != nil { SongDetailOverlay() } }
+        .fullScreenCover(item: $navigation.song) { song in
+            NavigationStack {
+                SongDetailView(song: song, preferredSheet: navigation.preferredSheet)
+            }
+            .navigationTransition(.zoom(sourceID: navigation.sourceID, in: songTransitionNamespace))
+        }
+        .environment(\.songTransitionNamespace, songTransitionNamespace)
         .environment(navigation)
         .tint(.blue)
         .environment(catalog)
