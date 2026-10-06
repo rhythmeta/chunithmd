@@ -27,6 +27,9 @@ data class PlateChartEntry(
 
 data class PlateLevelSection(val level: String, val charts: List<PlateChartEntry>) {
     val completedCount: Int get() = charts.count { it.achieved }
+    val progress: Float get() = if (charts.isEmpty()) 0f else completedCount.toFloat() / charts.size
+    fun visibleCharts(remainingOnly: Boolean): List<PlateChartEntry> =
+        if (remainingOnly) charts.filterNot { it.achieved } else charts
 }
 
 data class PlateProgressResponse(
@@ -41,6 +44,10 @@ data class PlateProgressResponse(
     val progress: Float get() = if (totalCount == 0) 0f else completedCount.toFloat() / totalCount
     val achieved: Boolean get() = totalCount > 0 && remainingCount == 0
     val title: String get() = "${plateType.title} of ${selectedGroup?.name.orEmpty()}"
+
+    /** A difficulty-scoped snapshot; hiding completed charts must not change its totals. */
+    fun forDifficulty(difficulty: String?): PlateProgressResponse =
+        if (difficulty == null) this else copy(charts = charts.filter { it.sheet.difficulty.equals(difficulty, true) })
 
     // Filtering the grid must not change the progress of the whole version's title.
     fun sections(difficulty: String? = null, remainingOnly: Boolean = false): List<PlateLevelSection> = charts

@@ -3,30 +3,37 @@ import Shared
 
 struct PlateSummaryCard: View {
     let response: PlateProgressResponse
+    let difficulty: String
+    private var tint: Color { plateColor(response.plateType) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
+            HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(response.title).font(.title3.bold())
-                    Text(tr("当前档案的牌子获取进度")).font(.subheadline).foregroundStyle(.secondary)
+                    Text([response.selectedGroup?.name ?? "", difficulty.isEmpty ? tr("全部难度") : difficulty.uppercased(), response.plateType.title].joined(separator: " · "))
+                        .font(.subheadline).foregroundStyle(.secondary)
                 }
-                Spacer()
-                Text(Double(response.completedCount) / Double(max(1, response.totalCount)), format: .percent.precision(.fractionLength(1)))
-                    .font(.headline.bold().monospacedDigit()).foregroundStyle(.blue)
-                    .padding(.horizontal, 12).padding(.vertical, 8).background(.blue.opacity(0.12), in: .capsule)
+                Spacer(minLength: 12)
+                Text(Double(response.progress), format: .percent.precision(.fractionLength(0)))
+                    .font(.headline.bold().monospacedDigit()).foregroundStyle(tint)
+                    .padding(.horizontal, 12).padding(.vertical, 8).background(tint.opacity(0.12), in: .capsule)
             }
-            ProgressView(value: Double(response.completedCount), total: Double(max(1, response.totalCount)))
+            ProgressView(value: Double(response.progress)).tint(tint)
             HStack(spacing: 12) {
-                metric(tr("已完成"), response.completedCount)
-                metric(tr("未完成"), response.remainingCount)
-                metric(tr("总谱面"), response.totalCount)
+                metric(tr("已完成"), response.completedCount, tint: tint)
+                metric(tr("未完成"), response.remainingCount, tint: .secondary)
+                metric(tr("总谱面"), response.totalCount, tint: .secondary)
             }
-        }.padding(16).background(.ultraThinMaterial, in: .rect(cornerRadius: 20))
+        }
+        .padding(16).background(.ultraThinMaterial, in: .rect(cornerRadius: 20))
+        .accessibilityElement(children: .contain).accessibilityIdentifier("plate-summary")
     }
-    private func metric(_ title: String, _ count: Int32) -> some View {
+
+    private func metric(_ title: String, _ count: Int32, tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title).font(.caption).foregroundStyle(.secondary)
-            Text(count.formatted()).font(.headline.monospacedDigit())
+            Text(count.formatted()).font(.headline.bold().monospacedDigit()).foregroundStyle(tint)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }

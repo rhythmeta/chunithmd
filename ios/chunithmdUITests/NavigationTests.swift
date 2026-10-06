@@ -27,6 +27,59 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testPlateProgressMenusGridAndNavigation() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-profile"].waitForExistence(timeout: 20))
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "牌子进度")).firstMatch.tap()
+        let tiles = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "plate-tile-"))
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 30))
+        XCTAssertTrue(tiles.firstMatch.label.contains("MASTER"))
+        capture(app, name: "plate-progress")
+        let version = app.buttons["plate-version"]
+        let difficulty = app.buttons["plate-difficulty"]
+        let kind = app.buttons["plate-kind"]
+        XCTAssertEqual(version.frame.height, difficulty.frame.height, accuracy: 1)
+        XCTAssertEqual(kind.frame.height, difficulty.frame.height, accuracy: 1)
+        version.tap()
+        capture(app, name: "plate-versions")
+        for _ in 0..<4 where !app.buttons["MATE"].exists {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.83))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.45)))
+        }
+        app.buttons["MATE"].tap()
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 5))
+        kind.tap()
+        capture(app, name: "plate-kinds")
+        app.buttons["Legend · AJ"].tap()
+        XCTAssertTrue(app.staticTexts["Legend of MATE"].waitForExistence(timeout: 5))
+        let played = app.buttons["plate-tile-零號車輛:std:master"]
+        XCTAssertTrue(played.waitForExistence(timeout: 5))
+        XCTAssertTrue((played.value as? String ?? "").contains("AJC"))
+        capture(app, name: "plate-completed")
+        played.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        app.buttons["song-detail-back"].tap()
+        app.buttons["plate-filter"].tap()
+        app.buttons.matching(NSPredicate(format: "label == %@ AND identifier != %@", "只看未完成", "plate-filter")).firstMatch.tap()
+        XCTAssertFalse(played.exists)
+        capture(app, name: "plate-remaining")
+        difficulty.tap()
+        capture(app, name: "plate-difficulties")
+        app.buttons["EXPERT"].tap()
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(tiles.firstMatch.label.contains("EXPERT"))
+        capture(app, name: "plate-expert")
+        app.terminate()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
+        app.launch()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "牌子进度")).firstMatch.tap()
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 20))
+        capture(app, name: "plate-dark")
+    }
+
     func testConstantTableSectionsFiltersBadgesAndExport() {
         continueAfterFailure = false
         let app = XCUIApplication()
