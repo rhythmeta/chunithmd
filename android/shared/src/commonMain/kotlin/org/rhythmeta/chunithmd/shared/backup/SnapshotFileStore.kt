@@ -4,7 +4,7 @@ import org.rhythmeta.chunithmd.shared.localization.tr
 
 import kotlin.time.Clock
 
-/** The iOS catalog shell has no personal database yet. Retain every portable field durably. */
+/** Portable personal storage shared by the iOS client and backup/restore coordinator. */
 class SnapshotFile(val bytes: ByteArray?)
 interface SnapshotFiles {
     @Throws(Exception::class) fun read(name: String): SnapshotFile

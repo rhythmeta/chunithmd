@@ -53,6 +53,7 @@ internal data class CommunityApprovedAlias(val songIdentifier: String, val alias
 @Serializable
 internal data class CommunityAliasSnapshot(val rows: List<CommunityApprovedAlias>, val complete: Boolean = false)
 
+@Serializable
 data class SongAliasState(
     val draft: String = "",
     val loading: Boolean = false,
@@ -62,6 +63,7 @@ data class SongAliasState(
     val error: String? = null,
 )
 
+@Serializable
 data class CommunityAliasState(
     val accountId: String? = null,
     val approvedAliases: Map<String, List<String>> = emptyMap(),

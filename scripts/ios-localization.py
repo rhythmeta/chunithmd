@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""Audit Swift source keys against the shared catalog, including interpolated strings."""
+import json
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+CJK = re.compile(r'[\u3400-\u9fff]')
+
+
+def literal(source, start):
+    """Return end, literal chunks, and interpolation expressions for a Swift string."""
+    chunks, arguments = [], []
+    index = chunk_start = start + 1
+    while index < len(source):
+        if source[index] == '"':
+            chunks.append(source[chunk_start:index])
+            return index + 1, chunks, arguments
+        if source.startswith('\\(', index):
+            chunks.append(source[chunk_start:index])
+            expression_start = index + 2
+            index, depth = expression_start, 1
+            while depth:
+                if source[index] == '"':
+                    index = literal(source, index)[0]
+                    continue
+                if source[index] == '(':
+                    depth += 1
+                elif source[index] == ')':
+                    depth -= 1
+                index += 1
+            arguments.append(source[expression_start:index - 1])
+            chunk_start = index
+        elif source[index] == '\\':
+            index += 2
+        else:
+            index += 1
+    raise ValueError('Unterminated Swift string')
+
+
+def strings(source):
+    index = 0
+    while index < len(source):
+        if source.startswith('//', index):
+            end = source.find('\n', index)
+            index = len(source) if end < 0 else end + 1
+        elif source.startswith('/*', index):
+            index = source.index('*/', index + 2) + 2
+        elif source.startswith('#"""', index) or source.startswith('"""', index):
+            raw = source.startswith('#', index)
+            delimiter = '"""#' if raw else '"""'
+            content_start = index + (4 if raw else 3)
+            end = source.index(delimiter, content_start)
+            assert not CJK.search(source[content_start:end]), 'Localize multiline UI text with a source key'
+            index = end + len(delimiter)
+        elif source[index] == '"':
+            end, chunks, arguments = literal(source, index)
+            yield index, end, chunks, arguments
+            index = end
+        else:
+            index += 1
+
+
+def check_source(source, catalog, context):
+    for start, _, chunks, arguments in strings(source):
+        is_key = re.search(r'\btr\(\s*$', source[:start]) is not None
+        if is_key:
+            assert not arguments, f'Interpolated localization key in {context}'
+            key = json.loads('"' + chunks[0] + '"')
+            assert key in catalog, f'Missing catalog key in {context}: {key}'
+        elif any(CJK.search(chunk) for chunk in chunks):
+            raise AssertionError(f'Unlocalized Swift text in {context}: {chunks}')
+        for argument in arguments:
+            check_source(argument, catalog, context)
+
+
+def validate(catalog):
+    for path in (ROOT / 'ios/chunithmd').glob('*.swift'):
+        check_source(path.read_text(), catalog, path.relative_to(ROOT))
+
+
+if __name__ == '__main__':
+    validate(json.loads((ROOT / 'localization/strings.json').read_text()))
+    print('iOS source keys use the shared localization catalog.')

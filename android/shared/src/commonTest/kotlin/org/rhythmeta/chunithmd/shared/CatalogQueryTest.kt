@@ -93,6 +93,18 @@ class CatalogQueryTest {
     }
 
     @Test
+    fun defaultDescendingReversesCatalogOrderAfterFiltering() {
+        assertEquals(
+            listOf("offline", "a", "z"),
+            CatalogQuery.filterAndSort(bundle, ascending = false).map { it.songId },
+        )
+        assertEquals(
+            listOf("a", "z"),
+            CatalogQuery.filterAndSort(bundle, ascending = false, filters = CatalogFilters(playableOnly = true)).map { it.songId },
+        )
+    }
+
+    @Test
     fun difficultyFilterUsesTheSelectedConstantRange() {
         assertEquals(
             listOf("a"),

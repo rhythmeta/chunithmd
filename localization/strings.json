@@ -3100,5 +3100,1019 @@
     "ja": "ジャケットを縮小",
     "zh-Hans": "缩小封面",
     "zh-Hant": "縮小封面"
+  },
+  "3 列": {
+    "zh-Hans": "3 列",
+    "zh-Hant": "3 列",
+    "en": "3 columns",
+    "ja": "3列"
+  },
+  "5 列": {
+    "zh-Hans": "5 列",
+    "zh-Hant": "5 列",
+    "en": "5 columns",
+    "ja": "5列"
+  },
+  "3 首": {
+    "zh-Hans": "3 首",
+    "zh-Hant": "3 首",
+    "en": "3 songs",
+    "ja": "3曲"
+  },
+  "4 首": {
+    "zh-Hans": "4 首",
+    "zh-Hant": "4 首",
+    "en": "4 songs",
+    "ja": "4曲"
+  },
+  "B30 + N20 · 你的最佳表现": {
+    "zh-Hans": "B30 + N20 · 你的最佳表现",
+    "zh-Hant": "B30 + N20 · 你的最佳表現",
+    "en": "B30 + N20 · Your best performances",
+    "ja": "B30 + N20 · ベストパフォーマンス"
+  },
+  "Lv. {0} 定数表": {
+    "zh-Hans": "Lv. {0} 定数表",
+    "zh-Hant": "Lv. {0} 定數表",
+    "en": "Lv. {0} chart constants",
+    "ja": "Lv. {0} 譜面定数表"
+  },
+  "Otogame 需要日服档案": {
+    "zh-Hans": "Otogame 需要日服档案",
+    "zh-Hant": "Otogame 需要日服檔案",
+    "en": "Otogame requires a Japan profile",
+    "ja": "Otogame には日本版のプロフィールが必要です"
+  },
+  "Rating 对照表": {
+    "zh-Hans": "Rating 对照表",
+    "zh-Hant": "Rating 對照表",
+    "en": "Rating table",
+    "ja": "Rating 早見表"
+  },
+  "Rhythmeta 账号": {
+    "zh-Hans": "Rhythmeta 账号",
+    "zh-Hant": "Rhythmeta 帳號",
+    "en": "Rhythmeta account",
+    "ja": "Rhythmeta アカウント"
+  },
+  "Rhythmeta 账号与云备份": {
+    "zh-Hans": "Rhythmeta 账号与云备份",
+    "zh-Hant": "Rhythmeta 帳號與雲端備份",
+    "en": "Rhythmeta account & cloud backups",
+    "ja": "Rhythmeta アカウントとクラウドバックアップ"
+  },
+  "{0} · {1} 个档案 · {2} KB": {
+    "zh-Hans": "{0} · {1} 个档案 · {2} KB",
+    "zh-Hant": "{0} · {1} 個檔案 · {2} KB",
+    "en": "{0} · {1} profiles · {2} KB",
+    "ja": "{0} · {1} プロフィール · {2} KB"
+  },
+  "{0} 个谱面": {
+    "zh-Hans": "{0} 个谱面",
+    "zh-Hant": "{0} 張譜面",
+    "en": "{0} charts",
+    "ja": "{0} 譜面"
+  },
+  "{0} 个谱面 · {1}": {
+    "zh-Hans": "{0} 个谱面 · {1}",
+    "zh-Hant": "{0} 張譜面 · {1}",
+    "en": "{0} charts · {1}",
+    "ja": "{0} 譜面 · {1}"
+  },
+  "{0}分享图片，第 {1} 页": {
+    "zh-Hans": "{0}分享图片，第 {1} 页",
+    "zh-Hant": "{0}分享圖片，第 {1} 頁",
+    "en": "{0} share image, page {1}",
+    "ja": "{0} 共有画像、{1} ページ目"
+  },
+  "下载更新": {
+    "zh-Hans": "下载更新",
+    "zh-Hant": "下載更新",
+    "en": "Download update",
+    "ja": "更新をダウンロード"
+  },
+  "下载歌曲资源": {
+    "zh-Hans": "下载歌曲资源",
+    "zh-Hant": "下載歌曲資源",
+    "en": "Download song resources",
+    "ja": "楽曲データをダウンロード"
+  },
+  "下载资源": {
+    "zh-Hans": "下载资源",
+    "zh-Hant": "下載資源",
+    "en": "Download resources",
+    "ja": "データをダウンロード"
+  },
+  "个人最佳": {
+    "zh-Hans": "个人最佳",
+    "zh-Hant": "個人最佳",
+    "en": "Personal best",
+    "ja": "自己ベスト"
+  },
+  "为不同玩家或服务器分别保存成绩。": {
+    "zh-Hans": "为不同玩家或服务器分别保存成绩。",
+    "zh-Hant": "為不同玩家或伺服器分別儲存成績。",
+    "en": "Keep separate scores for each player or server.",
+    "ja": "プレイヤーやサーバーごとにスコアを保存します。"
+  },
+  "云端备份": {
+    "zh-Hans": "云端备份",
+    "zh-Hant": "雲端備份",
+    "en": "Cloud backups",
+    "ja": "クラウドバックアップ"
+  },
+  "仅显示当前服务器可玩": {
+    "zh-Hans": "仅显示当前服务器可玩",
+    "zh-Hant": "僅顯示目前伺服器可遊玩",
+    "en": "Only playable on current server",
+    "ja": "現在のサーバーで遊べる曲のみ"
+  },
+  "仅显示收藏": {
+    "zh-Hans": "仅显示收藏",
+    "zh-Hant": "僅顯示收藏",
+    "en": "Favorites only",
+    "ja": "お気に入りのみ"
+  },
+  "仅显示未完成": {
+    "zh-Hans": "仅显示未完成",
+    "zh-Hant": "僅顯示未完成",
+    "en": "Incomplete only",
+    "ja": "未達成のみ"
+  },
+  "从 Otogame 导入": {
+    "zh-Hans": "从 Otogame 导入",
+    "zh-Hant": "從 Otogame 匯入",
+    "en": "Import from Otogame",
+    "ja": "Otogame からインポート"
+  },
+  "从水鱼查分器导入": {
+    "zh-Hans": "从水鱼查分器导入",
+    "zh-Hant": "從水魚查分器匯入",
+    "en": "Import from Diving Fish",
+    "ja": "Diving Fish からインポート"
+  },
+  "从落雪咖啡屋导入": {
+    "zh-Hans": "从落雪咖啡屋导入",
+    "zh-Hant": "從落雪咖啡屋匯入",
+    "en": "Import from LXNS",
+    "ja": "LXNS からインポート"
+  },
+  "保留最近三份备份。恢复会替换全部本地档案、成绩、收藏和设置。恢复完成后，各页面会重新加载个人数据。": {
+    "zh-Hans": "保留最近三份备份。恢复会替换全部本地档案、成绩、收藏和设置。恢复完成后，各页面会重新加载个人数据。",
+    "zh-Hant": "保留最近三份備份。還原會取代全部本機檔案、成績、收藏和設定。還原完成後，各頁面會重新載入個人資料。",
+    "en": "The three most recent backups are kept. Restoring replaces all local profiles, scores, favorites and settings. Pages reload your personal data after restoration.",
+    "ja": "最新のバックアップを3件保存します。復元すると、端末内のすべてのプロフィール、スコア、お気に入り、設定が置き換わります。復元後、各画面で個人データを再読み込みします。"
+  },
+  "全部": {
+    "zh-Hans": "全部",
+    "zh-Hant": "全部",
+    "en": "All",
+    "ja": "すべて"
+  },
+  "分享图片": {
+    "zh-Hans": "分享图片",
+    "zh-Hant": "分享圖片",
+    "en": "Share image",
+    "ja": "画像を共有"
+  },
+  "分享成绩图": {
+    "zh-Hans": "分享成绩图",
+    "zh-Hant": "分享成績圖",
+    "en": "Share score image",
+    "ja": "スコア画像を共有"
+  },
+  "分享链接或 CHMD1 分享码": {
+    "zh-Hans": "分享链接或 CHMD1 分享码",
+    "zh-Hant": "分享連結或 CHMD1 分享碼",
+    "en": "Share link or CHMD1 code",
+    "ja": "共有リンクまたは CHMD1 コード"
+  },
+  "切换布局": {
+    "zh-Hans": "切换布局",
+    "zh-Hant": "切換版面配置",
+    "en": "Switch layout",
+    "ja": "レイアウトを切り替え"
+  },
+  "列表": {
+    "zh-Hans": "列表",
+    "zh-Hant": "列表",
+    "en": "List",
+    "ja": "リスト"
+  },
+  "创建": {
+    "zh-Hans": "创建",
+    "zh-Hant": "建立",
+    "en": "Create",
+    "ja": "作成"
+  },
+  "创建收藏夹，整理练习曲目。": {
+    "zh-Hans": "创建收藏夹，整理练习曲目。",
+    "zh-Hant": "建立收藏夾，整理練習曲目。",
+    "en": "Create collections to organize your practice songs.",
+    "ja": "コレクションを作成して練習曲を整理しましょう。"
+  },
+  "删除成绩": {
+    "zh-Hans": "删除成绩",
+    "zh-Hant": "刪除成績",
+    "en": "Delete score",
+    "ja": "スコアを削除"
+  },
+  "删除收藏夹？": {
+    "zh-Hans": "删除收藏夹？",
+    "zh-Hant": "刪除收藏夾？",
+    "en": "Delete collection?",
+    "ja": "コレクションを削除しますか？"
+  },
+  "删除档案及其成绩？": {
+    "zh-Hans": "删除档案及其成绩？",
+    "zh-Hant": "刪除檔案及其成績？",
+    "en": "Delete profile and its scores?",
+    "ja": "プロフィールとスコアを削除しますか？"
+  },
+  "删除这条成绩？": {
+    "zh-Hans": "删除这条成绩？",
+    "zh-Hant": "刪除這筆成績？",
+    "en": "Delete this score?",
+    "ja": "このスコアを削除しますか？"
+  },
+  "剩余": {
+    "zh-Hans": "剩余",
+    "zh-Hant": "剩餘",
+    "en": "Remaining",
+    "ja": "残り"
+  },
+  "可游玩": {
+    "zh-Hans": "可游玩",
+    "zh-Hant": "可遊玩",
+    "en": "Playable",
+    "ja": "プレイ可能"
+  },
+  "各项独立计算，其余音符均为 JUSTICE CRITICAL。": {
+    "zh-Hans": "各项独立计算，其余音符均为 JUSTICE CRITICAL。",
+    "zh-Hant": "各項獨立計算，其餘音符均為 JUSTICE CRITICAL。",
+    "en": "Each value is calculated independently, with all other notes judged JUSTICE CRITICAL.",
+    "ja": "各項目は独立して計算され、残りのノーツはすべて JUSTICE CRITICAL として扱います。"
+  },
+  "同步": {
+    "zh-Hans": "同步",
+    "zh-Hant": "同步",
+    "en": "Sync",
+    "ja": "同期"
+  },
+  "名称": {
+    "zh-Hans": "名称",
+    "zh-Hant": "名稱",
+    "en": "Name",
+    "ja": "名前"
+  },
+  "喜欢的歌曲": {
+    "zh-Hans": "喜欢的歌曲",
+    "zh-Hant": "喜歡的歌曲",
+    "en": "Favorite songs",
+    "ja": "お気に入りの楽曲"
+  },
+  "在歌曲详情中选择难度，再加入收藏夹。": {
+    "zh-Hans": "在歌曲详情中选择难度，再加入收藏夹。",
+    "zh-Hant": "在歌曲詳情中選擇難度，再加入收藏夾。",
+    "en": "Choose a difficulty in song details, then add it to a collection.",
+    "ja": "楽曲詳細で難易度を選択し、コレクションに追加してください。"
+  },
+  "基于 B30 + N20 计算的 Rating": {
+    "zh-Hans": "基于 B30 + N20 计算的 Rating",
+    "zh-Hant": "根據 B30 + N20 計算的 Rating",
+    "en": "Rating calculated from B30 + N20",
+    "ja": "B30 + N20 から算出した Rating"
+  },
+  "外观": {
+    "zh-Hans": "外观",
+    "zh-Hant": "外觀",
+    "en": "Appearance",
+    "ja": "外観"
+  },
+  "好": {
+    "zh-Hans": "好",
+    "zh-Hant": "好",
+    "en": "OK",
+    "ja": "OK"
+  },
+  "容错": {
+    "zh-Hans": "容错",
+    "zh-Hant": "容錯",
+    "en": "Judgment allowance",
+    "ja": "許容判定数"
+  },
+  "寻找下一个 Rating 目标": {
+    "zh-Hans": "寻找下一个 Rating 目标",
+    "zh-Hant": "尋找下一個 Rating 目標",
+    "en": "Find your next Rating target",
+    "ja": "次の Rating 目標を探す"
+  },
+  "导入到：{0}": {
+    "zh-Hans": "导入到：{0}",
+    "zh-Hant": "匯入至：{0}",
+    "en": "Import to: {0}",
+    "ja": "インポート先：{0}"
+  },
+  "导入至当前档案，已有成绩会保留。": {
+    "zh-Hans": "导入至当前档案，已有成绩会保留。",
+    "zh-Hant": "匯入至目前檔案，已有成績會保留。",
+    "en": "Import into the current profile, keeping existing scores.",
+    "ja": "現在のプロフィールにインポートします。既存のスコアは保持されます。"
+  },
+  "已收起": {
+    "zh-Hans": "已收起",
+    "zh-Hant": "已收合",
+    "en": "Collapsed",
+    "ja": "折りたたみ済み"
+  },
+  "已是最新版本": {
+    "zh-Hans": "已是最新版本",
+    "zh-Hant": "已是最新版本",
+    "en": "Up to date",
+    "ja": "最新です"
+  },
+  "已有成绩会保留，重复记录会自动跳过。": {
+    "zh-Hans": "已有成绩会保留，重复记录会自动跳过。",
+    "zh-Hant": "已有成績會保留，重複紀錄會自動略過。",
+    "en": "Existing scores are kept and duplicate records are skipped.",
+    "ja": "既存のスコアは保持され、重複した記録はスキップされます。"
+  },
+  "布局": {
+    "zh-Hans": "布局",
+    "zh-Hant": "版面配置",
+    "en": "Layout",
+    "ja": "レイアウト"
+  },
+  "开始前会保存回滚副本，失败时自动恢复。": {
+    "zh-Hans": "开始前会保存回滚副本，失败时自动恢复。",
+    "zh-Hant": "開始前會儲存回復副本，失敗時自動還原。",
+    "en": "A rollback copy is saved first and restored automatically if the operation fails.",
+    "ja": "開始前にロールバック用のコピーを保存し、失敗時は自動的に元に戻します。"
+  },
+  "开始抽曲": {
+    "zh-Hans": "开始抽曲",
+    "zh-Hant": "開始抽曲",
+    "en": "Draw songs",
+    "ja": "抽選開始"
+  },
+  "当前 bundle": {
+    "zh-Hans": "当前 bundle",
+    "zh-Hant": "目前資料包",
+    "en": "Current data bundle",
+    "ja": "現在のデータパック"
+  },
+  "当前档案的牌子获取进度": {
+    "zh-Hans": "当前档案的牌子获取进度",
+    "zh-Hant": "目前檔案的牌子取得進度",
+    "en": "Emblem progress for the current profile",
+    "ja": "現在のプロフィールの称号獲得状況"
+  },
+  "录入成绩": {
+    "zh-Hans": "录入成绩",
+    "zh-Hant": "輸入成績",
+    "en": "Record score",
+    "ja": "スコアを記録"
+  },
+  "录入成绩后，为你寻找下一个 Rating 目标。": {
+    "zh-Hans": "录入成绩后，为你寻找下一个 Rating 目标。",
+    "zh-Hant": "輸入成績後，為你尋找下一個 Rating 目標。",
+    "en": "Record scores to find your next Rating target.",
+    "ja": "スコアを記録して、次の Rating 目標を見つけましょう。"
+  },
+  "快捷筛选": {
+    "zh-Hans": "快捷筛选",
+    "zh-Hant": "快速篩選",
+    "en": "Quick filters",
+    "ja": "クイックフィルター"
+  },
+  "总物量": {
+    "zh-Hans": "总物量",
+    "zh-Hant": "總物量",
+    "en": "Total notes",
+    "ja": "総ノーツ数"
+  },
+  "总计": {
+    "zh-Hans": "总计",
+    "zh-Hant": "總計",
+    "en": "Total",
+    "ja": "合計"
+  },
+  "恢复此备份": {
+    "zh-Hans": "恢复此备份",
+    "zh-Hant": "還原此備份",
+    "en": "Restore this backup",
+    "ja": "このバックアップを復元"
+  },
+  "成绩导入": {
+    "zh-Hans": "成绩导入",
+    "zh-Hant": "成績匯入",
+    "en": "Score import",
+    "ja": "スコアのインポート"
+  },
+  "我的收藏夹": {
+    "zh-Hans": "我的收藏夹",
+    "zh-Hant": "我的收藏夾",
+    "en": "My collections",
+    "ja": "マイコレクション"
+  },
+  "打开授权页面": {
+    "zh-Hans": "打开授权页面",
+    "zh-Hant": "開啟授權頁面",
+    "en": "Open authorization page",
+    "ja": "認証ページを開く"
+  },
+  "授权码": {
+    "zh-Hans": "授权码",
+    "zh-Hant": "授權碼",
+    "en": "Authorization code",
+    "ja": "認証コード"
+  },
+  "排序方式": {
+    "zh-Hans": "排序方式",
+    "zh-Hant": "排序方式",
+    "en": "Sort by",
+    "ja": "並べ替え方法"
+  },
+  "推分推荐": {
+    "zh-Hans": "推分推荐",
+    "zh-Hant": "推分推薦",
+    "en": "Score recommendations",
+    "ja": "スコア向上のおすすめ"
+  },
+  "推荐范围": {
+    "zh-Hans": "推荐范围",
+    "zh-Hant": "推薦範圍",
+    "en": "Recommendation scope",
+    "ja": "おすすめの範囲"
+  },
+  "提交": {
+    "zh-Hans": "提交",
+    "zh-Hant": "提交",
+    "en": "Submit",
+    "ja": "送信"
+  },
+  "提交、投票与发现歌曲别名": {
+    "zh-Hans": "提交、投票与发现歌曲别名",
+    "zh-Hant": "提交、投票與探索歌曲別名",
+    "en": "Submit, vote on and discover song aliases",
+    "ja": "楽曲の別名を投稿・投票・検索"
+  },
+  "提交新的歌曲别名": {
+    "zh-Hans": "提交新的歌曲别名",
+    "zh-Hant": "提交新的歌曲別名",
+    "en": "Submit a new song alias",
+    "ja": "新しい楽曲の別名を投稿"
+  },
+  "搜索已游玩曲目": {
+    "zh-Hans": "搜索已游玩曲目",
+    "zh-Hant": "搜尋已遊玩曲目",
+    "en": "Search played songs",
+    "ja": "プレイ済みの曲を検索"
+  },
+  "收藏": {
+    "zh-Hans": "收藏",
+    "zh-Hant": "收藏",
+    "en": "Favorites",
+    "ja": "お気に入り"
+  },
+  "放大网格": {
+    "zh-Hans": "放大网格",
+    "zh-Hant": "放大網格",
+    "en": "Enlarge grid",
+    "ja": "グリッドを拡大"
+  },
+  "数据与云端": {
+    "zh-Hans": "数据与云端",
+    "zh-Hant": "資料與雲端",
+    "en": "Data & cloud",
+    "ja": "データとクラウド"
+  },
+  "整理与分享练习曲目": {
+    "zh-Hans": "整理与分享练习曲目",
+    "zh-Hant": "整理與分享練習曲目",
+    "en": "Organize and share practice songs",
+    "ja": "練習曲を整理・共有"
+  },
+  "新曲": {
+    "zh-Hans": "新曲",
+    "zh-Hant": "新曲",
+    "en": "New songs",
+    "ja": "新曲"
+  },
+  "无法完成操作": {
+    "zh-Hans": "无法完成操作",
+    "zh-Hant": "無法完成操作",
+    "en": "Unable to complete operation",
+    "ja": "操作を完了できません"
+  },
+  "无法生成图片": {
+    "zh-Hans": "无法生成图片",
+    "zh-Hant": "無法產生圖片",
+    "en": "Unable to generate image",
+    "ja": "画像を生成できません"
+  },
+  "旧曲": {
+    "zh-Hans": "旧曲",
+    "zh-Hant": "舊曲",
+    "en": "Old songs",
+    "ja": "旧曲"
+  },
+  "显示选项": {
+    "zh-Hans": "显示选项",
+    "zh-Hant": "顯示選項",
+    "en": "Display options",
+    "ja": "表示オプション"
+  },
+  "暂无待投票别名": {
+    "zh-Hans": "暂无待投票别名",
+    "zh-Hant": "暫無待投票別名",
+    "en": "No aliases awaiting votes",
+    "ja": "投票待ちの別名はありません"
+  },
+  "暂无推荐": {
+    "zh-Hans": "暂无推荐",
+    "zh-Hant": "暫無推薦",
+    "en": "No recommendations yet",
+    "ja": "おすすめはまだありません"
+  },
+  "曲名、艺术家、别名或 ID": {
+    "zh-Hans": "曲名、艺术家、别名或 ID",
+    "zh-Hant": "曲名、藝術家、別名或 ID",
+    "en": "Title, artist, alias or ID",
+    "ja": "曲名、アーティスト、別名、ID"
+  },
+  "曲目数": {
+    "zh-Hans": "曲目数",
+    "zh-Hant": "曲目數",
+    "en": "Number of songs",
+    "ja": "曲数"
+  },
+  "更新时间": {
+    "zh-Hans": "更新时间",
+    "zh-Hant": "更新時間",
+    "en": "Updated at",
+    "ja": "更新日時"
+  },
+  "替换全部本地数据？": {
+    "zh-Hans": "替换全部本地数据？",
+    "zh-Hant": "取代全部本機資料？",
+    "en": "Replace all local data?",
+    "ja": "端末内のすべてのデータを置き換えますか？"
+  },
+  "替换并恢复": {
+    "zh-Hans": "替换并恢复",
+    "zh-Hant": "取代並還原",
+    "en": "Replace and restore",
+    "ja": "置き換えて復元"
+  },
+  "最低定数": {
+    "zh-Hans": "最低定数",
+    "zh-Hant": "最低定數",
+    "en": "Minimum constant",
+    "ja": "最小定数"
+  },
+  "未安装": {
+    "zh-Hans": "未安装",
+    "zh-Hant": "未安裝",
+    "en": "Not installed",
+    "ja": "未インストール"
+  },
+  "未收录": {
+    "zh-Hans": "未收录",
+    "zh-Hant": "未收錄",
+    "en": "Not available",
+    "ja": "未収録"
+  },
+  "未收录歌曲：{0}": {
+    "zh-Hans": "未收录歌曲：{0}",
+    "zh-Hant": "未收錄歌曲：{0}",
+    "en": "Unknown song: {0}",
+    "ja": "未収録の楽曲：{0}"
+  },
+  "查看各版本牌子获取进度": {
+    "zh-Hans": "查看各版本牌子获取进度",
+    "zh-Hant": "查看各版本牌子取得進度",
+    "en": "View emblem progress by version",
+    "ja": "バージョンごとの称号獲得状況を確認"
+  },
+  "档案名称": {
+    "zh-Hans": "档案名称",
+    "zh-Hant": "檔案名稱",
+    "en": "Profile name",
+    "ja": "プロフィール名"
+  },
+  "检查更新": {
+    "zh-Hans": "检查更新",
+    "zh-Hant": "檢查更新",
+    "en": "Check for updates",
+    "ja": "更新を確認"
+  },
+  "检查更新失败": {
+    "zh-Hans": "检查更新失败",
+    "zh-Hant": "檢查更新失敗",
+    "en": "Could not check for updates",
+    "ja": "更新を確認できませんでした"
+  },
+  "正在处理…": {
+    "zh-Hans": "正在处理…",
+    "zh-Hant": "正在處理…",
+    "en": "Processing…",
+    "ja": "処理中…"
+  },
+  "正在处理备份…": {
+    "zh-Hans": "正在处理备份…",
+    "zh-Hant": "正在處理備份…",
+    "en": "Processing backup…",
+    "ja": "バックアップを処理中…"
+  },
+  "正在检查更新": {
+    "zh-Hans": "正在检查更新",
+    "zh-Hant": "正在檢查更新",
+    "en": "Checking for updates",
+    "ja": "更新を確認中"
+  },
+  "正在生成分享图片…": {
+    "zh-Hans": "正在生成分享图片…",
+    "zh-Hant": "正在產生分享圖片…",
+    "en": "Generating share image…",
+    "ja": "共有画像を生成中…"
+  },
+  "正在读取本地目录": {
+    "zh-Hans": "正在读取本地目录",
+    "zh-Hant": "正在讀取本機目錄",
+    "en": "Loading local catalog",
+    "ja": "端末内の楽曲一覧を読み込み中"
+  },
+  "水鱼查分器": {
+    "zh-Hans": "水鱼查分器",
+    "zh-Hant": "水魚查分器",
+    "en": "Diving Fish",
+    "ja": "Diving Fish"
+  },
+  "浏览全部成绩": {
+    "zh-Hans": "浏览全部成绩",
+    "zh-Hant": "瀏覽全部成績",
+    "en": "Browse all scores",
+    "ja": "すべてのスコアを表示"
+  },
+  "游玩记录": {
+    "zh-Hans": "游玩记录",
+    "zh-Hant": "遊玩紀錄",
+    "en": "Play history",
+    "ja": "プレイ履歴"
+  },
+  "源代码": {
+    "zh-Hans": "源代码",
+    "zh-Hant": "原始碼",
+    "en": "Source code",
+    "ja": "ソースコード"
+  },
+  "点击编辑个人资料": {
+    "zh-Hans": "点击编辑个人资料",
+    "zh-Hant": "點擊編輯個人資料",
+    "en": "Tap to edit your profile",
+    "ja": "タップしてプロフィールを編集"
+  },
+  "版本/日期": {
+    "zh-Hans": "版本/日期",
+    "zh-Hant": "版本/日期",
+    "en": "Version/Date",
+    "ja": "バージョン/日付"
+  },
+  "牌子": {
+    "zh-Hans": "牌子",
+    "zh-Hant": "牌子",
+    "en": "Emblem",
+    "ja": "称号"
+  },
+  "玩家档案": {
+    "zh-Hans": "玩家档案",
+    "zh-Hant": "玩家檔案",
+    "en": "Player profiles",
+    "ja": "プレイヤープロフィール"
+  },
+  "生成并分享定数表图片": {
+    "zh-Hans": "生成并分享定数表图片",
+    "zh-Hant": "產生並分享定數表圖片",
+    "en": "Create and share constant table images",
+    "ja": "定数表の画像を作成・共有"
+  },
+  "用户管理": {
+    "zh-Hans": "用户管理",
+    "zh-Hant": "使用者管理",
+    "en": "Player management",
+    "ja": "プレイヤー管理"
+  },
+  "登录 / 注册": {
+    "zh-Hans": "登录 / 注册",
+    "zh-Hant": "登入 / 註冊",
+    "en": "Sign in / Sign up",
+    "ja": "ログイン / 登録"
+  },
+  "登录 Rhythmeta 后可投稿别名。": {
+    "zh-Hans": "登录 Rhythmeta 后可投稿别名。",
+    "zh-Hant": "登入 Rhythmeta 後即可投稿別名。",
+    "en": "Sign in to Rhythmeta to submit aliases.",
+    "ja": "Rhythmeta にログインすると別名を投稿できます。"
+  },
+  "登录后参与社区投票": {
+    "zh-Hans": "登录后参与社区投票",
+    "zh-Hant": "登入後參與社群投票",
+    "en": "Sign in to vote on aliases",
+    "ja": "ログインして別名に投票"
+  },
+  "登录后可手动备份和恢复个人数据。": {
+    "zh-Hans": "登录后可手动备份和恢复个人数据。",
+    "zh-Hant": "登入後可手動備份和還原個人資料。",
+    "en": "Sign in to manually back up and restore your personal data.",
+    "ja": "ログインすると個人データを手動でバックアップ・復元できます。"
+  },
+  "目标分数": {
+    "zh-Hans": "目标分数",
+    "zh-Hant": "目標分數",
+    "en": "Target score",
+    "ja": "目標スコア"
+  },
+  "确认授权并导入": {
+    "zh-Hans": "确认授权并导入",
+    "zh-Hant": "確認授權並匯入",
+    "en": "Confirm authorization and import",
+    "ja": "認証してインポート"
+  },
+  "移除": {
+    "zh-Hans": "移除",
+    "zh-Hant": "移除",
+    "en": "Remove",
+    "ja": "取り除く"
+  },
+  "立即备份": {
+    "zh-Hans": "立即备份",
+    "zh-Hant": "立即備份",
+    "en": "Back up now",
+    "ja": "今すぐバックアップ"
+  },
+  "等待抽曲": {
+    "zh-Hans": "等待抽曲",
+    "zh-Hant": "等待抽曲",
+    "en": "Waiting for draw",
+    "ja": "抽選待ち"
+  },
+  "筛选与排序": {
+    "zh-Hans": "筛选与排序",
+    "zh-Hant": "篩選與排序",
+    "en": "Filter & sort",
+    "ja": "絞り込みと並べ替え"
+  },
+  "筛选歌曲": {
+    "zh-Hans": "筛选歌曲",
+    "zh-Hant": "篩選歌曲",
+    "en": "Filter songs",
+    "ja": "楽曲を絞り込み"
+  },
+  "粘贴授权码": {
+    "zh-Hans": "粘贴授权码",
+    "zh-Hant": "貼上授權碼",
+    "en": "Paste authorization code",
+    "ja": "認証コードを貼り付け"
+  },
+  "粘贴收藏夹链接": {
+    "zh-Hans": "粘贴收藏夹链接",
+    "zh-Hant": "貼上收藏夾連結",
+    "en": "Paste collection link",
+    "ja": "コレクションのリンクを貼り付け"
+  },
+  "缩小网格": {
+    "zh-Hans": "缩小网格",
+    "zh-Hant": "縮小網格",
+    "en": "Shrink grid",
+    "ja": "グリッドを縮小"
+  },
+  "网格": {
+    "zh-Hans": "网格",
+    "zh-Hant": "網格",
+    "en": "Grid",
+    "ja": "グリッド"
+  },
+  "网格密度": {
+    "zh-Hans": "网格密度",
+    "zh-Hant": "網格密度",
+    "en": "Grid density",
+    "ja": "グリッドの密度"
+  },
+  "落雪咖啡屋": {
+    "zh-Hans": "落雪咖啡屋",
+    "zh-Hant": "落雪咖啡屋",
+    "en": "LXNS",
+    "ja": "LXNS"
+  },
+  "解除授权": {
+    "zh-Hans": "解除授权",
+    "zh-Hant": "解除授權",
+    "en": "Disconnect",
+    "ja": "連携を解除"
+  },
+  "请先下载歌曲资源。": {
+    "zh-Hans": "请先下载歌曲资源。",
+    "zh-Hant": "請先下載歌曲資源。",
+    "en": "Download song resources first.",
+    "ja": "先に楽曲データをダウンロードしてください。"
+  },
+  "请输入有效分数": {
+    "zh-Hans": "请输入有效分数",
+    "zh-Hant": "請輸入有效分數",
+    "en": "Enter a valid score",
+    "ja": "有効なスコアを入力してください"
+  },
+  "谱师": {
+    "zh-Hans": "谱师",
+    "zh-Hant": "譜師",
+    "en": "Chart designer",
+    "ja": "譜面制作者"
+  },
+  "谱面信息": {
+    "zh-Hans": "谱面信息",
+    "zh-Hant": "譜面資訊",
+    "en": "Chart details",
+    "ja": "譜面情報"
+  },
+  "账号": {
+    "zh-Hans": "账号",
+    "zh-Hant": "帳號",
+    "en": "Account",
+    "ja": "アカウント"
+  },
+  "资源已更新": {
+    "zh-Hans": "资源已更新",
+    "zh-Hant": "資源已更新",
+    "en": "Resources updated",
+    "ja": "データを更新しました"
+  },
+  "资源更新失败": {
+    "zh-Hans": "资源更新失败",
+    "zh-Hant": "資源更新失敗",
+    "en": "Resource update failed",
+    "ja": "データの更新に失敗しました"
+  },
+  "跳过动画": {
+    "zh-Hans": "跳过动画",
+    "zh-Hant": "跳過動畫",
+    "en": "Skip animation",
+    "ja": "アニメーションをスキップ"
+  },
+  "还没有喜欢的歌曲": {
+    "zh-Hans": "还没有喜欢的歌曲",
+    "zh-Hant": "還沒有喜歡的歌曲",
+    "en": "No favorite songs yet",
+    "ja": "お気に入りの楽曲はまだありません"
+  },
+  "还没有成绩，记录第一次游玩吧。": {
+    "zh-Hans": "还没有成绩，记录第一次游玩吧。",
+    "zh-Hant": "還沒有成績，記錄第一次遊玩吧。",
+    "en": "No scores yet. Record your first play.",
+    "ja": "スコアはまだありません。最初のプレイを記録しましょう。"
+  },
+  "还没有谱面": {
+    "zh-Hans": "还没有谱面",
+    "zh-Hant": "還沒有譜面",
+    "en": "No charts yet",
+    "ja": "譜面はまだありません"
+  },
+  "连击": {
+    "zh-Hans": "连击",
+    "zh-Hant": "連擊",
+    "en": "Combo",
+    "ja": "コンボ"
+  },
+  "退出账号": {
+    "zh-Hans": "退出账号",
+    "zh-Hant": "登出帳號",
+    "en": "Sign out",
+    "ja": "ログアウト"
+  },
+  "选择头像": {
+    "zh-Hans": "选择头像",
+    "zh-Hant": "選擇頭像",
+    "en": "Choose avatar",
+    "ja": "アバターを選択"
+  },
+  "选择难度后，按该难度的定数范围筛选。": {
+    "zh-Hans": "选择难度后，按该难度的定数范围筛选。",
+    "zh-Hant": "選擇難度後，依該難度的定數範圍篩選。",
+    "en": "Select a difficulty to filter by its chart constant range.",
+    "ja": "難易度を選択すると、その難易度の譜面定数で絞り込めます。"
+  },
+  "通关": {
+    "zh-Hans": "通关",
+    "zh-Hant": "通關",
+    "en": "Clear",
+    "ja": "クリア"
+  },
+  "邮箱": {
+    "zh-Hans": "邮箱",
+    "zh-Hant": "電子郵件",
+    "en": "Email",
+    "ja": "メールアドレス"
+  },
+  "重命名": {
+    "zh-Hans": "重命名",
+    "zh-Hant": "重新命名",
+    "en": "Rename",
+    "ja": "名前を変更"
+  },
+  "重新安装当前资源": {
+    "zh-Hans": "重新安装当前资源",
+    "zh-Hant": "重新安裝目前資源",
+    "en": "Reinstall current resources",
+    "ja": "現在のデータを再インストール"
+  },
+  "随机选曲": {
+    "zh-Hans": "随机选曲",
+    "zh-Hant": "隨機選曲",
+    "en": "Random songs",
+    "ja": "ランダム選曲"
+  },
+  "隐藏已删除曲目": {
+    "zh-Hans": "隐藏已删除曲目",
+    "zh-Hant": "隱藏已刪除曲目",
+    "en": "Hide removed songs",
+    "ja": "削除曲を非表示"
+  },
+  "难度与定数": {
+    "zh-Hans": "难度与定数",
+    "zh-Hant": "難度與定數",
+    "en": "Difficulty & constant",
+    "ja": "難易度と定数"
+  },
+  "静态数据更新": {
+    "zh-Hans": "静态数据更新",
+    "zh-Hant": "靜態資料更新",
+    "en": "Catalog update",
+    "ja": "楽曲データの更新"
+  },
+  "静态资源": {
+    "zh-Hans": "静态资源",
+    "zh-Hant": "靜態資源",
+    "en": "Catalog resources",
+    "ja": "楽曲データ"
+  },
+  "预览收藏夹": {
+    "zh-Hans": "预览收藏夹",
+    "zh-Hant": "預覽收藏夾",
+    "en": "Preview collection",
+    "ja": "コレクションをプレビュー"
+  },
+  "首页": {
+    "zh-Hans": "首页",
+    "zh-Hant": "首頁",
+    "en": "Home",
+    "ja": "ホーム"
+  },
+  "默认": {
+    "zh-Hans": "默认",
+    "zh-Hant": "預設",
+    "en": "Default",
+    "ja": "デフォルト"
+  },
+  "默认版本": {
+    "zh-Hans": "默认版本",
+    "zh-Hant": "預設版本",
+    "en": "Default version",
+    "ja": "デフォルトのバージョン"
+  },
+  "正在恢复备份，请稍后再试": {
+    "zh-Hans": "正在恢复备份，请稍后再试",
+    "zh-Hant": "正在還原備份，請稍後再試",
+    "en": "A backup is being restored. Try again shortly.",
+    "ja": "バックアップを復元中です。しばらくしてから再試行してください。"
+  },
+  "请输入档案名称": {
+    "zh-Hans": "请输入档案名称",
+    "zh-Hant": "請輸入檔案名稱",
+    "en": "Enter a profile name",
+    "ja": "プロフィール名を入力してください"
+  },
+  "不能删除当前档案": {
+    "zh-Hans": "不能删除当前档案",
+    "zh-Hant": "無法刪除目前檔案",
+    "en": "Cannot delete the active profile",
+    "ja": "使用中のプロフィールは削除できません"
+  },
+  "分数需在 0–1,010,000 之间": {
+    "zh-Hans": "分数需在 0–1,010,000 之间",
+    "zh-Hant": "分數需介於 0–1,010,000",
+    "en": "Score must be between 0 and 1,010,000",
+    "ja": "スコアは 0〜1,010,000 で入力してください"
+  },
+  "需要启用一个日服档案": {
+    "zh-Hans": "需要启用一个日服档案",
+    "zh-Hant": "需要啟用一個日服檔案",
+    "en": "Activate a Japan profile first",
+    "ja": "日本版のプロフィールを有効にしてください"
+  },
+  "读取 {0} 条，新增 {1} 条，跳过 {2} 条": {
+    "zh-Hans": "读取 {0} 条，新增 {1} 条，跳过 {2} 条",
+    "zh-Hant": "讀取 {0} 筆，新增 {1} 筆，略過 {2} 筆",
+    "en": "Read {0}, added {1}, skipped {2}",
+    "ja": "{0} 件取得、{1} 件追加、{2} 件スキップ"
   }
 }

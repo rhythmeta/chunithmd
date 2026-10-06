@@ -92,4 +92,4 @@ fun List<UserProfile>.activateProfile(id: String): List<UserProfile> =
 
 fun UserProfile.canDelete(): Boolean = !isActive
 
-// TODO(iOS): provide the platform storage and profile editor/avatar crop UI.
+// Native clients persist profiles through their platform adapters.

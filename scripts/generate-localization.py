@@ -3,6 +3,7 @@
 import argparse
 import json
 import re
+import runpy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +16,7 @@ def quote(value):
 
 def generate():
     catalog = json.loads(SOURCE.read_text())
+    runpy.run_path(str(ROOT / 'scripts/ios-localization.py'))['validate'](catalog)
     for key, row in catalog.items():
         assert set(row) == set(LANGUAGES), f'Missing translation: {key}'
         placeholders = sorted(re.findall(r'\{\d+\}', key))

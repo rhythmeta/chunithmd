@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.rhythmeta.chunithmd.shared.backup.*
+import org.rhythmeta.chunithmd.shared.community.*
 
 @Serializable private data class AccountViewState(val user: RhythmetaUser?=null, val backups:List<CloudBackup> = emptyList(), val busy:Boolean=false, val ready:Boolean=false, val error:String?=null)
 /** JSON/callback facade for Swift; state transitions, network contracts and restore rules stay shared. */
@@ -36,5 +37,19 @@ class RhythmetaBridge(secrets: RhythmetaSecretStore, files: SnapshotFiles, clien
     fun backup(deviceName:String)=run { check(state.ready);coordinator.backup(deviceName);reload() }
     fun restore(id:String)=run { check(state.ready);coordinator.restore(state.backups.first { it.id==id }) }
     fun logout()=run { try { client.logout() } finally { state=state.copy(backups=emptyList()) } }
+    private var community: CommunityAliasStore? = null
+    fun observeCommunity(directory: String, callback: (String) -> Unit) {
+        val store = community ?: CommunityAliasStore(RhythmetaCommunityApi(client), FileCommunityAliasCache(directory)).also {
+            community = it
+            scope.launch { it.observeAccount() }
+            scope.launch { it.syncApproved() }
+        }
+        scope.launch { store.state.collect { callback(json.encodeToString(it)) } }
+    }
+    fun refreshCommunity() { scope.launch { community?.refreshBoard() } }
+    fun moreCommunity() { scope.launch { community?.refreshBoard(loadMore = true) } }
+    fun voteCommunity(id: String, vote: Int) { scope.launch { community?.vote(id, vote > 0) } }
+    fun refreshSongAliases(id: String) { scope.launch { community?.refreshSong(id) } }
+    fun submitAlias(id: String, text: String) { community?.setDraft(id, text); scope.launch { community?.submit(id) } }
     fun close() { listener=null;scope.cancel() }
 }

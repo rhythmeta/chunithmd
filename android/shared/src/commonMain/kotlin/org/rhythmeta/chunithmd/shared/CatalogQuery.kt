@@ -69,7 +69,7 @@ object CatalogQuery {
                 (!filters.favoritesOnly || song.songId in favoriteSongIds)
         }
         return when (sort) {
-            CatalogSort.Default -> filtered
+            CatalogSort.Default -> filtered.directed(ascending)
             CatalogSort.Title -> filtered.sortedWith(
                 compareBy<CatalogSong>({ normalize(it.title) }, { it.songId }),
             ).directed(ascending)
