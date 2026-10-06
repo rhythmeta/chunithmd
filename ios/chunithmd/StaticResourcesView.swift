@@ -1,42 +1,55 @@
 import SwiftUI
-import Shared
 
 struct StaticResourcesView: View {
     @Bindable var store: CatalogStore
 
+    private var canReinstall: Bool {
+        store.manifest != nil && !store.updateAvailable && store.errorMessage == nil
+    }
+
     var body: some View {
-        Form {
-            Section(tr("当前版本")) {
-                LabeledContent(tr("版本"), value: store.manifest?.version ?? tr("未安装"))
-                LabeledContent("SHA-256") {
-                    Text(store.manifest?.sha256 ?? "-")
-                        .font(.caption.monospaced())
-                        .textSelection(.enabled)
-                        .multilineTextAlignment(.trailing)
-                }
-                LabeledContent(tr("更新时间"), value: store.manifest?.createdAt ?? "-")
+        List {
+            Section {
+                StaticResourceStatusView(store: store)
             }
-            Section(tr("数据同步")) {
-                LabeledContent(tr("状态"), value: store.syncMessage)
-                if let error = store.errorMessage {
-                    Text(error).foregroundStyle(.red)
+            Section(tr("更新操作")) {
+                if store.isSyncing {
+                    VStack(alignment: .leading, spacing: 10) {
+                        if let progress = store.syncProgress?.progress {
+                            ProgressView(value: progress)
+                        } else {
+                            ProgressView()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        Text(store.syncMessage)
+                            .font(.footnote).foregroundStyle(.secondary)
+                        if let progress = store.syncProgress, progress.stage == "Downloading" {
+                            Text(downloadProgressText(progress))
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                    .accessibilityIdentifier("static-resources-progress")
+                } else {
+                    StaticResourceActionRow(
+                        title: store.updateAvailable ? tr("下载并更新") : canReinstall ? tr("重新安装当前版本") : tr("立即更新"),
+                        icon: store.updateAvailable ? "arrow.down.circle" : canReinstall ? "arrow.clockwise.circle" : "arrow.triangle.2.circlepath",
+                        color: canReinstall ? .orange : .blue,
+                        action: store.refresh)
+                        .accessibilityIdentifier("static-resources-download")
+                    StaticResourceActionRow(title: tr("重新检查更新"), icon: "magnifyingglass", color: .green) {
+                        Task { await store.checkForUpdate() }
+                    }
+                    .accessibilityIdentifier("static-resources-check")
                 }
-                if let progress = store.syncProgress, progress.stage == "Downloading" {
-                    ProgressView(value: progress.progress ?? 0)
-                        .progressViewStyle(.linear)
-                    Text(downloadProgressText(progress))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else if store.isSyncing {
-                    ProgressView()
-                }
-                Button(tr("检查更新"), systemImage: "arrow.clockwise") { store.checkForUpdate() }
-                    .disabled(store.isSyncing)
-                Button(store.updateAvailable ? tr("下载并更新") : (store.manifest == nil ? tr("下载资源") : tr("重新安装当前版本")), systemImage: "arrow.down.circle") { store.refresh() }
-                    .disabled(store.isSyncing)
             }
         }
+        .listStyle(.insetGrouped)
         .navigationTitle(tr("静态数据"))
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(store.isSyncing)
+        .interactiveDismissDisabled(store.isSyncing)
+        .task { await store.checkForUpdate() }
+        .refreshable { await store.checkForUpdate() }
     }
 }

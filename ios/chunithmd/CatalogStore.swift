@@ -41,6 +41,7 @@ final class CatalogStore {
     private var searchTask: Task<Void, Never>?
     private(set) var songs: [CatalogSongViewData] = []
     private(set) var manifest: StaticManifestViewData?
+    private(set) var checkedManifest: StaticManifestViewData?
     private(set) var categories: [String] = []
     private(set) var versions: [String] = []
     private(set) var difficulties = ["basic", "advanced", "expert", "master", "ultima", "world's end"]
@@ -74,6 +75,7 @@ final class CatalogStore {
     var syncMessage = tr("正在加载歌曲目录")
     var errorMessage: String?
     var isSyncing = false
+    private(set) var syncStage = "Idle"
     var updateAvailable = false
     private(set) var syncProgress: CatalogSyncProgressViewData?
 
@@ -93,30 +95,34 @@ final class CatalogStore {
         guard !started else { return }; started = true
         if let json = bridge.loadSnapshotJson() {
             install(json)
-            checkForUpdate()
+            Task { await checkForUpdate() }
         } else {
             refresh()
         }
     }
 
-    func checkForUpdate() {
+    func checkForUpdate() async {
+        guard !isSyncing, !Task.isCancelled else { return }
         isSyncing = true
+        syncStage = "Checking"
         errorMessage = nil
         syncProgress = nil
+        checkedManifest = nil
         updateAvailable = false
         syncMessage = tr("正在检查更新…")
-        bridge.checkForUpdate { @Sendable [weak self] json, error in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.isSyncing = false
-                if let error {
-                    self.errorMessage = error
-                    self.syncMessage = tr("检查更新失败")
-                } else if let json, let result = try? JSONDecoder().decode(UpdateCheckViewData.self, from: Data(json.utf8)) {
-                    self.updateAvailable = result.updateAvailable
-                    self.syncMessage = result.updateAvailable ? tr("发现可用更新") : tr("已是最新静态数据")
-                }
-            }
+        defer { isSyncing = false }
+        do {
+            let json = try await bridge.checkForUpdateJson()
+            let result = try JSONDecoder().decode(UpdateCheckViewData.self, from: Data(json.utf8))
+            checkedManifest = result.manifest
+            updateAvailable = result.updateAvailable
+            syncStage = "Idle"
+            syncMessage = result.updateAvailable ? tr("发现可用更新") : tr("已是最新静态数据")
+        } catch {
+            if Task.isCancelled { syncStage = "Idle"; return }
+            syncStage = "Failed"
+            errorMessage = error.localizedDescription
+            syncMessage = tr("检查更新失败")
         }
     }
 
@@ -130,7 +136,9 @@ final class CatalogStore {
     }
 
     func refresh() {
+        guard !isSyncing else { return }
         isSyncing = true
+        syncStage = "Downloading"
         errorMessage = nil
         syncProgress = nil
         syncMessage = tr("正在下载歌曲目录")
@@ -140,6 +148,7 @@ final class CatalogStore {
                     CatalogSyncProgressViewData.self, from: Data(progressJson.utf8)
                 ) else { return }
                 self.syncProgress = progress
+                self.syncStage = progress.stage
                 self.syncMessage = progress.message ?? self.syncMessage
             }
         }, completion: { @Sendable [weak self] json, error in
@@ -148,10 +157,13 @@ final class CatalogStore {
                 self.isSyncing = false
                 self.syncProgress = nil
                 if let error {
+                    self.syncStage = "Failed"
                     self.errorMessage = error
                     self.syncMessage = tr("资源同步失败")
                 } else if let json {
                     self.install(json)
+                    self.checkedManifest = self.manifest
+                    self.syncStage = "Idle"
                     self.updateAvailable = false
                     self.syncMessage = tr("资源已更新")
                 }

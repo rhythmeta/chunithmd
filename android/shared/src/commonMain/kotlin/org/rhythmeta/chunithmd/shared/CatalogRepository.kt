@@ -397,10 +397,13 @@ class CatalogBridge(cacheDirectory: String) {
         }
     }
 
+    @Throws(Exception::class)
+    suspend fun checkForUpdateJson(): String = CatalogJson.codec.encodeToString(repository.checkForUpdate())
+
     fun checkForUpdate(completion: (String?, String?) -> Unit) {
         scope.launch {
-            runCatching { repository.checkForUpdate() }
-                .onSuccess { completion(CatalogJson.codec.encodeToString(it), null) }
+            runCatching { checkForUpdateJson() }
+                .onSuccess { completion(it, null) }
                 .onFailure { completion(null, it.message ?: tr("Could not check for updates.")) }
         }
     }
