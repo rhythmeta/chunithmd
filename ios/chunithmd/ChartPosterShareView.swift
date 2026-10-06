@@ -1,9 +1,14 @@
+import Shared
 import SwiftUI
 
 struct ChartPosterShareView: View {
     let title: String
     let subtitle: String
     let entries: [PosterEntry]
+    var constantSections: [ConstantTableSection]? = nil
+    var includesScores = false
+    var profileName: String? = nil
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(CatalogStore.self) private var catalog
     @State private var previews: [UIImage] = []
@@ -26,10 +31,10 @@ struct ChartPosterShareView: View {
                 else { ProgressView(tr("正在生成图片")) }
             }.navigationTitle(tr("分享图片")).navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button(tr("完成")) { dismiss() } }
+                    ToolbarItem(placement: .topBarLeading) { Button(tr("完成"), systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly).tint(.primary) }
                     if !urls.isEmpty {
-                        ToolbarItem(placement: .confirmationAction) {
-                            ShareLink(items: urls).labelStyle(.iconOnly).accessibilityIdentifier("poster-share")
+                        ToolbarItem(placement: .topBarTrailing) {
+                            ShareLink(items: urls).labelStyle(.iconOnly).tint(.primary).accessibilityIdentifier("poster-share")
                         }
                     }
                 }
@@ -53,16 +58,17 @@ struct ChartPosterShareView: View {
                     images[entry.imageName] = image.preparingThumbnail(of: CGSize(width: 176, height: 176)) ?? image
                 }
             }
-            // Bound image height and memory for large constant tables. Best 50 fits on one page.
-            let pages = stride(from: 0, to: max(1, entries.count), by: 60).map {
-                Array(entries[$0..<min($0 + 60, entries.count)])
+            // Cap raster size; constant tables use a denser layout than score posters.
+            let pageSize = constantSections == nil ? 60 : 300
+            let pages = stride(from: 0, to: max(1, entries.count), by: pageSize).map {
+                Array(entries[$0..<min($0 + pageSize, entries.count)])
             }
             var rendered: [UIImage] = []
             for (index, page) in pages.enumerated() {
                 try Task.checkCancellation()
                 let pageSubtitle = pages.count > 1 ? "\(subtitle) · \(index + 1)/\(pages.count)" : subtitle
-                let renderer = ImageRenderer(content: ChartPosterView(title: title, subtitle: pageSubtitle, entries: page, images: images))
-                renderer.proposedSize = ProposedViewSize(width: 1000, height: nil)
+                let renderer = ImageRenderer(content: poster(page: page, subtitle: pageSubtitle, images: images))
+                renderer.proposedSize = ProposedViewSize(width: constantSections == nil ? 1000 : 1440, height: nil)
                 renderer.scale = 1
                 guard let image = renderer.uiImage, let bytes = image.pngData() else { throw CocoaError(.fileWriteUnknown) }
                 let file = URL.temporaryDirectory.appending(path: "chunithmd-\(UUID().uuidString).png")
@@ -78,6 +84,22 @@ struct ChartPosterShareView: View {
             if !Task.isCancelled { self.error = error.localizedDescription }
         }
     }
+    @ViewBuilder private func poster(page: [PosterEntry], subtitle: String, images: [String: UIImage]) -> some View {
+        if let constantSections {
+            let ids = Set(page.map(\.id))
+            let sections = constantSections.compactMap { section -> ConstantTableSection? in
+                let entries = section.entries.filter { ids.contains($0.sheetKey) }
+                return entries.isEmpty ? nil : ConstantTableSection(constantLabel: section.constantLabel, entries: entries)
+            }
+            ConstantTablePosterView(title: title, subtitle: subtitle, sections: sections, images: images,
+                includesScores: includesScores, profileName: profileName,
+                sectionOffset: constantSections.firstIndex { $0.constantLabel == sections.first?.constantLabel } ?? 0)
+                .environment(\.colorScheme, colorScheme)
+        } else {
+            ChartPosterView(title: title, subtitle: subtitle, entries: page, images: images)
+        }
+    }
+
     @concurrent private static func load(_ url: URL) async throws -> Data {
         if url.isFileURL { return try Data(contentsOf: url) }
         return try await URLSession.shared.data(from: url).0

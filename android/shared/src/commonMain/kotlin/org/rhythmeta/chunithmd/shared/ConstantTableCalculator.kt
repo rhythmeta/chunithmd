@@ -46,7 +46,7 @@ fun buildConstantTableResponse(
             return@flatMap emptySequence()
         }
         song.sheets.asSequence().mapNotNull { sheet ->
-            if (sheet.type.contains("utage", ignoreCase = true) || !song.isSheetPlayableIn(sheet, region)) {
+            if (sheet.type.equals("we", ignoreCase = true) || sheet.type.contains("utage", ignoreCase = true) || !song.isSheetPlayableIn(sheet, region)) {
                 return@mapNotNull null
             }
             val constant = if (activeServer == ProfileServer.Cn) {

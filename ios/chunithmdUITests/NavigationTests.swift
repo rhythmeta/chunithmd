@@ -27,6 +27,64 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testConstantTableSectionsFiltersBadgesAndExport() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-profile"].waitForExistence(timeout: 20))
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "定数表")).firstMatch.tap()
+        let tiles = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "constant-tile-"))
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 30))
+        XCTAssertEqual(tiles.firstMatch.value as? String ?? "", "")
+        XCTAssertLessThan(app.buttons["constant-table-filter"].frame.width, 60)
+        capture(app, name: "constant-table")
+        app.buttons["constant-table-level"].tap()
+        XCTAssertTrue(app.buttons["15~16"].waitForExistence(timeout: 5))
+        capture(app, name: "constant-table-levels")
+        app.buttons["15~16"].tap()
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 5))
+        capture(app, name: "constant-table-high-level")
+        let scoresToggle = app.switches["constant-table-scores"]
+        scoresToggle.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        XCTAssertEqual(scoresToggle.value as? String, "1")
+        let played = app.buttons["constant-tile-零號車輛:std:master"]
+        for _ in 0..<16 where !played.isHittable { app.swipeUp() }
+        XCTAssertTrue(played.isHittable)
+        capture(app, name: "constant-table-badges")
+        XCTAssertTrue((played.value as? String ?? "").contains("AJC"))
+        XCTAssertTrue((played.value as? String ?? "").contains("金 FC"))
+        played.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        app.buttons["song-detail-back"].tap()
+        for _ in 0..<16 where !app.buttons["constant-table-export"].isHittable { app.swipeDown() }
+        app.buttons["constant-table-filter"].tap()
+        XCTAssertTrue(app.navigationBars["筛选歌曲"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["难度与定数"].exists)
+        XCTAssertFalse(app.staticTexts["谱面类型"].exists)
+        app.switches["仅显示喜爱歌曲"].tap()
+        capture(app, name: "constant-table-filter")
+        app.buttons["完成"].tap()
+        app.buttons["constant-table-filter"].tap()
+        app.buttons["重置"].tap()
+        app.buttons["完成"].tap()
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 5))
+        app.buttons["constant-table-level"].tap()
+        app.buttons["15~16"].tap()
+        app.buttons["constant-table-export"].tap()
+        let preview = app.images["chart-poster-preview"].firstMatch
+        XCTAssertTrue(preview.waitForExistence(timeout: 120))
+        XCTAssertTrue(app.buttons["poster-share"].exists)
+        capture(app, name: "constant-table-export")
+        app.buttons["完成"].tap()
+        app.terminate()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
+        app.launch()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "定数表")).firstMatch.tap()
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 20))
+        capture(app, name: "constant-table-dark")
+    }
+
     func testScoreQueryLayoutFiltersSearchAndNavigation() {
         continueAfterFailure = false
         let app = XCUIApplication()
@@ -591,9 +649,11 @@ final class NavigationTests: XCTestCase {
     func testConstantPosterRenders() {
         continueAfterFailure = false
         let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
         app.launch()
-        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "定数表,")).firstMatch.tap()
-        let share = app.buttons["分享定数表"]
+        XCTAssertTrue(app.buttons["home-profile"].waitForExistence(timeout: 20))
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "定数表")).firstMatch.tap()
+        let share = app.buttons["constant-table-export"]
         XCTAssertTrue(share.waitForExistence(timeout: 10))
         share.tap()
         XCTAssertTrue(app.images["chart-poster-preview"].firstMatch.waitForExistence(timeout: 120))

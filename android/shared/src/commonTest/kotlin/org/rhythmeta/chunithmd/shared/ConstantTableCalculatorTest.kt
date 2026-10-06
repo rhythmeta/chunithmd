@@ -5,6 +5,26 @@ import kotlin.test.assertEquals
 
 class ConstantTableCalculatorTest {
     @Test
+    fun tableIncludesPlayableRegularChartsAndBestScoreBadgesOnly() {
+        val bundle = CatalogBundle(1, Catalog(songs = listOf(CatalogSong("song", "Song", sheets = listOf(
+            CatalogSheet("std", "master", internalLevelValue = 14.9, regions = mapOf("jp" to true)),
+            CatalogSheet("std", "ultima", internalLevelValue = 15.2, regions = mapOf("jp" to false)),
+            CatalogSheet("we", "world's end", levelValue = 5.0, regions = mapOf("jp" to true)),
+        )))))
+        val records = listOf(
+            ScoreRecord("best", "p", "song", "song:std:master", 1_010_000, "SSS+", 1,
+                fullCombo = "alljusticecritical", fullChain = "fullchain2"),
+            ScoreRecord("later", "p", "song", "song:std:master", 950_000, "AAA", 2),
+        )
+        val entry = buildConstantTableResponse(bundle, records, ProfileServer.Jp, setOf("song")).entries.single()
+        assertEquals(14.9, entry.constant)
+        assertEquals("SSS+", entry.rank)
+        assertEquals("AJC", entry.fullCombo)
+        assertEquals("金 FC", entry.fullChain)
+        assertEquals(true, entry.isFavorite)
+    }
+
+    @Test
     fun baseLevelsAndSectionsMatchMaimaidBuckets() {
         val entries = listOf(
             entry("a", "A", 16.0),
