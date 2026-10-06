@@ -5,8 +5,10 @@ struct SongProgressDots: View {
     @Environment(CatalogStore.self) private var catalog
     @Environment(PersonalStore.self) private var personal
     let song: CatalogSongViewData
+    var preferredSheet: String? = nil
 
     private var sheets: [CatalogSongViewData.Sheet] {
+        if let preferredSheet { return song.sheets.filter { $0.id == preferredSheet } }
         guard let bundle = catalog.bundle else { return [] }
         let ids = NativeCatalogQuery.shared.progressSheetIds(bundle: bundle, songId: song.id, server: catalog.server)
         return ids.compactMap { id in song.sheets.first { $0.id == id } }

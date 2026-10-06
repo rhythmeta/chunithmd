@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import java.io.File
+import org.rhythmeta.chunithmd.collection.CollectionCard
 import org.rhythmeta.chunithmd.collection.SongCollection
 import org.rhythmeta.chunithmd.shared.CatalogSheet
 import org.rhythmeta.chunithmd.shared.CatalogSong

@@ -4,6 +4,25 @@ import kotlin.test.*
 import org.rhythmeta.chunithmd.shared.backup.*
 
 class PersonalDataBridgeTest {
+    @Test fun collectionPickerSavesMembershipAtomicallyAndPreservesOtherCharts() {
+        val files = Files(); val bridge = PersonalDataBridge(files)
+        bridge.saveCollection(null, "One"); bridge.saveCollection(null, "Two")
+        val first = files.snapshot().collections[0].id
+        val second = files.snapshot().collections[1].id
+        bridge.toggleCollectionSong(first, "song", "std", "expert")
+        bridge.setChartCollections("song", "STD", "MASTER", listOf(first, second))
+        assertEquals(3, files.snapshot().collectionItems.size)
+        bridge.setChartCollections("song", "std", "master", listOf(second))
+        val items = files.snapshot().collectionItems
+        assertEquals(2, items.size)
+        assertTrue(items.any { it.collectionId == first && it.difficulty == "expert" })
+        assertTrue(items.any { it.collectionId == second && it.difficulty == "master" })
+        val before = files.data.getValue("personal.pb.gz").copyOf()
+        files.write("restore-pending.pb.gz", before)
+        assertFails { bridge.setChartCollections("song", "std", "master", emptyList()) }
+        assertContentEquals(before, files.data.getValue("personal.pb.gz"))
+    }
+
     @Test fun bestTableCapacityRoundTripsThroughPortableSettingsAndPreservesOtherSettings() {
         val files = Files(); val bridge = PersonalDataBridge(files)
         bridge.snapshotJson()

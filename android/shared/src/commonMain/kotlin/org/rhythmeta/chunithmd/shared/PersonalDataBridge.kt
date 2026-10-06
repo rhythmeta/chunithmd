@@ -124,6 +124,35 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
     }
 
     @Throws(Exception::class)
+    fun collectionItemsJson(bundle: CatalogBundle, id: String, sort: String, ascending: Boolean): String {
+        val state = read()
+        val items = state.collectionItems.filter { it.collectionId == id }.sortedBy { it.position }
+        val byKey = items.associateBy { CollectionEntry(it.songId, it.chartType, it.difficulty).key }
+        val collection = SongCollection(id, "", items.map { CollectionEntry(it.songId, it.chartType, it.difficulty) })
+        val ordered = collectionCards(collection, bundle, CatalogSort.entries.firstOrNull { it.wireValue == sort } ?: CatalogSort.Default,
+            ascending, server(state)).mapNotNull { byKey[it.entry.key] }
+        return codec.encodeToString(ordered)
+    }
+
+    /** Apply the picker's selection in one write, preserving unrelated charts and collections. */
+    @Throws(Exception::class)
+    fun setChartCollections(songId: String, type: String, difficulty: String, selectedIds: List<String>) {
+        val state = read()
+        val selected = selectedIds.toSet()
+        val now = Clock.System.now().toEpochMilliseconds()
+        fun matches(item: BackupCollectionItem) = item.songId == songId &&
+            item.chartType.equals(type, true) && item.difficulty.equals(difficulty, true)
+        val items = state.collectionItems.filterNot { matches(it) && it.collectionId !in selected }.toMutableList()
+        state.collections.filter { it.id in selected }.forEach { collection ->
+            if (items.none { it.collectionId == collection.id && matches(it) }) {
+                items += BackupCollectionItem(uuid(), collection.id, songId, type.lowercase(), difficulty.lowercase(),
+                    items.count { it.collectionId == collection.id }, now, now)
+            }
+        }
+        write(state.copy(collectionItems = items))
+    }
+
+    @Throws(Exception::class)
     fun collectionLink(id: String): String {
         val state = read()
         val collection = state.collections.first { it.id == id }

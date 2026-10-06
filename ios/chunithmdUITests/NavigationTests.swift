@@ -27,6 +27,97 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testCollectionsImportPreviewsSortGridPickerAndRename() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["收藏"].waitForExistence(timeout: 20))
+        app.tabBars.buttons["收藏"].tap()
+        for title in ["UI 收藏夹检查", "UI 重命名检查"] {
+            let previous = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
+            if previous.exists {
+                previous.swipeLeft()
+                app.buttons["删除"].firstMatch.tap()
+                XCTAssertTrue(app.buttons["collection-delete-confirm"].firstMatch.waitForExistence(timeout: 5))
+                app.buttons["collection-delete-confirm"].firstMatch.tap()
+                XCTAssertTrue(previous.waitForNonExistence(timeout: 5))
+            }
+        }
+        app.buttons["collections-actions"].tap()
+        capture(app, name: "collections-menu")
+        XCTAssertFalse(app.buttons["导入收藏夹"].exists)
+        XCTAssertTrue(app.buttons["从剪贴板导入"].exists)
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.4)).tap()
+        app.open(URL(string: "chunithmd://collection/CHMD1.4xIK9VR4NmXbi-n9T5fsfLa44dn8pULSXDwvZ297MXP-i91dL_bMFmIuLkmRYstNLC5JLcIhmVpRkFpUIiTGxe5YlJiemJuJqglDHKIeAA")!)
+        let folder = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "UI 收藏夹检查")).firstMatch
+        XCTAssertTrue(folder.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars["导入收藏夹"].exists)
+        XCTAssertFalse(app.buttons["导入收藏夹"].exists)
+        capture(app, name: "collections-list")
+        folder.tap()
+        XCTAssertTrue(app.buttons["collection-layout"].waitForExistence(timeout: 5))
+        if app.buttons["collection-layout"].label == "列表" { app.buttons["collection-layout"].tap() }
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "collection-chart-"))
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        capture(app, name: "collection-songs")
+        app.buttons["collection-sort"].tap()
+        capture(app, name: "collection-sort")
+        app.buttons["定数"].tap()
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        app.buttons["collection-layout"].tap()
+        let grid = app.scrollViews.firstMatch
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-tile-")).firstMatch.waitForExistence(timeout: 5))
+        capture(app, name: "collection-grid")
+        grid.pinch(withScale: 2, velocity: 2)
+        capture(app, name: "collection-grid-zoom")
+        app.buttons["collection-layout"].tap()
+        rows.firstMatch.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        let add = app.buttons["加入收藏夹"].firstMatch
+        for _ in 0..<8 where !add.isHittable { app.swipeUp() }
+        XCTAssertTrue(add.isHittable)
+        add.tap()
+        XCTAssertTrue(app.navigationBars["加入收藏夹"].waitForExistence(timeout: 5))
+        capture(app, name: "collection-picker")
+        let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "collection-picker-")).firstMatch
+        choice.tap()
+        app.buttons["取消"].tap()
+        add.tap()
+        XCTAssertTrue(app.navigationBars["加入收藏夹"].waitForExistence(timeout: 5))
+        app.buttons["完成"].tap()
+        app.buttons["song-detail-back"].tap()
+        XCTAssertEqual(rows.count, 4)
+        app.buttons["collection-actions"].tap()
+        capture(app, name: "collection-actions")
+        app.buttons["重命名收藏夹"].tap()
+        let name = app.alerts.textFields.firstMatch
+        name.tap()
+        name.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 40) + "UI 重命名检查")
+        app.alerts.buttons["保存"].tap()
+        XCTAssertTrue(app.navigationBars["UI 重命名检查"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.firstMatch.tap()
+        app.terminate()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
+        app.launch()
+        app.tabBars.buttons["收藏"].tap()
+        let renamed = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "UI 重命名检查")).firstMatch
+        XCTAssertTrue(renamed.waitForExistence(timeout: 10))
+        capture(app, name: "collections-dark")
+        renamed.tap()
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        capture(app, name: "collection-songs-dark")
+        app.navigationBars.buttons.firstMatch.tap()
+        renamed.swipeLeft()
+        capture(app, name: "collections-swipe")
+        app.buttons["删除"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["collection-delete-confirm"].firstMatch.waitForExistence(timeout: 5))
+        capture(app, name: "collection-delete-confirm")
+        app.buttons["collection-delete-confirm"].firstMatch.tap()
+        XCTAssertTrue(renamed.waitForNonExistence(timeout: 5))
+        capture(app, name: "collections-empty")
+    }
+
     func testCommunityBoardGroupsDeadlinesRefreshAndSongNavigation() {
         continueAfterFailure = false
         let app = XCUIApplication()

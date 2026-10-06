@@ -4,6 +4,8 @@ struct CoverGrid: View {
     let songs: [CatalogSongViewData]
     var captions: [String] = []
     var sheetIDs: [String] = []
+    var showsDifficultyBorders = false
+    var onRemove: ((Int) -> Void)? = nil
     @AppStorage private var savedColumns: Int
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var zoom = 1.0
@@ -15,8 +17,9 @@ struct CoverGrid: View {
     @State private var anchorY = 0.0
     @State private var scroll = ScrollPosition()
 
-    init(songs: [CatalogSongViewData], captions: [String] = [], sheetIDs: [String] = [], preferenceKey: String = "catalog.gridColumns") {
+    init(songs: [CatalogSongViewData], captions: [String] = [], sheetIDs: [String] = [], preferenceKey: String = "catalog.gridColumns", showsDifficultyBorders: Bool = false, onRemove: ((Int) -> Void)? = nil) {
         self.songs = songs; self.captions = captions; self.sheetIDs = sheetIDs
+        self.showsDifficultyBorders = showsDifficultyBorders; self.onRemove = onRemove
         _savedColumns = AppStorage(wrappedValue: 5, preferenceKey)
     }
 
@@ -27,13 +30,17 @@ struct CoverGrid: View {
                 Color.clear.frame(height: geometry.height)
                 ForEach(geometry.visible(top: offset, height: viewport), id: \.self) { index in
                     let rect = geometry.frame(index)
-                    SongTile(song: songs[index], caption: captions.indices.contains(index) ? captions[index] : nil, preferredSheet: sheetIDs.indices.contains(index) ? sheetIDs[index] : nil)
+                    SongTile(song: songs[index], radius: showsDifficultyBorders ? (geometry.columns == 3 ? 10 : 6) : 0, caption: captions.indices.contains(index) ? captions[index] : nil, preferredSheet: sheetIDs.indices.contains(index) ? sheetIDs[index] : nil, showsDifficultyBorder: showsDifficultyBorders)
+                        .contextMenu {
+                            if let onRemove { Button(tr("移出收藏夹"), systemImage: "trash", role: .destructive) { onRemove(index) } }
+                        }
                         .frame(width: rect.width, height: rect.height)
                         .offset(x: rect.minX, y: rect.minY)
                 }
             }
             .frame(height: geometry.height, alignment: .topLeading)
         }
+        .contentMargins(.vertical, showsDifficultyBorders ? 12 : 0, for: .scrollContent)
         .scrollPosition($scroll)
         .scrollDisabled(initialZoom != nil)
         .onScrollGeometryChange(for: Double.self) { $0.contentOffset.y + $0.contentInsets.top } action: { _, value in offset = max(0, value) }
@@ -62,6 +69,7 @@ struct CoverGrid: View {
         .onChange(of: savedColumns) { if initialZoom == nil { zoom = savedColumns == 3 ? 2 : 1 } }
         .accessibilityAction(named: tr("放大封面")) { savedColumns = 3 }
         .accessibilityAction(named: tr("缩小封面")) { savedColumns = 5 }
+        .padding(.horizontal, showsDifficultyBorders ? 5 : 0)
     }
 
     private func preserveAnchor() {

@@ -8,8 +8,6 @@ struct ContentView: View {
     @State private var catalog = CatalogStore()
     @State private var personal = PersonalStore()
     @State private var account = RhythmetaAccountStore()
-    @State private var collectionLink = ""
-    @State private var importingCollection = false
     @State private var selection = TabSelection.home
     @FocusState private var searchFocused: Bool
     @AppStorage("appearance") private var appearance = "system"
@@ -58,10 +56,12 @@ struct ContentView: View {
         .onOpenURL { url in
             if url.scheme == "chunithmd", url.host == "auth" { account.bridge.handleCallback(url: url.absoluteString) }
             else if (url.scheme == "chunithmd" && url.host == "collection") || (url.host == "dash.rhythmeta.org" && url.path.hasPrefix("/collection/")) {
-                collectionLink = url.absoluteString; importingCollection = true
+                selection = .collections
+                personal.perform(catalog: catalog) {
+                    _ = try personal.bridge.importCollection(text: url.absoluteString)
+                }
             }
         }
-        .sheet(isPresented: $importingCollection) { CollectionImportView(initialText: collectionLink) }
         .alert(tr("无法完成操作"), isPresented: Binding(get: { personal.error != nil }, set: { if !$0 { personal.error = nil } })) {
             Button(tr("好")) { personal.error = nil }
         } message: { Text(personal.error ?? "") }

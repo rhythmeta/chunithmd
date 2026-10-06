@@ -1,5 +1,7 @@
 package org.rhythmeta.chunithmd.ui.collections
 
+import org.rhythmeta.chunithmd.collection.CollectionCard
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier

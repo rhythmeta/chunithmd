@@ -35,7 +35,7 @@ struct SongRow: View {
                     VStack(alignment: .trailing, spacing: 6) {
                         if let version = song.version { VersionBadge(version: version, dark: scheme == .dark) }
                         if showsProgress {
-                            SongProgressDots(song: song)
+                            SongProgressDots(song: song, preferredSheet: preferredSheet)
                         } else {
                             HStack(spacing: 3) {
                                 ForEach(preferredSheet == nil ? Array(song.sheets.reversed()) : song.sheets.filter { $0.id == preferredSheet }) { item in

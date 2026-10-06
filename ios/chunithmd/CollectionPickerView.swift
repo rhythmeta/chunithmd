@@ -7,27 +7,60 @@ struct CollectionPickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(CatalogStore.self) private var catalog
     @Environment(PersonalStore.self) private var personal
-    @State private var name = ""
+    @State private var selected = Set<String>()
+
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    ForEach(personal.snapshot.collections) { collection in
-                        Button { personal.perform(catalog: catalog) { try personal.bridge.toggleCollectionSong(collectionId: collection.id, songId: song.id, type: sheet.type, difficulty: sheet.difficulty) } } label: {
-                            HStack {
-                                Label(collection.name, systemImage: "folder")
-                                Spacer()
-                                if personal.snapshot.collectionItems.contains(where: { $0.collectionId == collection.id && $0.songId == song.id && $0.chartType == sheet.type && $0.difficulty == sheet.difficulty }) { Image(systemName: "checkmark") }
+                if personal.snapshot.collections.isEmpty {
+                    ContentUnavailableView(tr("还没有收藏夹"), systemImage: "rectangle.stack",
+                                           description: Text(tr("前往主页的「收藏夹」新建一个，再回来收下这张谱面。")))
+                        .listRowBackground(Color.clear)
+                }
+                ForEach(personal.snapshot.collections) { collection in
+                    let isSelected = selected.contains(collection.id)
+                    let items = personal.snapshot.collectionItems.filter { $0.collectionId == collection.id }
+                    let containsChart = items.contains(where: matches)
+                    Button {
+                        if isSelected { selected.remove(collection.id) } else { selected.insert(collection.id) }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                                .font(.title3).foregroundStyle(isSelected ? Color.accentColor : .secondary).frame(width: 24)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(collection.name).foregroundStyle(.primary)
+                                Text(tr("{0} 张谱面", items.count + (isSelected ? 1 : 0) - (containsChart ? 1 : 0)))
+                                    .font(.caption).foregroundStyle(.secondary)
                             }
-                        }
+                            Spacer(minLength: 0)
+                        }.contentShape(.rect)
                     }
+                    .buttonStyle(.plain).accessibilityIdentifier("collection-picker-" + collection.id)
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
                 }
-                Section(tr("新建收藏夹")) {
-                    TextField(tr("收藏夹名称"), text: $name)
-                    Button(tr("创建")) { personal.perform(catalog: catalog) { try personal.bridge.saveCollection(id: nil, name: name) }; name = "" }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            .navigationTitle(tr("加入收藏夹")).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(tr("取消"), systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly).tint(.primary)
                 }
-            }.navigationTitle(tr("加入收藏夹")).navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .confirmationAction) { Button(tr("完成")) { dismiss() } } }
-        }.presentationDetents([.medium, .large])
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(tr("完成"), systemImage: "checkmark", action: save).labelStyle(.iconOnly).tint(.primary)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .onAppear { selected = Set(personal.snapshot.collectionItems.filter(matches).map(\.collectionId)) }
+    }
+
+    private func matches(_ item: PersonalSnapshot.Item) -> Bool {
+        item.songId == song.id && item.chartType.lowercased() == sheet.type.lowercased() && item.difficulty.lowercased() == sheet.difficulty.lowercased()
+    }
+
+    private func save() {
+        do {
+            try personal.bridge.setChartCollections(songId: song.id, type: sheet.type, difficulty: sheet.difficulty, selectedIds: Array(selected))
+            personal.reload(catalog: catalog); dismiss()
+        } catch { personal.error = error.localizedDescription }
     }
 }
