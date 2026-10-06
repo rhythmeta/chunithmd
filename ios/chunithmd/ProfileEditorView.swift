@@ -46,11 +46,11 @@ struct ProfileEditorView: View {
             .navigationTitle(profile == nil ? tr("新建档案") : tr("编辑档案"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .topBarLeading) {
                     Button(tr("取消"), systemImage: "xmark") { dismiss() }
                         .labelStyle(.iconOnly).tint(.primary).disabled(saving)
                 }
-                ToolbarItem(placement: .confirmationAction) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(tr("保存"), systemImage: "checkmark", action: save)
                         .labelStyle(.iconOnly).tint(.primary).disabled(!canSave)
                 }

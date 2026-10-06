@@ -27,6 +27,98 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testRecommendationRowsScopeAndNavigation() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-profile"].waitForExistence(timeout: 20))
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "吃分推荐")).firstMatch.tap()
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "recommendation-row-"))
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 120))
+        let firstNew = rows.firstMatch.identifier
+        XCTAssertTrue(rows.firstMatch.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "[+][0-9]+[.][0-9]{2}")).firstMatch.exists)
+        XCTAssertTrue(rows.firstMatch.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "目标 ")).firstMatch.exists)
+        capture(app, name: "recommendations-new")
+        XCTAssertLessThan(app.buttons["recommendation-scope"].frame.width, 60)
+        app.buttons["recommendation-scope"].tap()
+        capture(app, name: "recommendations-scope-menu")
+        app.buttons["旧曲推荐"].tap()
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertNotEqual(rows.firstMatch.identifier, firstNew)
+        capture(app, name: "recommendations-old")
+        let initialIDs = Set(rows.allElementsBoundByIndex.map(\.identifier))
+        let list = app.collectionViews["recommendation-list"]
+        for _ in 0..<4 { list.swipeUp() }
+        XCTAssertTrue(rows.allElementsBoundByIndex.contains { !initialIDs.contains($0.identifier) })
+        rows.allElementsBoundByIndex.first { $0.isHittable }!.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        app.buttons["song-detail-back"].tap()
+        XCTAssertTrue(app.buttons["recommendation-scope"].label.contains("旧曲推荐"))
+        for _ in 0..<5 { list.swipeDown() }
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        app.terminate()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
+        app.launch()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "吃分推荐")).firstMatch.tap()
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 20))
+        capture(app, name: "recommendations-dark")
+    }
+
+    func testProfileListBadgesAndActions() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-profile"].waitForExistence(timeout: 20))
+        app.tabBars.buttons["设置"].tap()
+        app.buttons["用户档案"].tap()
+        XCTAssertTrue(app.navigationBars["用户档案"].waitForExistence(timeout: 5))
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "profile-row-"))
+        let original = rows.allElementsBoundByIndex.first { ($0.value as? String) == "当前档案" }!
+        XCTAssertTrue(original.staticTexts["日服"].exists || original.staticTexts["国际服"].exists || original.staticTexts["国服"].exists)
+        capture(app, name: "profiles")
+        original.swipeLeft()
+        XCTAssertTrue(app.buttons["编辑"].exists)
+        XCTAssertFalse(app.buttons["删除"].exists)
+        app.buttons["编辑"].tap()
+        XCTAssertTrue(app.navigationBars["编辑档案"].waitForExistence(timeout: 5))
+        app.buttons["取消"].tap()
+
+        let temporaryName = "UI Profile 56F8B0AF"
+        let temporary = rows.matching(NSPredicate(format: "label CONTAINS %@", temporaryName)).firstMatch
+        if temporary.exists {
+            temporary.swipeLeft()
+            app.buttons["删除"].tap()
+            XCTAssertTrue(app.staticTexts["删除后本地档案信息将无法恢复。"].waitForExistence(timeout: 5))
+            app.buttons["删除"].tap()
+            XCTAssertTrue(temporary.waitForNonExistence(timeout: 5))
+        }
+        app.buttons["新建档案"].tap()
+        app.textFields["profile-name"].tap()
+        app.textFields["profile-name"].typeText(temporaryName)
+        app.buttons["保存"].tap()
+        XCTAssertTrue(temporary.waitForExistence(timeout: 5))
+        capture(app, name: "profiles-multiple")
+        temporary.tap()
+        XCTAssertEqual(temporary.value as? String, "当前档案")
+        original.tap()
+        XCTAssertEqual(original.value as? String, "当前档案")
+        temporary.swipeLeft()
+        capture(app, name: "profiles-swipe")
+        app.buttons["删除"].tap()
+        XCTAssertTrue(app.staticTexts["删除后本地档案信息将无法恢复。"].waitForExistence(timeout: 5))
+        capture(app, name: "profiles-delete-confirmation")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7)).tap()
+        XCTAssertTrue(temporary.exists)
+        temporary.swipeLeft()
+        app.buttons["删除"].tap()
+        XCTAssertTrue(app.staticTexts["删除后本地档案信息将无法恢复。"].waitForExistence(timeout: 5))
+        app.buttons["删除"].tap()
+        XCTAssertTrue(temporary.waitForNonExistence(timeout: 5))
+        XCTAssertEqual(original.value as? String, "当前档案")
+    }
+
     func testProfileEditorLayoutAndDraftCancellation() {
         continueAfterFailure = false
         let app = XCUIApplication()
