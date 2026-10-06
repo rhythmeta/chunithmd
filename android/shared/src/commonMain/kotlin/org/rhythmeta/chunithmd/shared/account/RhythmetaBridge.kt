@@ -47,6 +47,8 @@ class RhythmetaBridge(secrets: RhythmetaSecretStore, files: SnapshotFiles, clien
         scope.launch { store.state.collect { callback(json.encodeToString(it)) } }
     }
     fun refreshCommunity() { scope.launch { community?.refreshBoard() } }
+    suspend fun reloadCommunity() { community?.refreshBoard() }
+    fun syncCommunity() { scope.launch { community?.syncApproved(force = true) } }
     fun moreCommunity() { scope.launch { community?.refreshBoard(loadMore = true) } }
     fun voteCommunity(id: String, vote: Int) { scope.launch { community?.vote(id, vote > 0) } }
     fun refreshSongAliases(id: String) { scope.launch { community?.refreshSong(id) } }

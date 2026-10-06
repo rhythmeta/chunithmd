@@ -6,6 +6,7 @@ struct CommunityViewState: Decodable {
         let songIdentifier: String
         let aliasText: String
         let status: String
+        var voteCloseAt: String? = nil
         let supportCount: Int
         let opposeCount: Int
         let myVote: Int?

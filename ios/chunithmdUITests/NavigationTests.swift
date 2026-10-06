@@ -27,6 +27,46 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testCommunityBoardGroupsDeadlinesRefreshAndSongNavigation() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-profile"].waitForExistence(timeout: 20))
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "社区别名")).firstMatch.tap()
+        let headers = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "community-song-"))
+        let loaded = headers.firstMatch.waitForExistence(timeout: 30)
+        capture(app, name: "community-loaded")
+        XCTAssertTrue(loaded)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "截止 ")).firstMatch.exists)
+        let support = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "community-support-"))
+        let oppose = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "community-oppose-"))
+        XCTAssertTrue(support.firstMatch.label.contains("支持"))
+        XCTAssertTrue(oppose.firstMatch.label.contains("反对"))
+        XCTAssertLessThan(support.firstMatch.frame.maxX, oppose.firstMatch.frame.minX)
+        if app.buttons["community-login"].exists {
+            XCTAssertFalse(support.firstMatch.isEnabled)
+            app.buttons["community-login"].tap()
+            XCTAssertTrue(app.navigationBars["Rhythmeta 账号"].waitForExistence(timeout: 5))
+            app.navigationBars.buttons.firstMatch.tap()
+        }
+        capture(app, name: "community-board")
+        headers.firstMatch.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        app.buttons["song-detail-back"].tap()
+        app.swipeDown()
+        XCTAssertTrue(headers.firstMatch.waitForExistence(timeout: 30))
+        capture(app, name: "community-refreshed")
+        app.swipeUp()
+        capture(app, name: "community-groups")
+        app.terminate()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
+        app.launch()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "社区别名")).firstMatch.tap()
+        XCTAssertTrue(headers.firstMatch.waitForExistence(timeout: 30))
+        capture(app, name: "community-dark")
+    }
+
     func testPlateProgressMenusGridAndNavigation() {
         continueAfterFailure = false
         let app = XCUIApplication()
