@@ -27,6 +27,42 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testSettingsSectionsThemeHealthAndResourcesNavigation() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        for appearance in ["light", "dark"] {
+            app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", appearance]
+            app.launch()
+            XCTAssertTrue(app.tabBars.buttons["设置"].waitForExistence(timeout: 20))
+            app.tabBars.buttons["设置"].tap()
+            XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["用户管理"].exists)
+            XCTAssertTrue(app.staticTexts["数据同步"].exists)
+            XCTAssertTrue(app.staticTexts["成绩同步"].exists)
+            capture(app, name: "settings-" + appearance)
+            let resources = app.buttons["settings-resources"]
+            XCTAssertTrue(resources.exists)
+            resources.tap()
+            XCTAssertTrue(app.navigationBars["静态数据"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["当前版本"].exists)
+            XCTAssertFalse(app.buttons["完成"].exists)
+            capture(app, name: "settings-resources-" + appearance)
+            app.navigationBars.buttons.firstMatch.tap()
+            app.swipeUp()
+            XCTAssertTrue(app.staticTexts["后端状态"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["版本"].exists)
+            let health = app.staticTexts.matching(NSPredicate(format: "label IN %@", ["可用", "不可用"])).firstMatch
+            XCTAssertTrue(health.waitForExistence(timeout: 10))
+            capture(app, name: "settings-about-" + appearance)
+            app.buttons["settings-theme"].tap()
+            XCTAssertTrue(app.buttons["跟随系统"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.buttons["浅色"].exists)
+            XCTAssertTrue(app.buttons["深色"].exists)
+            capture(app, name: "settings-theme-" + appearance)
+            app.terminate()
+        }
+    }
+
     func testCollectionsImportPreviewsSortGridPickerAndRename() {
         continueAfterFailure = false
         let app = XCUIApplication()

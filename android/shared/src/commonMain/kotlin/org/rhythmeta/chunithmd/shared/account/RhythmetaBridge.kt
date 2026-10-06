@@ -33,6 +33,7 @@ class RhythmetaBridge(secrets: RhythmetaSecretStore, files: SnapshotFiles, clien
     fun loginUrl():String = client.loginUrl()
     fun handleCallback(url:String)=run { client.handleCallback(url);reload() }
     fun refresh()=run { reload() }
+    suspend fun isHealthy(): Boolean = client.isHealthy()
     private suspend fun reload() { state=state.copy(backups=client.listBackups()) }
     fun backup(deviceName:String)=run { check(state.ready);coordinator.backup(deviceName);reload() }
     fun restore(id:String)=run { check(state.ready);coordinator.restore(state.backups.first { it.id==id }) }

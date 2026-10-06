@@ -89,7 +89,7 @@ struct ConstantTableView: View {
                     .frame(minWidth: 51, minHeight: 44, alignment: .trailing)
                     .contentShape(.rect)
                 }
-                .buttonStyle(.plain).foregroundStyle(.tint)
+                .buttonStyle(.plain).foregroundStyle(.primary).tint(.primary)
                 .accessibilityLabel(tr("定数档位"))
                 .accessibilityValue(ConstantTableCalculatorKt.constantTableBaseLevelLabel(baseLevel: level))
                 .accessibilityIdentifier("constant-table-level")
