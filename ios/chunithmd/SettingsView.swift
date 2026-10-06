@@ -17,8 +17,8 @@ struct SettingsView: View {
                     SettingsRowLabel(title: tr("静态数据"), icon: "arrow.down.circle.fill", color: .blue)
                 }.accessibilityIdentifier("settings-resources")
                 NavigationLink { RhythmetaAccountView(store: account) } label: {
-                    SettingsRowLabel(title: tr("Rhythmeta 账号与云备份"), icon: "cloud.fill", color: .indigo)
-                }
+                    SettingsRowLabel(title: tr("云端账户"), icon: "cloud.fill", color: .indigo)
+                }.accessibilityIdentifier("settings-cloud-account")
             } header: { Text(tr("数据同步")) } footer: { Text(tr("登录后可手动备份和恢复个人数据。")) }
             Section {
                 NavigationLink { ScoreImportView(provider: "fish") } label: {

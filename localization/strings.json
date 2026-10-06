@@ -4126,5 +4126,41 @@
     "ja": "自分のみ表示",
     "zh-Hans": "仅自己可见",
     "zh-Hant": "僅自己可見"
+  },
+  "Rhythmeta": {
+    "en": "Rhythmeta",
+    "ja": "Rhythmeta",
+    "zh-Hans": "Rhythmeta",
+    "zh-Hant": "Rhythmeta"
+  },
+  "账户": {
+    "en": "Account",
+    "ja": "アカウント",
+    "zh-Hans": "账户",
+    "zh-Hant": "帳號"
+  },
+  "已登录": {
+    "en": "Signed in",
+    "ja": "ログイン済み",
+    "zh-Hans": "已登录",
+    "zh-Hant": "已登入"
+  },
+  "登录成功": {
+    "en": "Signed in successfully",
+    "ja": "ログインしました",
+    "zh-Hans": "登录成功",
+    "zh-Hant": "登入成功"
+  },
+  "登录 Rhythmeta 账号以备份和恢复数据。": {
+    "en": "Sign in to your Rhythmeta account to back up and restore data.",
+    "ja": "Rhythmeta アカウントにログインして、データをバックアップ・復元できます。",
+    "zh-Hans": "登录 Rhythmeta 账号以备份和恢复数据。",
+    "zh-Hant": "登入 Rhythmeta 帳號以備份及還原資料。"
+  },
+  "Rhythmeta 账号可用于 maimaid 和 chunithmd，备份需要手动创建。": {
+    "en": "Your Rhythmeta account works with maimaid and chunithmd. Backups are created manually.",
+    "ja": "Rhythmeta アカウントは maimaid と chunithmd で共通です。バックアップは手動で作成してください。",
+    "zh-Hans": "Rhythmeta 账号可用于 maimaid 和 chunithmd，备份需要手动创建。",
+    "zh-Hant": "Rhythmeta 帳號可用於 maimaid 和 chunithmd，備份需要手動建立。"
   }
 }

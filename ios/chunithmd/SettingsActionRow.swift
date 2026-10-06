@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct StaticResourceActionRow: View {
+struct SettingsActionRow: View {
     let title: String
     let icon: String
     let color: Color
@@ -22,6 +22,7 @@ struct StaticResourceActionRow: View {
                     .foregroundStyle(color)
                     .accessibilityHidden(true)
             }
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
     }

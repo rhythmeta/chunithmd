@@ -27,6 +27,30 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testCloudAccountSignedOutActionsAndSummary() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        for appearance in ["light", "dark"] {
+            app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", appearance]
+            app.launch()
+            XCTAssertTrue(app.tabBars.buttons["设置"].waitForExistence(timeout: 20))
+            app.tabBars.buttons["设置"].tap()
+            app.buttons["settings-cloud-account"].tap()
+            XCTAssertTrue(app.navigationBars["Rhythmeta"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["登录 Rhythmeta 账号以备份和恢复数据。"].exists)
+            XCTAssertTrue(app.staticTexts["Rhythmeta 账号可用于 maimaid 和 chunithmd，备份需要手动创建。"].exists)
+            for action in ["cloud-login", "cloud-register", "cloud-forgot"] {
+                XCTAssertTrue(app.buttons[action].waitForExistence(timeout: 10))
+                XCTAssertTrue(app.buttons[action].isEnabled)
+            }
+            XCTAssertFalse(app.textFields.firstMatch.exists)
+            capture(app, name: "cloud-account-" + appearance)
+            app.navigationBars.buttons.firstMatch.tap()
+            XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 5))
+            app.terminate()
+        }
+    }
+
     func testSettingsSectionsThemeHealthAndResourcesNavigation() {
         continueAfterFailure = false
         let app = XCUIApplication()
@@ -181,7 +205,7 @@ final class NavigationTests: XCTestCase {
         if app.buttons["community-login"].exists {
             XCTAssertFalse(support.firstMatch.isEnabled)
             app.buttons["community-login"].tap()
-            XCTAssertTrue(app.navigationBars["Rhythmeta 账号"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.navigationBars["Rhythmeta"].waitForExistence(timeout: 5))
             app.navigationBars.buttons.firstMatch.tap()
         }
         capture(app, name: "community-board")

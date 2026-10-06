@@ -31,13 +31,13 @@ struct StaticResourcesView: View {
                     .padding(.vertical, 4)
                     .accessibilityIdentifier("static-resources-progress")
                 } else {
-                    StaticResourceActionRow(
+                    SettingsActionRow(
                         title: store.updateAvailable ? tr("下载并更新") : canReinstall ? tr("重新安装当前版本") : tr("立即更新"),
                         icon: store.updateAvailable ? "arrow.down.circle" : canReinstall ? "arrow.clockwise.circle" : "arrow.triangle.2.circlepath",
                         color: canReinstall ? .orange : .blue,
                         action: store.refresh)
                         .accessibilityIdentifier("static-resources-download")
-                    StaticResourceActionRow(title: tr("重新检查更新"), icon: "magnifyingglass", color: .green) {
+                    SettingsActionRow(title: tr("重新检查更新"), icon: "magnifyingglass", color: .green) {
                         Task { await store.checkForUpdate() }
                     }
                     .accessibilityIdentifier("static-resources-check")
