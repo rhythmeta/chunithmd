@@ -22,7 +22,6 @@ final class NavigationTests: XCTestCase {
         let tile = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-tile-")).firstMatch
         if tile.waitForExistence(timeout: 2) {
             app.buttons["catalog-options"].tap()
-            app.buttons["列表"].tap()
         }
         XCTAssertTrue(row.waitForExistence(timeout: 240), "The catalog must finish its first resource download")
         return app
@@ -269,19 +268,21 @@ final class NavigationTests: XCTestCase {
         let options = app.buttons["catalog-options"]
         XCTAssertTrue(options.waitForExistence(timeout: 5))
         options.tap()
-        app.buttons["网格"].tap()
-        options.tap()
-        app.buttons["5 列"].tap()
         let tile = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-tile-")).firstMatch
         XCTAssertTrue(tile.waitForExistence(timeout: 5))
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-tile-")).element(boundBy: 7).pinch(withScale: 0.5, velocity: -1)
         let before = tile.frame.width
-        app.scrollViews.firstMatch.pinch(withScale: 1.8, velocity: 1)
+        capture(app, name: "grid-five-columns")
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-tile-")).element(boundBy: 7).pinch(withScale: 1.8, velocity: 1)
         XCTAssertGreaterThan(tile.frame.width, before * 1.3)
+        capture(app, name: "grid-three-columns")
         let grid = XCTAttachment(screenshot: app.screenshot()); grid.name = "Three column grid"; grid.lifetime = .keepAlways; add(grid)
         tile.tap()
         XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
         app.buttons["song-detail-back"].tap()
         XCTAssertTrue(tile.waitForExistence(timeout: 5))
+        options.tap()
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-row-")).firstMatch.waitForExistence(timeout: 5))
     }
     func testInteractiveBackCanCancelAndFinish() {
         let app = catalog()

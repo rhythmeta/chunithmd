@@ -5,7 +5,6 @@ struct CatalogView: View {
     @Environment(CatalogStore.self) private var catalog
     @Environment(PersonalStore.self) private var personal
     @AppStorage("catalog.grid") private var grid = false
-    @AppStorage("catalog.gridColumns") private var columns = 5
     @State private var filters = false
 
     private var songs: [CatalogSongViewData] {
@@ -31,14 +30,8 @@ struct CatalogView: View {
         .navigationTitle(tr("歌曲"))
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Menu(tr("显示选项"), systemImage: grid ? "list.bullet" : "square.grid.2x2") {
-                    Picker(tr("布局"), selection: $grid) {
-                        Label(tr("列表"), systemImage: "list.bullet").tag(false)
-                        Label(tr("网格"), systemImage: "square.grid.3x3").tag(true)
-                    }
-                    if grid {
-                        Picker(tr("网格密度"), selection: $columns) { Text(tr("3 列")).tag(3); Text(tr("5 列")).tag(5) }
-                    }
+                Button(grid ? tr("列表") : tr("网格"), systemImage: grid ? "list.bullet" : "square.grid.2x2") {
+                    grid.toggle()
                 }.accessibilityIdentifier("catalog-options").tint(.primary)
                 Menu(tr("排序"), systemImage: "arrow.up.arrow.down") {
                     Picker(tr("排序方式"), selection: $catalog.sort.animation(.easeInOut)) {

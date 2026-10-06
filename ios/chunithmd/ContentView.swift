@@ -29,7 +29,7 @@ struct ContentView: View {
             Tab(tr("歌曲"), systemImage: "magnifyingglass", value: .search, role: .search) {
                 NavigationStack {
                     CatalogView()
-                        .searchable(text: $catalog.search, prompt: tr("曲名、艺术家、别名或 ID"))
+                        .searchable(text: $catalog.search, prompt: tr("歌曲、艺术家、别名..."))
                         .searchFocused($searchFocused)
                 }
             }
