@@ -27,6 +27,85 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testScoreQueryLayoutFiltersSearchAndNavigation() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-profile"].waitForExistence(timeout: 20))
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "成绩查询")).firstMatch.tap()
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "score-query-row-"))
+        XCTAssertTrue(app.buttons["score-query-layout"].waitForExistence(timeout: 30))
+        if app.buttons["score-query-layout"].label == "列表视图" { app.buttons["score-query-layout"].tap() }
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(rows.firstMatch.label.contains("1,010,000"))
+        XCTAssertTrue(rows.firstMatch.label.contains("AJC"))
+        XCTAssertTrue(rows.firstMatch.label.contains("17.35"))
+        capture(app, name: "score-query-list")
+        for identifier in ["score-query-layout", "score-query-sort", "score-query-filter"] {
+            XCTAssertLessThan(app.buttons[identifier].frame.width, 60)
+        }
+        app.buttons["score-query-sort"].tap()
+        XCTAssertTrue(app.buttons["Rating"].exists)
+        XCTAssertTrue(app.buttons["分数"].exists)
+        XCTAssertTrue(app.buttons["定数"].exists)
+        capture(app, name: "score-query-sort")
+        app.buttons["分数"].tap()
+        app.buttons["score-query-sort"].tap()
+        let descending = app.buttons["降序"]
+        if descending.exists { descending.tap() } else { app.buttons["升序"].tap() }
+
+        app.buttons["score-query-filter"].tap()
+        XCTAssertTrue(app.navigationBars["筛选"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["谱面类型"].exists)
+        app.buttons["D"].tap()
+        capture(app, name: "score-query-filters")
+        app.buttons["完成"].tap()
+        XCTAssertTrue(app.staticTexts["没有符合条件的成绩"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.otherElements["score-query-stats"].exists)
+        capture(app, name: "score-query-empty")
+        app.buttons["score-query-filter"].tap()
+        app.buttons["重置筛选"].tap()
+        app.buttons["MASTER"].tap()
+        app.buttons["SSS+"].tap()
+        app.buttons["AJC"].tap()
+        app.buttons["金 FC"].tap()
+        capture(app, name: "score-query-filters-selected")
+        app.buttons["完成"].tap()
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        rows.firstMatch.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        app.buttons["song-detail-back"].tap()
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+
+        app.buttons["score-query-layout"].tap()
+        let tiles = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "score-query-tile-"))
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 5))
+        capture(app, name: "score-query-grid")
+        tiles.firstMatch.pinch(withScale: 0.55, velocity: -1)
+        let smallWidth = tiles.firstMatch.frame.width
+        tiles.firstMatch.pinch(withScale: 2, velocity: 1)
+        capture(app, name: "score-query-grid-zoom")
+        XCTAssertGreaterThan(tiles.firstMatch.frame.width, smallWidth * 1.4)
+        let search = app.searchFields.firstMatch
+        if !search.exists && app.buttons["搜索"].exists { app.buttons["搜索"].tap() }
+        search.tap()
+        search.typeText("zzzz-no-matching-song")
+        XCTAssertTrue(app.staticTexts["没有符合条件的成绩"].waitForExistence(timeout: 5))
+        capture(app, name: "score-query-search")
+        if app.buttons["关闭"].exists { app.buttons["关闭"].tap() } else { app.buttons["取消"].tap() }
+        XCTAssertTrue(tiles.firstMatch.waitForExistence(timeout: 5))
+
+        app.terminate()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
+        app.launch()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "成绩查询")).firstMatch.tap()
+        XCTAssertTrue(app.buttons["score-query-layout"].waitForExistence(timeout: 20))
+        if app.buttons["score-query-layout"].label == "列表视图" { app.buttons["score-query-layout"].tap() }
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        capture(app, name: "score-query-dark")
+    }
+
     func testRecommendationRowsScopeAndNavigation() {
         continueAfterFailure = false
         let app = XCUIApplication()

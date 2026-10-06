@@ -5,11 +5,12 @@ struct FilterChoices: View {
     @Binding var selection: Set<String>
     var difficulty = false
     var displayValue: (String) -> String = { $0 }
+    var tint: (String) -> AnyShapeStyle = { _ in AnyShapeStyle(.blue) }
     var body: some View {
         FilterFlowLayout(spacing: 10) {
             ForEach(options, id: \.self) { option in
                 let selected = selection.contains(option)
-                let color = difficulty ? difficultyStyle(option) : AnyShapeStyle(.blue)
+                let color = difficulty ? difficultyStyle(option) : tint(option)
                 let border = selected && difficulty && option.lowercased() == "world's end"
                     ? AnyShapeStyle(.white.opacity(0.72))
                     : selected ? AnyShapeStyle(color.opacity(0.3)) : AnyShapeStyle(.primary.opacity(0.08))

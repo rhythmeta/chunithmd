@@ -18,7 +18,7 @@ UI_COPY_CONTEXT = re.compile(
 INVARIANT_WORDS = frozenset({
     'Rating', 'B', 'N', 'B30', 'N20', 'NEW', 'BEST', 'Best', 'R', 'Lv', 'BPM',
     'CHUNITHM', 'chunithmd', 'JUSTICE', 'ATTACK', 'MISS',
-    'Spirit', 'Tribute', 'Legend', 'FC', 'AJ', 'AJC',
+    'Spirit', 'Tribute', 'Legend', 'FC', 'AJ', 'AJC', 'SSS',
     'Otogame', 'YouTube', 'Bilibili', 'SHA',
 })
 

@@ -5,6 +5,7 @@ import org.rhythmeta.chunithmd.shared.backup.*
 import kotlin.time.Clock
 import org.rhythmeta.chunithmd.collection.*
 import org.rhythmeta.chunithmd.shared.importing.*
+import org.rhythmeta.chunithmd.shared.community.mergeCommunityAliases
 
 /** Native clients edit the same portable store used by backup/restore. Every edit rereads
  * the current snapshot so a completed cloud restore cannot be overwritten by stale UI. */
@@ -211,6 +212,11 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
 
     @Throws(Exception::class)
     fun recommendations(bundle: CatalogBundle): RecommendationResponse = read().let { RecommendationCalculator.calculate(bundle, records(it), server(it)) }
+
+    @Throws(Exception::class)
+    fun scoreQuery(bundle: CatalogBundle, aliases: Map<String, List<String>>): ScoreQueryResponse = read().let {
+        buildScoreQueryResponse(bundle.copy(aliases = mergeCommunityAliases(bundle.aliases, aliases)), records(it), server(it))
+    }
 
     @Throws(Exception::class)
     fun plate(bundle: CatalogBundle, version: String?, kind: String): PlateProgressResponse = read().let {

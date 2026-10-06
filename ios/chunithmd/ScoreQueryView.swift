@@ -4,47 +4,79 @@ import SwiftUI
 struct ScoreQueryView: View {
     @Environment(CatalogStore.self) private var catalog
     @Environment(PersonalStore.self) private var personal
-    @AppStorage("scores.grid") private var grid = false
+    @AppStorage("scores.grid") private var grid = true
+    @AppStorage("scores.sort") private var sort = "rating"
+    @AppStorage("scores.ascending") private var ascending = false
     @State private var search = ""
-    @State private var difficulty = "all"
-    @State private var sort = "rating"
+    @State private var filters = ScoreQueryFilters()
+    @State private var showingFilters = false
+    @State private var response: ScoreQueryResponse?
+    @State private var entries: [ScoreQueryEntry] = []
+    @State private var songs: [String: CatalogSongViewData] = [:]
+
     var body: some View {
-        let entries = personal.best.filter { entry in
-            (search.isEmpty || entry.title.localizedStandardContains(search)) && (difficulty == "all" || entry.difficulty == difficulty)
-        }.sorted { sort == "score" ? $0.score > $1.score : sort == "constant" ? $0.constant > $1.constant : $0.rating > $1.rating }
         Group {
-            if grid {
-                let visible = entries.filter { entry in catalog.allSongs.contains { $0.id == entry.songId } }
-                CoverGrid(songs: visible.compactMap { entry in catalog.allSongs.first { $0.id == entry.songId } },
-                    captions: visible.map { "\($0.difficulty.uppercased()) \($0.rank)" },
-                    sheetIDs: visible.map { $0.type + ":" + $0.difficulty }, preferenceKey: "scores.gridColumns")
+            if let response {
+                ScoreQueryResultsView(entries: entries, stats: response.stats, songs: songs, grid: grid)
+            } else if catalog.bundle == nil {
+                CatalogLoadingView()
             } else {
-                List {
-                    Section(tr("{0} 张谱面", entries.count)) {
-                        ForEach(entries, id: \.chartId) { entry in
-                            if let song = catalog.allSongs.first(where: { $0.id == entry.songId }) {
-                                SongRow(song: song, subtitle: "\(entry.difficulty.uppercased()) · \(Int(entry.score).formatted()) \(entry.rank) · \(entry.rating.formatted(.number.precision(.fractionLength(2))))", preferredSheet: entry.type + ":" + entry.difficulty)
-                            }
-                        }
-                    }
-                }
+                ProgressView(tr("正在加载…")).frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-        }.navigationTitle(tr("成绩查询"))
-            .toolbar {
-                Menu(tr("筛选与排序"), systemImage: "line.3.horizontal.decrease") {
-                    Picker(tr("难度"), selection: $difficulty) {
-                        Text(tr("全部难度")).tag("all")
-                        ForEach(difficultyNames, id: \.self) { Text($0.uppercased()).tag($0) }
-                    }
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(tr("成绩查询"))
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(grid ? tr("列表视图") : tr("网格视图"), systemImage: grid ? "list.bullet" : "square.grid.2x2") { grid.toggle() }
+                    .labelStyle(.iconOnly).tint(.primary).accessibilityIdentifier("score-query-layout")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu(tr("排序"), systemImage: "arrow.up.arrow.down") {
                     Picker(tr("排序"), selection: $sort) {
-                        Text("Rating").tag("rating")
-                        Text(tr("分数")).tag("score")
-                        Text(tr("定数")).tag("constant")
+                        Label("Rating", systemImage: "star.fill").tag("rating")
+                        Label(tr("分数"), systemImage: "number").tag("score")
+                        Label(tr("定数"), systemImage: "chart.bar.fill").tag("level")
                     }
-                }
-                Button(tr("切换布局"), systemImage: grid ? "list.bullet" : "square.grid.3x3") { grid.toggle() }
+                    Divider()
+                    Button(ascending ? tr("升序") : tr("降序"), systemImage: ascending ? "arrow.up" : "arrow.down") { ascending.toggle() }
+                }.labelStyle(.iconOnly).tint(.primary).accessibilityIdentifier("score-query-sort")
             }
-            .searchable(text: $search, prompt: tr("查询歌曲成绩"))
-            .overlay { if entries.isEmpty { ContentUnavailableView(tr("没有符合条件的成绩"), systemImage: "list.bullet.rectangle") } }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(tr("筛选"), systemImage: filters.shared.isEmpty ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill") { showingFilters = true }
+                    .labelStyle(.iconOnly).tint(.primary).accessibilityIdentifier("score-query-filter")
+            }
+        }
+        .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: tr("歌曲、艺术家、别名..."))
+        .sheet(isPresented: $showingFilters) { ScoreQueryFilterView(filters: $filters) }
+        .task(id: personal.revision) { reload() }
+        .onChange(of: catalog.aliases) { reload() }
+        .task(id: search) {
+            do { try await Task.sleep(for: .milliseconds(150)) } catch { return }
+            applyQuery()
+        }
+        .onChange(of: filters) { applyQuery() }
+        .onChange(of: sort) { applyQuery() }
+        .onChange(of: ascending) { applyQuery() }
+    }
+
+    private func reload() {
+        guard let bundle = catalog.bundle else { return }
+        do {
+            response = try personal.bridge.scoreQuery(bundle: bundle, aliases: catalog.aliases)
+            songs = Dictionary(catalog.allSongs.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+            applyQuery()
+        } catch { personal.error = error.localizedDescription }
+    }
+
+    private func applyQuery() {
+        let mode: ScoreQuerySortMode = switch sort {
+        case "score": .score
+        case "level": .level
+        default: .rating
+        }
+        entries = ScoreQueryCalculatorKt.filterAndSortScoreQueryEntries(entries: response?.entries ?? [], searchText: search,
+            settings: filters.shared, sortMode: mode, ascending: ascending)
     }
 }

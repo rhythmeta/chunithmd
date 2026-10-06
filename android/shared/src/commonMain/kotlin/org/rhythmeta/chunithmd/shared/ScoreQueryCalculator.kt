@@ -42,7 +42,9 @@ data class ScoreQueryStats(
     val ajcCount: Int = 0,
     val platinumFullChainCount: Int = 0,
     val goldFullChainCount: Int = 0,
-)
+) {
+    val fullChainCount: Int get() = platinumFullChainCount + goldFullChainCount
+}
 
 data class ScoreQueryResponse(
     val entries: List<ScoreQueryEntry> = emptyList(),

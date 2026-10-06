@@ -26,6 +26,43 @@ class PersonalDataBridgeTest {
         assertFails { bridge.setBestTableCapacity(30, 20) }
         assertContentEquals(before, files.data.getValue("personal.pb.gz"))
     }
+    @Test fun scoreQueryUsesActiveProfileImportedBestsRegionAndCommunityAliases() {
+        val files = Files(); val bridge = PersonalDataBridge(files)
+        bridge.snapshotJson()
+        val state = files.snapshot()
+        val profile = state.profiles.single().id
+        val score = BackupScore(profileId = profile, songId = "song", chartKey = "song:std:master",
+            score = 1_009_000, rank = "SSS+", achievedAt = 2, fc = "alljustice", fs = "fullchain2")
+        files.write("personal.pb.gz", BackupCodec.encode(state.copy(
+            profiles = state.profiles.map { it.copy(server = "cn") } + BackupProfile(id = "00000000-0000-4000-8000-000000000002", name = "Other", server = "jp"),
+            scores = listOf(score, score.copy(profileId = "00000000-0000-4000-8000-000000000002", score = 1_010_000)),
+            playRecords = listOf(BackupPlayRecord("00000000-0000-4000-8000-000000000001", score.copy(score = 950_000, achievedAt = 3))),
+        )))
+        val bundle = CatalogJson.decodeBundle("""
+            {"schemaVersion":1,"aliases":{"song":["Local alias"]},"catalog":{"songs":[
+              {"songId":"song","title":"Song","artist":"Artist","sheets":[
+                {"type":"std","difficulty":"master","internalLevelValue":13.0,"regions":{"jp":true}}],
+                "regionOverrides":{"cn":{"available":true,"charts":{"std:master":{"available":true,"levelValue":13.8}}}}}
+            ]}}
+        """.trimIndent())
+        val result = bridge.scoreQuery(bundle, mapOf("song" to listOf("Community alias")))
+        val entry = result.entries.single()
+        assertEquals(1_009_000, entry.score)
+        assertEquals(13.8, entry.level)
+        assertEquals(calculateSingleRating(13.8, entry.score), entry.rating)
+        assertEquals(1, result.stats.chartCount)
+        assertEquals(1, result.stats.ajCount)
+        assertEquals(1, result.stats.fullChainCount)
+        for (query in listOf("Local alias", "Community alias", "ARTIST", "song")) {
+            assertEquals(listOf(entry), filterAndSortScoreQueryEntries(result.entries, query,
+                ScoreQueryFilterSettings(), ScoreQuerySortMode.Rating, false))
+        }
+        val other = bridge.saveProfile(null, "Other", "jp", "")
+        bridge.activateProfile(other)
+        assertTrue(bridge.scoreQuery(bundle, emptyMap()).entries.isEmpty())
+        assertEquals(0, bridge.scoreQuery(bundle, emptyMap()).stats.chartCount)
+    }
+
     private class Files : SnapshotFiles {
         val data = mutableMapOf<String, ByteArray>()
         override fun read(name: String) = SnapshotFile(data[name])
