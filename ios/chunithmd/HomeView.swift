@@ -13,7 +13,7 @@ struct HomeView: View {
                         Image(systemName: "trophy.fill").font(.system(size: 20)).foregroundStyle(.orange)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(tr("查看 Best 50 成绩表")).font(.system(size: 16, weight: .bold))
-                            Text(tr("基于 B30 + N20 计算的 Rating")).font(.system(size: 11)).foregroundStyle(.secondary)
+                            Text(tr("基于 B{0} + N{1} 计算的玩家 Rating", 30, 20)).font(.system(size: 11)).foregroundStyle(.secondary)
                         }
                         Spacer()
                         Image(systemName: "chevron.right").font(.system(size: 14, weight: .bold)).foregroundStyle(.secondary.opacity(0.5))

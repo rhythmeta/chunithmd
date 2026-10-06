@@ -23,7 +23,7 @@ struct ChartPosterShareView: View {
                         }.padding()
                     }
                 } else if let error { ContentUnavailableView(tr("无法生成图片"), systemImage: "exclamationmark.triangle", description: Text(error)) }
-                else { ProgressView(tr("正在生成分享图片…")) }
+                else { ProgressView(tr("正在生成图片")) }
             }.navigationTitle(tr("分享图片")).navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button(tr("完成")) { dismiss() } }

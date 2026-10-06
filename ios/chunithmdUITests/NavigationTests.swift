@@ -27,6 +27,53 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testRandomDrawFiltersAndCancellation() {
+        let app = catalog()
+        let search = app.searchFields.firstMatch
+        search.tap(); search.typeText("no-song-matches-this-search\n")
+        app.tabBars.buttons["首页"].tap()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "随机歌曲")).firstMatch.tap()
+        let draw = app.buttons["random-draw"]
+        XCTAssertTrue(draw.waitForExistence(timeout: 5))
+        XCTAssertTrue(draw.isEnabled, "Random songs must ignore catalog search")
+        capture(app, name: "random-ready")
+        draw.tap()
+        app.segmentedControls.buttons["一次 4 首"].tap()
+        XCTAssertFalse(app.staticTexts["抽选结果"].exists)
+        draw.tap()
+        XCTAssertTrue(app.staticTexts["抽选结果"].waitForExistence(timeout: 8))
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "song-row-"))
+        XCTAssertEqual(rows.count, 4)
+        capture(app, name: "random-four")
+        let before = draw.frame.minY
+        app.scrollViews["random-page"].swipeUp()
+        XCTAssertLessThan(draw.frame.minY, before - 20, "The controls and results must scroll together")
+        capture(app, name: "random-page-scrolled")
+        app.scrollViews["random-page"].swipeDown()
+        draw.doubleTap()
+        capture(app, name: "random-skip")
+        XCTAssertTrue(app.staticTexts["抽选结果"].waitForExistence(timeout: 3))
+        XCTAssertEqual(rows.count, 4)
+        rows.firstMatch.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        app.buttons["song-detail-back"].tap()
+        app.buttons["random-filter"].tap()
+        app.switches["仅显示喜爱歌曲"].tap()
+        app.buttons["完成"].tap()
+        XCTAssertFalse(app.staticTexts["抽选结果"].exists)
+        app.buttons["random-filter"].tap()
+        XCTAssertEqual(app.switches["仅显示喜爱歌曲"].value as? String, "1")
+        app.buttons["完成"].tap()
+        app.navigationBars.buttons.firstMatch.tap()
+        app.tabBars.buttons["歌曲"].tap()
+        XCTAssertEqual(app.searchFields.firstMatch.value as? String, "no-song-matches-this-search")
+        app.buttons["关闭"].tap()
+        XCTAssertTrue(app.buttons["筛选"].waitForExistence(timeout: 5))
+        app.buttons["筛选"].tap()
+        XCTAssertEqual(app.switches["仅显示喜爱歌曲"].value as? String, "0")
+        app.buttons["完成"].tap()
+    }
+
     func testBottomSearchAndCoverReturn() {
         let app = catalog()
         let search = app.searchFields.firstMatch
@@ -139,10 +186,10 @@ final class NavigationTests: XCTestCase {
         target.tap()
         assertSelected(target)
         capture(app, name: "chart-tolerance-dark")
-        let record = app.buttons["录入成绩"]
+        let record = app.buttons["记录成绩"]
         for _ in 0..<3 where !record.isHittable { app.swipeUp() }
         record.tap()
-        XCTAssertTrue(app.navigationBars["录入成绩"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["记录成绩"].waitForExistence(timeout: 5))
         app.buttons["取消"].tap()
         app.buttons["加入收藏夹"].tap()
         XCTAssertTrue(app.navigationBars["加入收藏夹"].waitForExistence(timeout: 5))
@@ -158,13 +205,13 @@ final class NavigationTests: XCTestCase {
         card.tap()
         app.swipeUp()
         for score in ["950001", "940001"] {
-            let record = app.buttons["录入成绩"]
+            let record = app.buttons["记录成绩"]
             for _ in 0..<4 where !record.isHittable { app.swipeUp() }
             record.tap()
             let field = app.textFields["0–1,010,000"]
             XCTAssertTrue(field.waitForExistence(timeout: 5))
             field.tap(); field.typeText(score)
-            app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "连击")).firstMatch.tap()
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "COMBO 状态")).firstMatch.tap()
             app.buttons["AJ"].tap()
             app.buttons["保存"].tap()
             XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
@@ -191,7 +238,7 @@ final class NavigationTests: XCTestCase {
         assertSelected(app.buttons["时间"])
         XCTAssertTrue(rows.firstMatch.staticTexts["940,001"].exists)
         for _ in 0..<2 {
-            rows.firstMatch.buttons["删除成绩"].tap()
+            rows.firstMatch.buttons["删除成绩记录"].tap()
             app.buttons["删除"].tap()
         }
         app.buttons["song-detail-back"].tap()
@@ -200,13 +247,13 @@ final class NavigationTests: XCTestCase {
     func testSortMenuMatchesReferenceAndPersists() {
         var app = catalog()
         app.buttons["catalog-sort"].tap()
-        XCTAssertTrue(app.buttons["默认"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["版本/日期"].exists)
+        XCTAssertTrue(app.buttons["默认顺序"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["版本 / 发行日期"].exists)
         XCTAssertTrue(app.buttons["难度"].exists)
         XCTAssertFalse(app.buttons["按标题"].exists)
-        app.buttons["版本/日期"].tap()
+        app.buttons["版本 / 发行日期"].tap()
         app.buttons["catalog-sort"].tap()
-        assertSelected(app.buttons["版本/日期"])
+        assertSelected(app.buttons["版本 / 发行日期"])
         let ascending = app.buttons["升序"]
         if ascending.exists {
             ascending.tap()
@@ -216,20 +263,20 @@ final class NavigationTests: XCTestCase {
             app.buttons["升序"].tap()
         }
         app.buttons["catalog-sort"].tap()
-        assertSelected(app.buttons["版本/日期"])
+        assertSelected(app.buttons["版本 / 发行日期"])
         XCTAssertTrue(app.buttons["降序"].exists)
         app.terminate()
         app = catalog()
         app.buttons["catalog-sort"].tap()
-        assertSelected(app.buttons["版本/日期"])
+        assertSelected(app.buttons["版本 / 发行日期"])
         XCTAssertTrue(app.buttons["降序"].exists)
         capture(app, name: "sort")
         app.buttons["难度"].tap()
         app.buttons["catalog-sort"].tap()
         assertSelected(app.buttons["难度"])
-        app.buttons["默认"].tap()
+        app.buttons["默认顺序"].tap()
         app.buttons["catalog-sort"].tap()
-        assertSelected(app.buttons["默认"])
+        assertSelected(app.buttons["默认顺序"])
         app.buttons["降序"].tap()
     }
 
@@ -241,11 +288,11 @@ final class NavigationTests: XCTestCase {
     func testSharedLocalizationInEnglishJapaneseAndTraditionalChinese() {
         continueAfterFailure = false
         let languages = [
-            ("en", "Home", "Settings", "Songs", "Default", "Version/Date", "Difficulty", "Player profiles"),
-            ("ja", "ホーム", "設定", "楽曲", "デフォルト", "バージョン/日付", "難易度", "プレイヤープロフィール"),
-            ("zh-Hant", "首頁", "設定", "歌曲", "預設", "版本/日期", "難度", "玩家檔案")
+            ("en", "Home", "Settings", "Songs", "Default order", "Version / release date", "Difficulty", "Profiles", "Song, artist, alias…"),
+            ("ja", "ホーム", "設定", "楽曲", "標準の順序", "バージョン / 配信日", "難易度", "プロフィール", "曲名・アーティスト・別名…"),
+            ("zh-Hant", "首頁", "設定", "歌曲", "預設順序", "版本 / 發行日期", "難度", "個人檔案", "曲名、演出者、別名…")
         ]
-        for (language, home, settings, songs, defaultSort, version, difficulty, profiles) in languages {
+        for (language, home, settings, songs, defaultSort, version, difficulty, profiles, searchPrompt) in languages {
             let app = XCUIApplication()
             app.launchArguments = ["-AppleLanguages", "(\(language))", "-AppleLocale", language]
             app.launch()
@@ -254,6 +301,7 @@ final class NavigationTests: XCTestCase {
             XCTAssertTrue(app.buttons[profiles].waitForExistence(timeout: 5))
             app.tabBars.buttons[songs].tap()
             XCTAssertTrue(app.buttons["catalog-sort"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.searchFields[searchPrompt].waitForExistence(timeout: 5))
             app.buttons["catalog-sort"].tap()
             XCTAssertTrue(app.buttons[defaultSort].waitForExistence(timeout: 5))
             XCTAssertTrue(app.buttons[version].exists)
@@ -308,6 +356,50 @@ final class NavigationTests: XCTestCase {
         share.tap()
         XCTAssertTrue(app.images["chart-poster-preview"].firstMatch.waitForExistence(timeout: 120))
         XCTAssertTrue(app.buttons["poster-share"].exists)
+    }
+
+    func testBestTableSettingsRowsAndShare() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
+        app.launch()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "查看 Best 50 成绩表")).firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["best-rating"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["容量设置"].exists)
+        capture(app, name: "best-table")
+
+        let best = app.textFields["best-capacity"]
+        let original = best.value as! String
+        best.doubleTap()
+        best.typeText("1")
+        app.buttons["完成"].tap()
+        XCTAssertEqual(best.value as? String, "1")
+        best.doubleTap()
+        best.typeText(original)
+        app.buttons["完成"].tap()
+        XCTAssertEqual(best.value as? String, original)
+
+        app.buttons["best-version"].tap()
+        XCTAssertTrue(app.buttons["best-version-auto"].waitForExistence(timeout: 5))
+        capture(app, name: "best-version-picker")
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "best-version-option-")).firstMatch.tap()
+        app.buttons["确定"].tap()
+        XCTAssertTrue(app.buttons["best-version-reset"].waitForExistence(timeout: 5))
+        app.buttons["best-version-reset"].tap()
+        XCTAssertFalse(app.buttons["best-version-reset"].exists)
+        capture(app, name: "best-table")
+
+        let row = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "best-row-")).firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        for _ in 0..<3 where !row.isHittable { app.swipeUp() }
+        row.tap()
+        XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
+        app.buttons["song-detail-back"].tap()
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        app.buttons["best-share"].tap()
+        XCTAssertTrue(app.images["chart-poster-preview"].firstMatch.waitForExistence(timeout: 120))
+        XCTAssertTrue(app.buttons["poster-share"].exists)
+        app.buttons["完成"].tap()
     }
 
 }

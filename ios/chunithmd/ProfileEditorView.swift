@@ -24,7 +24,7 @@ struct ProfileEditorView: View {
                         Text(tr("选择头像"))
                     }
                 }
-                TextField(tr("档案名称"), text: $name)
+                TextField(tr("姓名"), text: $name)
                 TextField(tr("称号"), text: $title)
                 Picker(tr("服务器"), selection: $server) { Text(tr("日本")).tag("jp"); Text(tr("国际")).tag("intl"); Text(tr("中国")).tag("cn") }
                 if let error { Text(error).foregroundStyle(.red) }

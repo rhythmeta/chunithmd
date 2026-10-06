@@ -60,7 +60,7 @@ struct ChartCard: View {
                     }
                     HStack(spacing: 10) {
                         Button { recording = true } label: {
-                            Label(tr("录入成绩"), systemImage: "pencil.line")
+                            Label(tr("记录成绩"), systemImage: "pencil.line")
                                 .frame(maxWidth: .infinity).padding(.vertical, 10)
                                 .background(color.opacity(0.1), in: .rect(cornerRadius: 10))
                         }

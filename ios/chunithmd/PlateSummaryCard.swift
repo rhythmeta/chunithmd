@@ -18,8 +18,8 @@ struct PlateSummaryCard: View {
             ProgressView(value: Double(response.completedCount), total: Double(max(1, response.totalCount)))
             HStack(spacing: 12) {
                 metric(tr("已完成"), response.completedCount)
-                metric(tr("剩余"), response.remainingCount)
-                metric(tr("总计"), response.totalCount)
+                metric(tr("未完成"), response.remainingCount)
+                metric(tr("总谱面"), response.totalCount)
             }
         }.padding(16).background(.ultraThinMaterial, in: .rect(cornerRadius: 20))
     }

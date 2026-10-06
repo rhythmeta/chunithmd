@@ -18,20 +18,20 @@ struct ScoreEntryView: View {
                 Section { Text(song.title).font(.headline); Text(sheet.difficulty.uppercased()).foregroundStyle(difficultyStyle(sheet.difficulty, type: sheet.type)) }
                 Section(tr("成绩")) {
                     TextField("0–1,010,000", value: $score, format: .number.grouping(.never)).keyboardType(.numberPad)
-                    Picker(tr("通关"), selection: $clear) {
+                    Picker(tr("CLEAR 状态"), selection: $clear) {
                         Text(tr("无")).tag("")
                         ForEach(["failed", "clear", "hard", "brave", "absolute", "catastrophy"], id: \.self) { Text($0.uppercased()).tag($0) }
                     }
-                    Picker(tr("连击"), selection: $combo) {
+                    Picker(tr("COMBO 状态"), selection: $combo) {
                         Text(tr("无")).tag(""); Text("FC").tag("fullcombo"); Text("AJ").tag("alljustice"); Text("AJC").tag("alljusticecritical")
                     }
-                    Picker(tr("Full Chain"), selection: $chain) {
+                    Picker(tr("CHAIN 状态"), selection: $chain) {
                         Text(tr("无")).tag(""); Text(tr("铂 FC")).tag("fullchain"); Text(tr("金 FC")).tag("fullchain2")
                     }
                 }
                 if let error { Text(error).foregroundStyle(.red) }
             }
-            .navigationTitle(tr("录入成绩")).navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(tr("记录成绩")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button(tr("取消")) { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) { Button(tr("保存"), action: save).disabled(score == nil) }

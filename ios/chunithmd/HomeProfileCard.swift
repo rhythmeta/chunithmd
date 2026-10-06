@@ -25,7 +25,7 @@ struct HomeProfileCard: View {
                             .padding(.horizontal, 5).padding(.vertical, 2)
                             .background(AppTheme.serverColor(profile?.server ?? "jp"), in: .rect(cornerRadius: 4))
                     }
-                    Text(profile?.title.isEmpty == false ? profile?.title ?? "" : tr("点击编辑个人资料"))
+                    Text(profile?.title.isEmpty == false ? profile?.title ?? "" : tr("点击编辑"))
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)

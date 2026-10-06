@@ -24,7 +24,7 @@ struct SongAliasSection: View {
                     }
                 }
                 HStack {
-                    TextField(tr("提交新的歌曲别名"), text: $draft)
+                    TextField(tr("输入新别名"), text: $draft)
                         .font(.system(size: 13)).textInputAutocapitalization(.never).autocorrectionDisabled()
                         .padding(.horizontal, 12).padding(.vertical, 9)
                         .background(.secondary.opacity(0.08), in: .rect(cornerRadius: 10))
@@ -34,7 +34,7 @@ struct SongAliasSection: View {
                 }
                 if let message = account.community.songs[songID]?.message { Text(message).font(.caption).foregroundStyle(.secondary) }
                 if let error = account.community.songs[songID]?.error { Text(error).font(.caption).foregroundStyle(.red) }
-            } else { Text(tr("登录 Rhythmeta 后可投稿别名。")).font(.system(size: 12)).foregroundStyle(.secondary) }
+            } else { Text(tr("登录后可以投稿和参与社区别名投票。")).font(.system(size: 12)).foregroundStyle(.secondary) }
             if let candidates = account.community.songs[songID]?.candidates, !candidates.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(tr("我的投稿")).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)

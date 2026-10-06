@@ -6,8 +6,8 @@ enum HomeDestination: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .best: "Best 50"
-        case .random: tr("随机选曲")
-        case .recommendation: tr("推分推荐")
+        case .random: tr("随机歌曲")
+        case .recommendation: tr("吃分推荐")
         case .scores: tr("成绩查询")
         case .constants: tr("定数表")
         case .plate: tr("牌子进度")
@@ -17,14 +17,14 @@ enum HomeDestination: String, CaseIterable, Identifiable {
     }
     var subtitle: String {
         switch self {
-        case .best: tr("B30 + N20 · 你的最佳表现")
+        case .best: tr("基于 B{0} + N{1} 计算的玩家 Rating", 30, 20)
         case .random: tr("老虎机式随机抽曲")
-        case .recommendation: tr("寻找下一个 Rating 目标")
-        case .scores: tr("浏览全部成绩")
+        case .recommendation: tr("定数拟合分析")
+        case .scores: tr("查询歌曲成绩")
         case .constants: tr("生成并分享定数表图片")
-        case .plate: tr("查看各版本牌子获取进度")
+        case .plate: tr("查看各版本牌子达成情况")
         case .community: tr("提交、投票与发现歌曲别名")
-        case .collections: tr("整理与分享练习曲目")
+        case .collections: tr("整理喜爱的歌曲谱面")
         }
     }
     var icon: String {

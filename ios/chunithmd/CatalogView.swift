@@ -34,9 +34,9 @@ struct CatalogView: View {
                     grid.toggle()
                 }.accessibilityIdentifier("catalog-options").tint(.primary)
                 Menu(tr("排序"), systemImage: "arrow.up.arrow.down") {
-                    Picker(tr("排序方式"), selection: $catalog.sort.animation(.easeInOut)) {
-                        Text(tr("默认")).tag("default")
-                        Text(tr("版本/日期")).tag("versionDate")
+                    Picker(tr("排序"), selection: $catalog.sort.animation(.easeInOut)) {
+                        Text(tr("默认顺序")).tag("default")
+                        Text(tr("版本 / 发行日期")).tag("versionDate")
                         Text(tr("难度")).tag("difficulty")
                     }
                     Divider()

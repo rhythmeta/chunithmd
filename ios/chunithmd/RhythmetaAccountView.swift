@@ -49,7 +49,7 @@ struct RhythmetaAccountView: View {
                 if let user = store.state.user {
                     LabeledContent(tr("账号"), value: user.handle)
                     LabeledContent(tr("邮箱"), value: user.email)
-                    Button(tr("退出账号"), role: .destructive) { store.bridge.logout() }
+                    Button(tr("退出登录"), role: .destructive) { store.bridge.logout() }
                 } else {
                     Button(tr("登录 / 注册")) {
                         Task {
@@ -69,7 +69,7 @@ struct RhythmetaAccountView: View {
             }
             if store.state.user != nil {
                 Section {
-                    Button(tr("立即备份")) { store.bridge.backup(deviceName: "chunithmd iOS") }
+                    Button(tr("备份到云端")) { store.bridge.backup(deviceName: "chunithmd iOS") }
                     Button(tr("刷新备份列表")) { store.bridge.refresh() }
                 } footer: {
                     Text(tr("保留最近三份备份。恢复会替换全部本地档案、成绩、收藏和设置。恢复完成后，各页面会重新加载个人数据。"))

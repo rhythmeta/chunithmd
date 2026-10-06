@@ -13,7 +13,7 @@ struct ProfilesView: View {
                 Button { personal.perform(catalog: catalog) { try personal.bridge.activateProfile(id: profile.id) } } label: {
                     HStack {
                         ProfileAvatarView(data: Data(profile.avatar.map { UInt8(bitPattern: $0) })).frame(width: 48, height: 48)
-                        VStack(alignment: .leading, spacing: 5) { Text(profile.name).foregroundStyle(.primary); Text(profile.server.uppercased()).font(.caption).foregroundStyle(.secondary) }
+                        VStack(alignment: .leading, spacing: 5) { Text(profile.name).foregroundStyle(.primary); Text(AppTheme.serverName(profile.server)).font(.caption).foregroundStyle(.secondary) }
                         Spacer()
                         if profile.active { Image(systemName: "checkmark.circle.fill").foregroundStyle(.orange) }
                     }.padding(.vertical, 6)
@@ -22,7 +22,7 @@ struct ProfilesView: View {
                 .contextMenu { Button(tr("编辑")) { editing = profile }; if !profile.active { Button(tr("删除"), role: .destructive) { deleting = profile } } }
             }
         }
-        .navigationTitle(tr("玩家档案"))
+        .navigationTitle(tr("用户档案"))
         .toolbar { Button(tr("新建档案"), systemImage: "plus") { adding = true } }
         .sheet(isPresented: $adding) { ProfileEditorView(profile: nil) }
         .sheet(item: $editing) { ProfileEditorView(profile: $0) }

@@ -4,6 +4,28 @@ import kotlin.test.*
 import org.rhythmeta.chunithmd.shared.backup.*
 
 class PersonalDataBridgeTest {
+    @Test fun bestTableCapacityRoundTripsThroughPortableSettingsAndPreservesOtherSettings() {
+        val files = Files(); val bridge = PersonalDataBridge(files)
+        bridge.snapshotJson()
+        val state = files.snapshot().copy(settings = listOf(
+            BackupSetting(key = "android.chunithmd.theme.color_mode", kind = "int", integerValue = 2),
+            BackupSetting(key = "android.chunithmd.best.best_count", kind = "int", integerValue = 7),
+            BackupSetting(key = "android.chunithmd.best.new_count", kind = "int", integerValue = 8),
+        ))
+        files.write("personal.pb.gz", BackupCodec.encode(state))
+        val bundle = CatalogBundle(1, Catalog(songs = emptyList()))
+        assertEquals(7, bridge.bestTable(bundle, null).preferences.bestCount)
+        bridge.setBestTableCapacity(0, 120)
+        val reloaded = PersonalDataBridge(files).bestTable(bundle, null)
+        assertEquals(1, reloaded.preferences.bestCount)
+        assertEquals(99, reloaded.preferences.newCount)
+        assertEquals(2, files.snapshot().settings.first { it.key.endsWith("color_mode") }.integerValue)
+        assertEquals(3, files.snapshot().settings.size)
+        val before = files.data.getValue("personal.pb.gz").copyOf()
+        files.write("restore-pending.pb.gz", before)
+        assertFails { bridge.setBestTableCapacity(30, 20) }
+        assertContentEquals(before, files.data.getValue("personal.pb.gz"))
+    }
     private class Files : SnapshotFiles {
         val data = mutableMapOf<String, ByteArray>()
         override fun read(name: String) = SnapshotFile(data[name])
@@ -68,6 +90,8 @@ class PersonalDataBridgeTest {
             record("00000000-0000-4000-8000-000000000004", 1_010_000, 4, owner = "00000000-0000-4000-8000-000000000006"),
             record("00000000-0000-4000-8000-000000000005", 1_010_000, 5, chart = "song:std:expert"),
         ))))
+        assertEquals(0.9f, bridge.chartProgress()["song:std:master"])
+        assertEquals(1f, bridge.chartProgress()["song:std:expert"])
         val records = bridge.playHistory()
         assertFalse(records.any { it.id == "00000000-0000-4000-8000-000000000004" })
         val byTime = bridge.chartHistory(records, "song", "std:master", ScoreHistorySort.Time)

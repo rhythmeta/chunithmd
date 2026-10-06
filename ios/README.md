@@ -25,6 +25,8 @@ SwiftUI 原生客户端，最低支持 iOS 26。沿用项目的 Kotlin Multiplat
 
 iOS 通过 `Localization.swift` 的 `tr` 调用 KMP `AppStrings`。应用启动时使用共享的 `AppLanguage.resolve` 解析系统／应用语言，支持简体中文、繁体中文、英文和日文。翻译只维护在 `localization/strings.json`，带参数的文案使用 `{0}` 等占位符；歌曲名称、用户输入和存储用枚举值不翻译。`scripts/generate-localization.py --check` 同时检查 Swift 文案接入和共享翻译是否同步。
 
+Best 表沿用 maimaid 的分组列表、版本选择弹层和容量输入布局。版本覆盖仅在当前页面有效；B/N 容量由 KMP 校验并保存到 portable snapshot，复用既有 `android.chunithmd.best.*_count` 备份键。`BestTableResponse` 在共享层生成分组、Rating 和均值，界面与分享使用同一份结果。成绩行展示 Rank、分数、状态徽章、单曲 Rating 和定数，并接入歌曲详情的原生缩放转场。
+
 个人数据继续存入既有的 `personal.pb.gz`，由 `RhythmetaSnapshotFiles` 提供受保护的原子文件写入。每次修改读取最新快照，保留其他平台的数据字段；存在恢复日志时拒绝个人数据修改。账号凭据仍存入 Keychain，静态资源独立缓存。
 
 ## 验证

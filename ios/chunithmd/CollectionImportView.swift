@@ -15,13 +15,13 @@ struct CollectionImportView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(tr("分享链接或 CHMD1 分享码")) {
-                    TextField(tr("粘贴收藏夹链接"), text: $text, axis: .vertical).lineLimit(3...6).textInputAutocapitalization(.never).autocorrectionDisabled()
+                Section(tr("收藏夹链接或分享码")) {
+                    TextField(tr("请输入 chunithmd 收藏夹链接或 CHMD1 分享码"), text: $text, axis: .vertical).lineLimit(3...6).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Button(tr("预览收藏夹"), action: decode).disabled(text.isEmpty)
                 }
                 if let preview {
                     Section(preview.name) {
-                        Text(tr("{0} 个谱面", preview.entries.count))
+                        Text(tr("{0} 张谱面", preview.entries.count))
                         Button(tr("导入收藏夹"), action: save).buttonStyle(.borderedProminent)
                     }
                 }

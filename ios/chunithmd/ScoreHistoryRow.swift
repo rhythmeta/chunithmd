@@ -25,7 +25,7 @@ struct ScoreHistoryRow: View {
             }.layoutPriority(1)
             Spacer(minLength: 0)
             Button(action: onDelete) {
-                Label(tr("删除成绩"), systemImage: "trash").labelStyle(.iconOnly)
+                Label(tr("删除成绩记录"), systemImage: "trash").labelStyle(.iconOnly)
                     .font(.caption).foregroundStyle(.red.opacity(0.6))
             }.buttonStyle(.plain)
         }.padding(.horizontal, 20).padding(.vertical, 8)

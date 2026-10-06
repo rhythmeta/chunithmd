@@ -23,7 +23,7 @@ struct CollectionPickerView: View {
                     }
                 }
                 Section(tr("新建收藏夹")) {
-                    TextField(tr("名称"), text: $name)
+                    TextField(tr("收藏夹名称"), text: $name)
                     Button(tr("创建")) { personal.perform(catalog: catalog) { try personal.bridge.saveCollection(id: nil, name: name) }; name = "" }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }.navigationTitle(tr("加入收藏夹")).navigationBarTitleDisplayMode(.inline)

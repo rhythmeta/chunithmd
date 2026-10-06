@@ -5,6 +5,7 @@ struct SongDetailText: View {
     let font: Font
     var color: Color = .primary
     var lineHeight = 32.0
+    var alignment: Alignment = .center
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var textWidth = 0.0
@@ -13,10 +14,11 @@ struct SongDetailText: View {
     var body: some View {
         Group {
             if reduceMotion || dynamicTypeSize.isAccessibilitySize {
-                Text(text).font(font).foregroundStyle(color).multilineTextAlignment(.center)
+                Text(text).font(font).foregroundStyle(color).multilineTextAlignment(alignment == .leading ? .leading : .center)
             } else {
                 GeometryReader { proxy in
-                    let scrolling = textWidth > proxy.size.width
+                    let width = proxy.size.width.isFinite ? max(0, proxy.size.width) : 0
+                    let scrolling = textWidth > width
                     let distance = textWidth + 60
                     TimelineView(.animation(paused: !scrolling)) { context in
                         let phase = max(0, context.date.timeIntervalSince(start)).truncatingRemainder(dividingBy: distance / 30 + 2)
@@ -26,7 +28,7 @@ struct SongDetailText: View {
                         }
                         .font(font).foregroundStyle(color)
                         .offset(x: scrolling ? -max(0, phase - 2) * 30 : 0)
-                        .frame(width: proxy.size.width, alignment: scrolling ? .leading : .center)
+                        .frame(width: width, alignment: scrolling ? .leading : alignment)
                     }
                     .onChange(of: proxy.size.width) { start = .now }
                 }.frame(height: lineHeight).clipped()

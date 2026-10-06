@@ -180,6 +180,33 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
     fun rating(bundle: CatalogBundle): PlayerRatingSummary = calculatePlayerRating(bestEntries(bundle).map { RatingChartEntry(it.chartId, it.songId, it.rating, it.isNew) })
 
     @Throws(Exception::class)
+    fun bestTable(bundle: CatalogBundle, version: String?): BestTableResponse = read().let { state ->
+        buildBestTableResponse(bundle, records(state), server(state), bestTablePreferences(state).copy(selectedVersion = version))
+    }
+
+    @Throws(Exception::class)
+    fun setBestTableCapacity(bestCount: Int, newCount: Int) {
+        val state = read()
+        val preferences = BestTablePreferences(bestCount, newCount).normalized()
+        val values = listOf(
+            BackupSetting(key = "android.chunithmd.best.best_count", kind = "int", integerValue = preferences.bestCount.toLong()),
+            BackupSetting(key = "android.chunithmd.best.new_count", kind = "int", integerValue = preferences.newCount.toLong()),
+        )
+        val keys = values.map { it.key }.toSet()
+        write(state.copy(settings = state.settings.filterNot { it.key in keys } + values))
+    }
+
+    private fun bestTablePreferences(state: BackupSnapshot): BestTablePreferences {
+        fun count(key: String, fallback: Int): Int = state.settings
+            .firstOrNull { it.key == "android.chunithmd.best.$key" && it.kind == "int" }
+            ?.integerValue?.toInt() ?: fallback
+        return BestTablePreferences(
+            count("best_count", BestTablePreferences.DEFAULT_BEST_COUNT),
+            count("new_count", BestTablePreferences.DEFAULT_NEW_COUNT),
+        ).normalized()
+    }
+
+    @Throws(Exception::class)
     fun constants(bundle: CatalogBundle): ConstantTableResponse = read().let { buildConstantTableResponse(bundle, records(it), server(it), it.favoriteSongIds.toSet()) }
 
     @Throws(Exception::class)
@@ -203,6 +230,10 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
 
     fun ratingTable(constant: Double): List<RatingTableRow> = buildRatingTable(constant)
     fun randomSongs(songs: List<CatalogSong>, count: Int): List<CatalogSong> = RandomSongQuery.draw(songs, count)
+
+    @Throws(Exception::class)
+    fun chartProgress(): Map<String, Float> = records(read()).groupBy { it.sheetKey }
+        .mapValues { (_, records) -> scoreProgress(records.bestScore()?.score) }
 
     private fun uuid(): String {
         val bytes = secureRandomBytes(16)

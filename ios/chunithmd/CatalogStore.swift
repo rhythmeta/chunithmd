@@ -59,18 +59,19 @@ final class CatalogStore {
         UserDefaults.standard.set(ascending, forKey: "catalog.sortAscending")
         updateResults()
     } }
-    var selectedCategories = Set<String>() { didSet { updateResults() } }
-    var selectedVersions = Set<String>() { didSet { updateResults() } }
-    var selectedDifficulties = Set<String>() { didSet { updateResults() } }
+    var filters = CatalogFilterState() { didSet { updateResults() } }
+    var selectedCategories: Set<String> { get { filters.categories } set { filters.categories = newValue } }
+    var selectedVersions: Set<String> { get { filters.versions } set { filters.versions = newValue } }
+    var selectedDifficulties: Set<String> { get { filters.difficulties } set { filters.difficulties = newValue } }
     var server = "jp" { didSet { if oldValue != server { updateAllSongs(); updateResults() } } }
     var aliases: [String: [String]] = [:] { didSet { updateResults() } }
     var favorites: [String] = [] { didSet { updateResults() } }
-    var favoritesOnly = false { didSet { updateResults() } }
-    var hideDeleted = false { didSet { updateResults() } }
-    var minLevel = 1.0 { didSet { updateResults() } }
-    var maxLevel = 16.0 { didSet { updateResults() } }
-    var playableOnly = false { didSet { updateResults() } }
-    var syncMessage = tr("正在读取本地目录")
+    var favoritesOnly: Bool { get { filters.favoritesOnly } set { filters.favoritesOnly = newValue } }
+    var hideDeleted: Bool { get { filters.hideDeleted } set { filters.hideDeleted = newValue } }
+    var minLevel: Double { get { filters.minLevel } set { filters.minLevel = newValue } }
+    var maxLevel: Double { get { filters.maxLevel } set { filters.maxLevel = newValue } }
+    var playableOnly: Bool { get { filters.playableOnly } set { filters.playableOnly = newValue } }
+    var syncMessage = tr("正在加载歌曲目录")
     var errorMessage: String?
     var isSyncing = false
     var updateAvailable = false
@@ -103,7 +104,7 @@ final class CatalogStore {
         errorMessage = nil
         syncProgress = nil
         updateAvailable = false
-        syncMessage = tr("正在检查更新")
+        syncMessage = tr("正在检查更新…")
         bridge.checkForUpdate { @Sendable [weak self] json, error in
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -113,7 +114,7 @@ final class CatalogStore {
                     self.syncMessage = tr("检查更新失败")
                 } else if let json, let result = try? JSONDecoder().decode(UpdateCheckViewData.self, from: Data(json.utf8)) {
                     self.updateAvailable = result.updateAvailable
-                    self.syncMessage = result.updateAvailable ? tr("发现可用更新") : tr("已是最新版本")
+                    self.syncMessage = result.updateAvailable ? tr("发现可用更新") : tr("已是最新静态数据")
                 }
             }
         }
@@ -148,7 +149,7 @@ final class CatalogStore {
                 self.syncProgress = nil
                 if let error {
                     self.errorMessage = error
-                    self.syncMessage = tr("资源更新失败")
+                    self.syncMessage = tr("资源同步失败")
                 } else if let json {
                     self.install(json)
                     self.updateAvailable = false

@@ -20,7 +20,7 @@ struct CollectionsView: View {
                                 Image(systemName: "rectangle.stack").foregroundStyle(.secondary)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(collection.name)
-                                    Text(tr("{0} 个谱面", items.count)).font(.caption).foregroundStyle(.secondary)
+                                    Text(tr("{0} 张谱面", items.count)).font(.caption).foregroundStyle(.secondary)
                                 }
                             }
                             HStack(spacing: 6) {
@@ -42,7 +42,7 @@ struct CollectionsView: View {
         .toolbar { Button(tr("导入收藏夹"), systemImage: "square.and.arrow.down") { importing = true }; Button(tr("新建收藏夹"), systemImage: "folder.badge.plus") { name = ""; adding = true } }
         .sheet(isPresented: $importing) { CollectionImportView() }
         .alert(tr("新建收藏夹"), isPresented: $adding) {
-            TextField(tr("名称"), text: $name)
+            TextField(tr("收藏夹名称"), text: $name)
             Button(tr("取消"), role: .cancel) {}
             Button(tr("创建")) { personal.perform(catalog: catalog) { try personal.bridge.saveCollection(id: nil, name: name) } }
         }

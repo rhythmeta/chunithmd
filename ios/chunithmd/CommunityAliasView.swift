@@ -8,7 +8,7 @@ struct CommunityAliasView: View {
     var body: some View {
         List {
             if account.state.user == nil {
-                Section { NavigationLink { RhythmetaAccountView(store: account) } label: { Label(tr("登录后参与社区投票"), systemImage: "person.crop.circle") } }
+                Section { NavigationLink { RhythmetaAccountView(store: account) } label: { Label(tr("登录后可以投稿和参与社区别名投票"), systemImage: "person.crop.circle") } }
             }
             if let error = account.community.boardError ?? account.community.syncError { Text(error).foregroundStyle(.red) }
             ForEach(account.community.board) { candidate in
@@ -27,7 +27,7 @@ struct CommunityAliasView: View {
             }
             if account.community.boardLoading { ProgressView() }
             else if account.community.boardHasMore { Button(tr("加载更多")) { account.bridge.moreCommunity() } }
-            else if account.community.board.isEmpty { ContentUnavailableView(tr("暂无待投票别名"), systemImage: "bubble.left.and.bubble.right") }
+            else if account.community.board.isEmpty { ContentUnavailableView(tr("当前没有投票中的候选别名"), systemImage: "bubble.left.and.bubble.right") }
         }.navigationTitle(tr("社区别名"))
             .task { account.bridge.refreshCommunity() }
             .toolbar { Button(tr("刷新"), systemImage: "arrow.clockwise") { account.bridge.refreshCommunity() } }

@@ -3,31 +3,48 @@ import Shared
 
 struct CatalogFilterSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @Bindable var store: CatalogStore
+    @Binding var settings: CatalogFilterState
+    let categories: [String]
+    let versions: [String]
+    let difficulties: [String]
+
+    init(store: CatalogStore) {
+        _settings = Binding(get: { store.filters }, set: { store.filters = $0 })
+        categories = store.categories
+        versions = store.versions
+        difficulties = store.difficulties
+    }
+
+    init(settings: Binding<CatalogFilterState>, categories: [String], versions: [String], difficulties: [String]) {
+        _settings = settings
+        self.categories = categories
+        self.versions = versions
+        self.difficulties = difficulties
+    }
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    FilterSection(title: tr("快捷筛选")) {
-                        Toggle(isOn: $store.favoritesOnly) { Label(tr("仅显示收藏"), systemImage: "star") }
-                        Toggle(isOn: $store.hideDeleted) { Label(tr("隐藏已删除曲目"), systemImage: "eye.slash") }
-                        Toggle(isOn: $store.playableOnly) { Label(tr("仅显示当前服务器可玩"), systemImage: "play.circle") }
+                    FilterSection(title: tr("快速筛选")) {
+                        Toggle(isOn: $settings.favoritesOnly) { Label(tr("仅显示喜爱歌曲"), systemImage: "star") }
+                        Toggle(isOn: $settings.hideDeleted) { Label(tr("隐藏删除曲"), systemImage: "eye.slash") }
+                        Toggle(isOn: $settings.playableOnly) { Label(tr("仅显示可玩歌曲"), systemImage: "play.circle") }
                     }.font(.system(size: 14, weight: .semibold))
                     FilterSection(title: tr("难度与定数")) {
-                        FilterChoices(options: store.difficulties, selection: $store.selectedDifficulties, difficulty: true)
+                        FilterChoices(options: difficulties, selection: $settings.difficulties, difficulty: true)
                         Divider()
                         HStack {
                             Text(tr("定数范围")).font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)
                             Spacer()
-                            Text("\(store.minLevel.formatted(.number.precision(.fractionLength(1)))) – \(store.maxLevel.formatted(.number.precision(.fractionLength(1))))")
+                            Text("\(settings.minLevel.formatted(.number.precision(.fractionLength(1)))) – \(settings.maxLevel.formatted(.number.precision(.fractionLength(1))))")
                                 .font(.subheadline.bold().monospacedDigit())
                         }
-                        LevelRangeSlider(lower: $store.minLevel, upper: $store.maxLevel, active: !store.selectedDifficulties.isEmpty)
+                        LevelRangeSlider(lower: $settings.minLevel, upper: $settings.maxLevel, active: !settings.difficulties.isEmpty)
                         Text(tr("选择难度后，按该难度的定数范围筛选。")).font(.system(size: 11)).foregroundStyle(.secondary)
                     }
-                    FilterSection(title: tr("分类")) { FilterChoices(options: store.categories, selection: $store.selectedCategories) }
+                    FilterSection(title: tr("分类")) { FilterChoices(options: categories, selection: $settings.categories) }
                     FilterSection(title: tr("版本")) {
-                        FilterChoices(options: Array(store.versions.reversed()), selection: $store.selectedVersions,
+                        FilterChoices(options: Array(versions.reversed()), selection: $settings.versions,
                                       displayValue: { CatalogVersionFormatter.shared.badge(version: $0) })
                     }
                 }.padding(16)
@@ -46,8 +63,6 @@ struct CatalogFilterSheet: View {
         }
     }
     private func reset() {
-        store.selectedCategories = []; store.selectedVersions = []; store.selectedDifficulties = []
-        store.playableOnly = false; store.hideDeleted = false; store.favoritesOnly = false
-        store.minLevel = 1; store.maxLevel = 16
+        settings = CatalogFilterState()
     }
 }

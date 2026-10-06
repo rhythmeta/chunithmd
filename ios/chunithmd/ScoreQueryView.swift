@@ -20,7 +20,7 @@ struct ScoreQueryView: View {
                     sheetIDs: visible.map { $0.type + ":" + $0.difficulty }, preferenceKey: "scores.gridColumns")
             } else {
                 List {
-                    Section(tr("{0} 个谱面", entries.count)) {
+                    Section(tr("{0} 张谱面", entries.count)) {
                         ForEach(entries, id: \.chartId) { entry in
                             if let song = catalog.allSongs.first(where: { $0.id == entry.songId }) {
                                 SongRow(song: song, subtitle: "\(entry.difficulty.uppercased()) · \(Int(entry.score).formatted()) \(entry.rank) · \(entry.rating.formatted(.number.precision(.fractionLength(2))))", preferredSheet: entry.type + ":" + entry.difficulty)
@@ -33,7 +33,7 @@ struct ScoreQueryView: View {
             .toolbar {
                 Menu(tr("筛选与排序"), systemImage: "line.3.horizontal.decrease") {
                     Picker(tr("难度"), selection: $difficulty) {
-                        Text(tr("全部")).tag("all")
+                        Text(tr("全部难度")).tag("all")
                         ForEach(difficultyNames, id: \.self) { Text($0.uppercased()).tag($0) }
                     }
                     Picker(tr("排序"), selection: $sort) {
@@ -44,7 +44,7 @@ struct ScoreQueryView: View {
                 }
                 Button(tr("切换布局"), systemImage: grid ? "list.bullet" : "square.grid.3x3") { grid.toggle() }
             }
-            .searchable(text: $search, prompt: tr("搜索已游玩曲目"))
+            .searchable(text: $search, prompt: tr("查询歌曲成绩"))
             .overlay { if entries.isEmpty { ContentUnavailableView(tr("没有符合条件的成绩"), systemImage: "list.bullet.rectangle") } }
     }
 }

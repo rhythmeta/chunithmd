@@ -10,7 +10,7 @@ struct RecommendationView: View {
         List {
             let entries = newSongs ? response?.new_ ?? [] : response?.old ?? []
             if entries.isEmpty {
-                ContentUnavailableView(tr("暂无推荐"), systemImage: "sparkles", description: Text(tr("录入成绩后，为你寻找下一个 Rating 目标。")))
+                ContentUnavailableView(tr("暂时没有可吃分的谱面"), systemImage: "sparkles", description: Text(tr("先录入成绩，或提高当前谱面的分数")))
                     .frame(minHeight: 320).listRowBackground(Color.clear)
             }
             ForEach(entries, id: \.chartId) { entry in
@@ -18,7 +18,7 @@ struct RecommendationView: View {
                     SongRow(song: song, subtitle: "\(entry.sheet.difficulty.uppercased()) → \(entry.targetRank) · +\(entry.potentialGain.formatted(.number.precision(.fractionLength(3))))", preferredSheet: entry.sheet.type + ":" + entry.sheet.difficulty)
                 }
             }
-        }.navigationTitle(tr("推分推荐"))
+        }.navigationTitle(tr("吃分推荐"))
             .toolbar {
                 Menu(newSongs ? tr("新曲") : tr("旧曲"), systemImage: "rectangle.2.swap") {
                     Picker(tr("推荐范围"), selection: $newSongs) { Text(tr("新曲")).tag(true); Text(tr("旧曲")).tag(false) }

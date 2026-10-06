@@ -17,6 +17,22 @@ private data class NativeCatalogRequest(
 /** Keep the decoded bundle in Swift's store; typing never reparses the full catalog. */
 object NativeCatalogQuery {
     @Throws(Exception::class)
+    fun randomSongs(bundle: CatalogBundle, filterJson: String, server: String, favorites: List<String>, count: Int): String {
+        val request = CatalogJson.codec.decodeFromString<NativeCatalogRequest>(filterJson)
+        val pool = RandomSongQuery.filter(bundle, CatalogFilters(
+            categories = request.categories.toSet(), versions = request.versions.toSet(),
+            difficulties = request.difficulties.toSet(), playableOnly = request.playableOnly,
+            hideDeleted = request.hideDeleted, favoritesOnly = request.favoritesOnly,
+            minLevel = request.minLevel, maxLevel = request.maxLevel,
+        ), server, favorites.toSet())
+        return encodeRegional(RandomSongQuery.draw(pool, count), server)
+    }
+
+    fun progressSheetIds(bundle: CatalogBundle, songId: String, server: String): List<String> =
+        bundle.catalog.songs.firstOrNull { it.songId == songId }?.progressSheets(server)
+            ?.map { "${it.type}:${it.difficulty}" }.orEmpty()
+
+    @Throws(Exception::class)
     fun search(bundle: CatalogBundle, requestJson: String, aliasesJson: String): String {
         val request = CatalogJson.codec.decodeFromString<NativeCatalogRequest>(requestJson)
         val aliases = CatalogJson.codec.decodeFromString<Map<String, List<String>>>(aliasesJson)

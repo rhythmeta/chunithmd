@@ -6,6 +6,21 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CJK = re.compile(r'[\u3400-\u9fff]')
+# Direct SwiftUI copy must use the shared catalog even when written in English.
+# These are language-invariant game terms, brands, units and score notation.
+UI_COPY_CONTEXT = re.compile(
+    r'\b(?:Text|Label|Button|Toggle|Picker|Section|TextField|SecureField|'
+    r'ProgressView|ContentUnavailableView|LabeledContent|NavigationLink|Tab|'
+    r'Menu|Link|ShareLink|SharePreview|navigationTitle|accessibilityLabel|'
+    r'accessibilityHint|accessibilityValue|alert|confirmationDialog)\(\s*(?:verbatim:\s*)?$'
+    r'|\b(?:title|subtitle|prompt|message|label):\s*$'
+)
+INVARIANT_WORDS = frozenset({
+    'Rating', 'B', 'N', 'B30', 'N20', 'NEW', 'BEST', 'Best', 'R', 'Lv', 'BPM',
+    'CHUNITHM', 'chunithmd', 'JUSTICE', 'ATTACK', 'MISS',
+    'Spirit', 'Tribute', 'Legend', 'FC', 'AJ', 'AJC',
+    'Otogame', 'YouTube', 'Bilibili', 'SHA',
+})
 
 
 def literal(source, start):
@@ -63,19 +78,28 @@ def strings(source):
 
 def check_source(source, catalog, context):
     for start, _, chunks, arguments in strings(source):
+        location = f'{context}:{source.count(chr(10), 0, start) + 1}'
         is_key = re.search(r'\btr\(\s*$', source[:start]) is not None
         if is_key:
-            assert not arguments, f'Interpolated localization key in {context}'
+            assert not arguments, f'Interpolated localization key in {location}'
             key = json.loads('"' + chunks[0] + '"')
-            assert key in catalog, f'Missing catalog key in {context}: {key}'
+            assert key in catalog, f'Missing catalog key in {location}: {key}'
         elif any(CJK.search(chunk) for chunk in chunks):
-            raise AssertionError(f'Unlocalized Swift text in {context}: {chunks}')
+            raise AssertionError(f'Unlocalized Swift text in {location}: {chunks}')
+        elif UI_COPY_CONTEXT.search(source[:start]):
+            # Decode escapes before checking words (e.g. a line break before R).
+            decoded = ''.join(
+                json.loads('"' + chunk + '"') for chunk in chunks
+            )
+            words = {word for word in re.findall(r'[^\W_]+', decoded)
+                     if any(character.isalpha() for character in word)}
+            assert not words - INVARIANT_WORDS, f'Unlocalized Swift UI text in {location}: {chunks}'
         for argument in arguments:
             check_source(argument, catalog, context)
 
 
 def validate(catalog):
-    for path in (ROOT / 'ios/chunithmd').glob('*.swift'):
+    for path in (ROOT / 'ios/chunithmd').rglob('*.swift'):
         check_source(path.read_text(), catalog, path.relative_to(ROOT))
 
 

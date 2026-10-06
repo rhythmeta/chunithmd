@@ -60,8 +60,8 @@ struct CoverGrid: View {
         })
         .onAppear { zoom = savedColumns == 3 ? 2 : 1 }
         .onChange(of: savedColumns) { if initialZoom == nil { zoom = savedColumns == 3 ? 2 : 1 } }
-        .accessibilityAction(named: tr("放大网格")) { savedColumns = 3 }
-        .accessibilityAction(named: tr("缩小网格")) { savedColumns = 5 }
+        .accessibilityAction(named: tr("放大封面")) { savedColumns = 3 }
+        .accessibilityAction(named: tr("缩小封面")) { savedColumns = 5 }
     }
 
     private func preserveAnchor() {

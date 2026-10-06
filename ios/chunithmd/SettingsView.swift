@@ -10,13 +10,13 @@ struct SettingsView: View {
         List {
             Section {
                 NavigationLink { ProfilesView() } label: {
-                    SettingsRowLabel(title: tr("玩家档案"), icon: "person.2.fill", color: .purple)
+                    SettingsRowLabel(title: tr("用户档案"), icon: "person.2.fill", color: .purple)
                 }
             } header: { Text(tr("用户管理")) } footer: { Text(tr("为不同玩家或服务器分别保存成绩。")) }
             Section {
                 Button { resources = true } label: {
                     HStack {
-                        SettingsRowLabel(title: tr("静态数据更新"), icon: "arrow.down.circle.fill", color: .blue)
+                        SettingsRowLabel(title: tr("静态数据"), icon: "arrow.down.circle.fill", color: .blue)
                         Spacer()
                         Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.tertiary)
                     }

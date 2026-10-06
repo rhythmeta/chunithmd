@@ -8,7 +8,7 @@ struct BestChartSummaryView: View {
     var body: some View {
         if let best = personal.best.first(where: { $0.chartId == song.id + ":" + sheet.id }) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(tr("个人最佳")).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+                Text(tr("当前最佳")).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
                 HStack(alignment: .firstTextBaseline) {
                     Text(Int(best.score).formatted()).font(.system(size: 19, weight: .bold, design: .rounded))
                     Text(best.rank).font(.system(size: 19, weight: .bold, design: .rounded)).foregroundStyle(scoreRankColor(best.rank))
