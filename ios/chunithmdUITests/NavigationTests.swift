@@ -27,6 +27,77 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testProfileEditorLayoutAndDraftCancellation() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        let profile = app.buttons["home-profile"]
+        XCTAssertTrue(profile.waitForExistence(timeout: 20))
+        profile.tap()
+        XCTAssertTrue(app.navigationBars["编辑档案"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["基本信息"].exists)
+        XCTAssertTrue(app.buttons["清除头像"].exists)
+        XCTAssertTrue(app.buttons["保存"].isEnabled)
+        capture(app, name: "profile-editor")
+        let title = app.textFields["profile-title"]
+        let originalTitle = title.value as? String
+        title.tap(); title.typeText(" Draft")
+        app.buttons["取消"].tap()
+        profile.tap()
+        XCTAssertEqual(app.textFields["profile-title"].value as? String, originalTitle)
+        app.buttons["选择头像"].tap()
+        capture(app, name: "profile-photo-picker")
+        // The system photo picker must dismiss back into the same unsaved form.
+        let photos = app.navigationBars["照片"]
+        XCTAssertTrue(photos.waitForExistence(timeout: 10))
+        photos.buttons["取消"].tap()
+        XCTAssertTrue(photos.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["编辑档案"].waitForExistence(timeout: 5))
+        app.buttons["取消"].tap()
+        app.tabBars.buttons["设置"].tap()
+        app.buttons["用户档案"].tap()
+        app.buttons["新建档案"].tap()
+        XCTAssertFalse(app.buttons["保存"].isEnabled)
+        let name = app.textFields["profile-name"]
+        name.tap(); name.typeText("   ")
+        XCTAssertFalse(app.buttons["保存"].isEnabled)
+        name.typeText("Temporary")
+        XCTAssertTrue(app.buttons["保存"].isEnabled)
+        app.buttons["取消"].tap()
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Temporary")).firstMatch.exists)
+    }
+
+    func testProfileAvatarCropAndClear() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-profile"].waitForExistence(timeout: 20))
+        app.buttons["home-profile"].tap()
+        app.buttons["选择头像"].tap()
+        XCTAssertTrue(app.navigationBars["照片"].waitForExistence(timeout: 10))
+        let loaded = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            app.collectionViews.cells.allElementsBoundByIndex.contains { $0.isHittable }
+        }, object: nil)
+        guard XCTWaiter.wait(for: [loaded], timeout: 15) == .completed,
+              let photo = app.collectionViews.cells.allElementsBoundByIndex.first(where: { $0.isHittable }) else {
+            throw XCTSkip("Simulator photo library has no selectable images")
+        }
+        capture(app, name: "profile-photo-library")
+        photo.tap()
+        XCTAssertTrue(app.navigationBars["裁剪头像"].waitForExistence(timeout: 10))
+        capture(app, name: "profile-avatar-crop")
+        app.buttons["重置"].tap()
+        app.buttons["使用头像"].tap()
+        XCTAssertTrue(app.navigationBars["裁剪头像"].waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["清除头像"].isEnabled)
+        capture(app, name: "profile-avatar-preview")
+        app.buttons["清除头像"].tap()
+        XCTAssertFalse(app.buttons["清除头像"].isEnabled)
+        app.buttons["取消"].tap()
+    }
+
     func testRandomDrawFiltersAndCancellation() {
         let app = catalog()
         let search = app.searchFields.firstMatch

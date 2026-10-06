@@ -35,6 +35,6 @@ struct HomeProfileCard: View {
             .background(AppTheme.surface, in: .rect(cornerRadius: 20))
             .overlay { RoundedRectangle(cornerRadius: 20).stroke(AppTheme.border) }
             .shadow(color: .black.opacity(0.02), radius: 8, y: 4)
-        }.buttonStyle(.plain)
+        }.buttonStyle(.plain).accessibilityIdentifier("home-profile")
     }
 }
