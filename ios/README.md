@@ -16,13 +16,15 @@ SwiftUI 原生客户端，最低支持 iOS 26。沿用项目的 Kotlin Multiplat
 - `Models/`：共享层返回的 Swift 数据模型与界面数据结构。
 - `Services/`：KMP 状态桥接、原生存储适配和封面取色。
 - `Utils/`：本地化、主题及跨页面使用的样式工具。
-- `Views/`：按功能划分为 `Home`、`Catalog`、`Song`、`Best`、`Collections`、`Community`、`ConstantTable`、`Plate`、`Random`、`Recommendation`、`Score`、`ScoreQuery` 和 `Settings`。设置目录包含档案、静态数据、云端账户和成绩导入页面。
+- `Views/`：按功能划分为 `Home`、`Catalog`、`Song`、`Best`、`Collections`、`Community`、`ConstantTable`、`Plate`、`Random`、`Recommendation`、`Scanner`、`Score`、`ScoreQuery` 和 `Settings`。设置目录包含档案、静态数据、云端账户和成绩导入页面。
 - `Views/Components/`：跨页面复用的头像、封面网格、徽章、筛选控件和分享图片组件。
 - `Views/Navigation/`：底部导航、页面路由及歌曲转场。
 
 Xcode 使用同步文件夹自动收录这些目录中的源文件。UI 测试保留在同级 `chunithmdUITests/`，业务逻辑继续维护在 KMP `android/shared` 中。
 
 ## 界面与功能
+
+- 底部导航为主页、扫描、设置及独立歌曲搜索入口。扫描与 Android 一样暂为占位页；收藏夹从主页进入，收藏分享链接会直接打开该页面。
 
 - 首页按 maimaid iOS 的实际布局对齐：16 点页边距、60 点头像与 Rating 角标、紧凑的 Best 50 入口、渐变图标与双列功能卡片。
 - 歌曲搜索是底部独立搜索按钮，进入后使用系统展开的搜索栏；支持别名、ID、排序和筛选。

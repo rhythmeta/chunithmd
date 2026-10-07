@@ -2,13 +2,14 @@ import Shared
 import SwiftUI
 
 struct ContentView: View {
-    enum TabSelection { case home, collections, settings, search }
+    enum TabSelection { case home, scan, settings, search }
     @State private var navigation = SongNavigation()
     @Namespace private var songTransitionNamespace
     @State private var catalog = CatalogStore()
     @State private var personal = PersonalStore()
     @State private var account = RhythmetaAccountStore()
     @State private var selection = TabSelection.home
+    @State private var homePath: [HomeDestination] = []
     @FocusState private var searchFocused: Bool
     @AppStorage("appearance") private var appearance = "system"
 
@@ -16,10 +17,10 @@ struct ContentView: View {
         @Bindable var navigation = navigation
         TabView(selection: $selection) {
             Tab(tr("主页"), systemImage: "house", value: .home) {
-                NavigationStack { HomeView() }
+                NavigationStack(path: $homePath) { HomeView() }
             }
-            Tab(tr("收藏"), systemImage: "folder", value: .collections) {
-                NavigationStack { CollectionsView() }
+            Tab(tr("扫描"), systemImage: "camera.viewfinder", value: .scan) {
+                NavigationStack { ScannerView() }
             }
             Tab(tr("设置"), systemImage: "gearshape", value: .settings) {
                 NavigationStack { SettingsView(account: account) }
@@ -56,7 +57,8 @@ struct ContentView: View {
         .onOpenURL { url in
             if url.scheme == "chunithmd", url.host == "auth" { account.bridge.handleCallback(url: url.absoluteString) }
             else if (url.scheme == "chunithmd" && url.host == "collection") || (url.host == "dash.rhythmeta.org" && url.path.hasPrefix("/collection/")) {
-                selection = .collections
+                selection = .home
+                homePath = [.collections]
                 personal.perform(catalog: catalog) {
                     _ = try personal.bridge.importCollection(text: url.absoluteString)
                 }

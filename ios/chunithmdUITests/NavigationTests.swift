@@ -138,13 +138,26 @@ final class NavigationTests: XCTestCase {
         }
     }
 
+    private func openHomeCollections(_ app: XCUIApplication) {
+        app.tabBars.buttons["主页"].tap()
+        let collections = app.buttons["home-collections"]
+        for _ in 0..<4 where !collections.isHittable { app.swipeUp() }
+        XCTAssertTrue(collections.isHittable)
+        collections.tap()
+        XCTAssertTrue(app.navigationBars["收藏夹"].waitForExistence(timeout: 5))
+    }
+
     func testCollectionsImportPreviewsSortGridPickerAndRename() {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "light"]
         app.launch()
-        XCTAssertTrue(app.tabBars.buttons["收藏"].waitForExistence(timeout: 20))
-        app.tabBars.buttons["收藏"].tap()
+        XCTAssertTrue(app.tabBars.buttons["扫描"].waitForExistence(timeout: 20))
+        XCTAssertFalse(app.tabBars.buttons["收藏"].exists)
+        app.tabBars.buttons["扫描"].tap()
+        XCTAssertTrue(app.navigationBars["扫描"].waitForExistence(timeout: 5))
+        capture(app, name: "scan-tab")
+        openHomeCollections(app)
         for title in ["UI 收藏夹检查", "UI 重命名检查"] {
             let previous = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
             if previous.exists {
@@ -211,7 +224,7 @@ final class NavigationTests: XCTestCase {
         app.terminate()
         app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
         app.launch()
-        app.tabBars.buttons["收藏"].tap()
+        openHomeCollections(app)
         let renamed = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "UI 重命名检查")).firstMatch
         XCTAssertTrue(renamed.waitForExistence(timeout: 10))
         capture(app, name: "collections-dark")

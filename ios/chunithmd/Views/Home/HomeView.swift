@@ -24,7 +24,9 @@ struct HomeView: View {
                 }.buttonStyle(.plain)
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
                     ForEach(HomeDestination.allCases.filter { $0 != .best }) { destination in
-                        NavigationLink(value: destination) { HomeFeatureCard(destination: destination) }.buttonStyle(.plain)
+                        NavigationLink(value: destination) { HomeFeatureCard(destination: destination) }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("home-" + destination.rawValue)
                     }
                 }
                 if catalog.bundle == nil { CatalogLoadingView().frame(minHeight: 180) }
