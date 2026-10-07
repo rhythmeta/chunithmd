@@ -4570,5 +4570,35 @@
     "zh-Hant": "辨識模型無法使用，請檢查模型更新後重試。",
     "en": "Recognition models are unavailable. Check for model updates and try again.",
     "ja": "認識モデルを使用できません。モデルの更新を確認して再試行してください。"
+  },
+  "相机暂不可用，请使用相册识别。": {
+    "zh-Hans": "相机暂不可用，请使用相册识别。",
+    "zh-Hant": "相機暫不可用，請使用相簿辨識。",
+    "en": "Camera unavailable. Choose a photo to scan.",
+    "ja": "カメラを使用できません。写真を選択して認識してください。"
+  },
+  "请在设置中允许保存照片。": {
+    "zh-Hans": "请在设置中允许保存照片。",
+    "zh-Hant": "請在設定中允許儲存照片。",
+    "en": "Allow saving photos in Settings.",
+    "ja": "設定で写真の保存を許可してください。"
+  },
+  "请输入 0–1,010,000 之间的整数分数。": {
+    "en": "Enter a whole-number score from 0 to 1,010,000.",
+    "ja": "0〜1,010,000 の整数スコアを入力してください。",
+    "zh-Hans": "请输入 0–1,010,000 之间的整数分数。",
+    "zh-Hant": "請輸入 0–1,010,000 之間的整數分數。"
+  },
+  "成绩已保存，可继续修改后再次保存。": {
+    "en": "Score saved. You can edit it and save another record.",
+    "ja": "スコアを保存しました。変更して別の記録として保存できます。",
+    "zh-Hans": "成绩已保存，可继续修改后再次保存。",
+    "zh-Hant": "成績已儲存，可繼續修改後再次儲存。"
+  },
+  "评价": {
+    "en": "Rank",
+    "ja": "ランク",
+    "zh-Hans": "评价",
+    "zh-Hant": "評價"
   }
 }

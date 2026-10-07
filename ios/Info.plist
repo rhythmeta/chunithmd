@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Use the camera to recognize CHUNITHM score screens on your device.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save the recognized score photo to your photo library.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

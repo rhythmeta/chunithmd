@@ -4,7 +4,7 @@ struct ScannerModelDownloadView: View {
     let models: ScannerModelController
 
     var body: some View {
-        Section(tr("识别模型")) {
+        VStack(spacing: 14) {
             switch models.state.stage {
             case "checking": ProgressView(tr("正在检查识别模型…"))
             case "downloading":
@@ -29,6 +29,10 @@ struct ScannerModelDownloadView: View {
                 Text(tr("现有模型仍可离线使用。")).font(.caption).foregroundStyle(.secondary)
             }
         }
+        .padding(20)
+        .frame(maxWidth: 360)
+        .background(.regularMaterial, in: .rect(cornerRadius: 24))
+        .padding(24)
     }
 
     private func size(_ bytes: Int64) -> String {

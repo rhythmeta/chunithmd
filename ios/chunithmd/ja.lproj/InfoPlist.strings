@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "カメラを使って端末上で CHUNITHM のリザルトを認識します。";
+"NSPhotoLibraryAddUsageDescription" = "認識したリザルトの写真を写真ライブラリに保存します。";

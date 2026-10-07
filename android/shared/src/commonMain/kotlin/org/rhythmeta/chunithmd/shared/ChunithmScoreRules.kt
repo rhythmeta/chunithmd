@@ -23,6 +23,13 @@ object ChunithmScoreRules {
         RankThreshold("SSS+", 1_009_000),
     )
 
+    /** Manual entry accepts integer scores, including pasted grouping separators, without OCR substitutions. */
+    fun parseEntryScore(raw: String): Int? {
+        val text = raw.trim().map { if (it in '！'..'～') (it.code - 0xfee0).toChar() else it }.joinToString("")
+        if (!Regex("(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)").matches(text)) return null
+        return text.replace(",", "").toIntOrNull()?.takeIf(::isValid)
+    }
+
     fun isValid(score: Int): Boolean = score in 0..maximumScore
 
     fun rank(score: Int): String = when {

@@ -82,7 +82,8 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
 
     @Throws(Exception::class)
     fun saveScannedScore(bundle: CatalogBundle, profileId: String, region: String, chartKey: String,
-        scoreText: String, clear: String, combo: String) {
+        scoreText: String, clear: String, combo: String, chain: String = "") {
+        require(chain.isEmpty() || FullChainType.fromWire(chain) != null)
         val command = requireNotNull(org.rhythmeta.chunithmd.shared.scanner.ScoreScanner.prepareSave(
             bundle, region, chartKey, scoreText, clear, combo)) { tr("请确认谱面并输入有效分数。") }
         val state = read()
@@ -90,7 +91,7 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
         require(profile.id == profileId && profile.server == region) { tr("玩家档案已变更，请重新识别。") }
         val result = BackupScore(profileId = profile.id, chartKey = command.sheetKey, songId = command.songId,
             score = command.score, rank = ChunithmScoreRules.rank(command.score),
-            achievedAt = Clock.System.now().toEpochMilliseconds(), clear = command.clear, fc = command.combo)
+            achievedAt = Clock.System.now().toEpochMilliseconds(), clear = command.clear, fc = command.combo, fs = chain)
         write(state.copy(playRecords = state.playRecords + BackupPlayRecord(uuid(), result)))
     }
 
@@ -274,6 +275,8 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
 
     fun chartHistory(records: List<ScoreRecord>, songId: String, sheetId: String, sort: ScoreHistorySort): List<ScoreRecord> =
         records.filter { it.songId == songId && it.sheetKey == "$songId:$sheetId" }.sortForHistory(sort)
+
+    fun bestHistorySummary(records: List<ScoreRecord>): BestScoreSummary? = records.bestScoreSummary()
 
     fun bestHistoryRecordId(records: List<ScoreRecord>): String? = records.bestScore()?.id
 

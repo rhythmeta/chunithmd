@@ -12,12 +12,16 @@ class PersonalDataBridgeTest {
             CatalogSheet("we", "狂", "☆☆☆", regions = mapOf("jp" to true)),
             CatalogSheet("we", "止", "☆☆", regions = mapOf("jp" to true)),
         )))))
-        bridge.saveScannedScore(bundle, profile, "jp", "we-song:we:止", "１，００７，５００", "clear", "alljustice")
+        bridge.saveScannedScore(bundle, profile, "jp", "we-song:we:止", "１，００７，５００", "clear", "alljustice", "fullchain2")
         val result = files.snapshot().playRecords.single().result
         assertEquals(profile, result.profileId)
         assertEquals("we-song:we:止", result.chartKey)
         assertEquals(1_007_500, result.score)
         assertEquals("alljustice", result.fc)
+        assertEquals("fullchain2", result.fs)
+        val valid = files.data.getValue("personal.pb.gz").copyOf()
+        assertFails { bridge.saveScannedScore(bundle, profile, "jp", "we-song:we:止", "1007500", "clear", "", "invalid") }
+        assertContentEquals(valid, files.data.getValue("personal.pb.gz"))
         val other = bridge.saveProfile(null, "Other", "jp", "")
         bridge.activateProfile(other)
         val before = files.data.getValue("personal.pb.gz").copyOf()
