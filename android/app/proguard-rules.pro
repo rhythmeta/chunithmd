@@ -3,3 +3,6 @@
 -keep class kotlin.** { *; }
 -keep class io.ktor.** { *; }
 -dontwarn java.lang.management.**
+
+# ONNX Runtime exposes Java classes through JNI.
+-keep class ai.onnxruntime.** { *; }

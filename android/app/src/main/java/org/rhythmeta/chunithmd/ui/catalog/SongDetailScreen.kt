@@ -1500,7 +1500,7 @@ private fun ScoreHistoryRow(
 }
 
 @Composable
-private fun ScoreEntrySheet(
+internal fun ScoreEntrySheet(
     visible: Boolean,
     song: CatalogSong,
     sheet: CatalogSheet?,
@@ -1508,6 +1508,12 @@ private fun ScoreEntrySheet(
     saving: Boolean,
     onSave: (Int, ClearType, FullComboType?, FullChainType?) -> Unit,
     onDismiss: () -> Unit,
+    initialScore: Int? = null,
+    initialClear: ClearType = ClearType.Clear,
+    initialFullCombo: FullComboType? = null,
+    initialFullChain: FullChainType? = null,
+    errorMessage: String? = null,
+    onInputChanged: () -> Unit = {},
 ) {
     val sheetKey = sheet?.let { song.sheetKey(it) }
     var scoreText by rememberSaveable(sheetKey) { mutableStateOf("") }
@@ -1517,10 +1523,10 @@ private fun ScoreEntrySheet(
     val focusManager = LocalFocusManager.current
     LaunchedEffect(visible, sheetKey) {
         if (visible) {
-            scoreText = ""
-            clear = ClearType.Clear.wireValue
-            fullCombo = null
-            fullChain = null
+            scoreText = initialScore?.toString().orEmpty()
+            clear = initialClear.wireValue
+            fullCombo = initialFullCombo?.wireValue
+            fullChain = initialFullChain?.wireValue
         }
     }
     val parsedScore = scoreText.toIntOrNull()
@@ -1563,6 +1569,9 @@ private fun ScoreEntrySheet(
             item {
                 ScoreEntrySongCard(song = song, sheet = sheet)
             }
+            errorMessage?.let { message ->
+                item { MiuixText(message, color = MiuixTheme.colorScheme.error) }
+            }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SmallTitle(
@@ -1588,6 +1597,7 @@ private fun ScoreEntrySheet(
                             onValueChange = { value ->
                                 if (value.length <= 7 && value.all(Char::isDigit) && (value.toIntOrNull() ?: 0) <= ChunithmScoreRules.maximumScore) {
                                     scoreText = value
+                                    onInputChanged()
                                 }
                             },
                             label = tr("分数"),
@@ -1611,21 +1621,21 @@ private fun ScoreEntrySheet(
                                 title = tr("CLEAR 状态"),
                                 items = ClearType.entries.map { ScoreStatusOption(it.displayName, clearStatusColor(it.wireValue)) },
                                 selectedIndex = ClearType.entries.indexOf(ClearType.fromWire(clear) ?: ClearType.Clear),
-                                onSelectedIndexChange = { index -> clear = ClearType.entries[index].wireValue },
+                                onSelectedIndexChange = { index -> clear = ClearType.entries[index].wireValue; onInputChanged() },
                             )
                             ScoreStatusDropdown(
                                 title = tr("COMBO 状态"),
                                 items = listOf(ScoreStatusOption(tr("无"), MiuixTheme.colorScheme.onSurfaceVariantSummary)) +
                                     FullComboType.entries.map { ScoreStatusOption(it.displayName, comboStatusColor(it.wireValue)) },
                                 selectedIndex = fullCombo?.let { value -> FullComboType.entries.indexOf(FullComboType.fromWire(value)) + 1 } ?: 0,
-                                onSelectedIndexChange = { index -> fullCombo = FullComboType.entries.getOrNull(index - 1)?.wireValue },
+                                onSelectedIndexChange = { index -> fullCombo = FullComboType.entries.getOrNull(index - 1)?.wireValue; onInputChanged() },
                             )
                             ScoreStatusDropdown(
                                 title = tr("CHAIN 状态"),
                                 items = listOf(ScoreStatusOption(tr("无"), MiuixTheme.colorScheme.onSurfaceVariantSummary)) +
                                     FullChainType.entries.map { ScoreStatusOption(tr(it.displayName), chainStatusColor(it.wireValue)) },
                                 selectedIndex = fullChain?.let { value -> FullChainType.entries.indexOf(FullChainType.fromWire(value)) + 1 } ?: 0,
-                                onSelectedIndexChange = { index -> fullChain = FullChainType.entries.getOrNull(index - 1)?.wireValue },
+                                onSelectedIndexChange = { index -> fullChain = FullChainType.entries.getOrNull(index - 1)?.wireValue; onInputChanged() },
                             )
                         }
 

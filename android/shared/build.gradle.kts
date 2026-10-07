@@ -31,6 +31,9 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            // 1.23.2 dispatches SME2 instructions on SME-only chips (e.g. SM8850), causing SIGILL.
+            // https://github.com/microsoft/onnxruntime/issues/26377
+            implementation("com.microsoft.onnxruntime:onnxruntime-android:1.30.0")
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

@@ -1,0 +1,32 @@
+{
+  "source": "exp.pt",
+  "source_sha256": "42e353ff4ad1419809145f82af5253b9b2992bf3d40ac15fbd573f43834a0177",
+  "export_versions": {
+    "ultralytics": "8.4.19",
+    "torch": "2.8.0",
+    "onnx": "1.19.1",
+    "coremltools": "9.0"
+  },
+  "input_size": 1024,
+  "classes": [
+    "title",
+    "difficulty",
+    "level",
+    "score",
+    "clear",
+    "combo"
+  ],
+  "output_shape": [
+    1,
+    10,
+    21504
+  ],
+  "layout": "NCHW RGB 0..1; raw cx,cy,w,h pixels + six class probabilities; no objectness or NMS",
+  "letterbox": "round resized dimensions; centered integer padding; RGB 114",
+  "assets_sha256": {
+    "model-assets/android/ScoreDetector.onnx": "44b8ae29c2e7afa3a0e1bf028f5e25980b7aa3ed58330398172f1f704470ce73",
+    "model-assets/ios/ScoreDetector.mlpackage/Data/com.apple.CoreML/model.mlmodel": "cbf8063bc1d4fd4e3cf0a23166c86b0a015b50c37f41d7adf6d619432df3c6a2",
+    "model-assets/ios/ScoreDetector.mlpackage/Data/com.apple.CoreML/weights/weight.bin": "bb3297d924608adc069285fcd58c36b66d63e7f0c50c04f4ca4ed1e48958c5a4",
+    "model-assets/ios/ScoreDetector.mlpackage/Manifest.json": "4afffbbeb90a96f91e51e2d86b305768ba586991bc3c975efabce7bdb2c1988d"
+  }
+}

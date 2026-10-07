@@ -45,3 +45,12 @@ miuix-doc
 static-worker/public/community-index.json
 static-worker/public/_headers
 static-worker/.wrangler/
+
+models-worker/public/
+models-worker/.wrangler/
+
+# Machine-local IDE and compiler state
+xcuserdata/
+*.xcuserstate
+.kotlin/
+.wrangler/

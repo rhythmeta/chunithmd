@@ -4294,5 +4294,281 @@
     "ja": "再読み込み",
     "zh-Hans": "重新加载",
     "zh-Hant": "重新載入"
+  },
+  "CLEAR": {
+    "en": "CLEAR",
+    "ja": "CLEAR",
+    "zh-Hans": "CLEAR",
+    "zh-Hant": "CLEAR"
+  },
+  "FAILED": {
+    "en": "FAILED",
+    "ja": "FAILED",
+    "zh-Hans": "FAILED",
+    "zh-Hant": "FAILED"
+  },
+  "OCR 状态文字：{0} / {1}": {
+    "en": "OCR status text: {0} / {1}",
+    "ja": "OCR 状態文字：{0} / {1}",
+    "zh-Hans": "OCR 状态文字：{0} / {1}",
+    "zh-Hant": "OCR 狀態文字：{0} / {1}"
+  },
+  "保存成绩照片": {
+    "en": "Save score photo",
+    "ja": "リザルト写真を保存",
+    "zh-Hans": "保存成绩照片",
+    "zh-Hant": "儲存成績照片"
+  },
+  "允许访问相机": {
+    "en": "Allow camera access",
+    "ja": "カメラへのアクセスを許可",
+    "zh-Hans": "允许访问相机",
+    "zh-Hant": "允許存取相機"
+  },
+  "允许访问相机以实时识别成绩": {
+    "en": "Allow camera access to scan scores live",
+    "ja": "カメラを許可してリザルトをリアルタイム認識",
+    "zh-Hans": "允许访问相机以实时识别成绩",
+    "zh-Hant": "允許存取相機以即時辨識成績"
+  },
+  "匹配谱面": {
+    "en": "Match chart",
+    "ja": "譜面を検索",
+    "zh-Hans": "匹配谱面",
+    "zh-Hant": "配對譜面"
+  },
+  "已保存": {
+    "en": "Saved",
+    "ja": "保存済み",
+    "zh-Hans": "已保存",
+    "zh-Hant": "已儲存"
+  },
+  "成绩图": {
+    "en": "Score photo",
+    "ja": "リザルト画像",
+    "zh-Hans": "成绩图",
+    "zh-Hant": "成績圖"
+  },
+  "打开设置": {
+    "en": "Open settings",
+    "ja": "設定を開く",
+    "zh-Hans": "打开设置",
+    "zh-Hant": "開啟設定"
+  },
+  "显示识别框": {
+    "en": "Show detection boxes",
+    "ja": "認識枠を表示",
+    "zh-Hans": "显示识别框",
+    "zh-Hant": "顯示辨識框"
+  },
+  "曲名": {
+    "en": "Song title",
+    "ja": "曲名",
+    "zh-Hans": "曲名",
+    "zh-Hant": "曲名"
+  },
+  "未找到匹配谱面，请修改曲名、难度或属性后重试。": {
+    "en": "No matching chart. Edit the title, difficulty or attribute and try again.",
+    "ja": "一致する譜面がありません。曲名・難易度・属性を修正して再検索してください。",
+    "zh-Hans": "未找到匹配谱面，请修改曲名、难度或属性后重试。",
+    "zh-Hant": "找不到相符譜面，請修改曲名、難度或屬性後重試。"
+  },
+  "未找到成绩字段，请选择清晰的单张成绩图。": {
+    "en": "No score fields found. Select a clear photo of one result.",
+    "ja": "項目が見つかりません。リザルトが1つ写った鮮明な画像を選んでください。",
+    "zh-Hans": "未找到成绩字段，请选择清晰的单张成绩图。",
+    "zh-Hant": "找不到成績欄位，請選擇清晰的單張成績圖。"
+  },
+  "正在保存…": {
+    "en": "Saving…",
+    "ja": "保存中…",
+    "zh-Hans": "正在保存…",
+    "zh-Hant": "正在儲存…"
+  },
+  "正在识别…": {
+    "en": "Recognizing…",
+    "ja": "認識中…",
+    "zh-Hans": "正在识别…",
+    "zh-Hant": "正在辨識…"
+  },
+  "灰色未点亮的 COMBO 字样也可能被读出，请对照图片选择状态。": {
+    "en": "Inactive gray COMBO labels may also be read. Check the photo before selecting a status.",
+    "ja": "灰色の未達成 COMBO 表示も読み取ることがあります。画像を確認して状態を選んでください。",
+    "zh-Hans": "灰色未点亮的 COMBO 字样也可能被读出，请对照图片选择状态。",
+    "zh-Hant": "灰色未點亮的 COMBO 字樣也可能被讀出，請對照圖片選擇狀態。"
+  },
+  "照片保存失败": {
+    "en": "Could not save photo",
+    "ja": "写真を保存できませんでした",
+    "zh-Hans": "照片保存失败",
+    "zh-Hant": "照片儲存失敗"
+  },
+  "照片已保存": {
+    "en": "Photo saved",
+    "ja": "写真を保存しました",
+    "zh-Hans": "照片已保存",
+    "zh-Hant": "照片已儲存"
+  },
+  "玩家档案已变更，请重新识别。": {
+    "en": "The player profile changed. Recognize the photo again.",
+    "ja": "プレイヤープロフィールが変更されました。画像を再認識してください。",
+    "zh-Hans": "玩家档案已变更，请重新识别。",
+    "zh-Hant": "玩家檔案已變更，請重新辨識。"
+  },
+  "确认并保存": {
+    "en": "Confirm and save",
+    "ja": "確認して保存",
+    "zh-Hans": "确认并保存",
+    "zh-Hant": "確認並儲存"
+  },
+  "等级 / WE 属性": {
+    "en": "Level / WE attribute",
+    "ja": "レベル / WE 属性",
+    "zh-Hans": "等级 / WE 属性",
+    "zh-Hant": "等級 / WE 屬性"
+  },
+  "识别失败": {
+    "en": "Recognition failed",
+    "ja": "認識に失敗しました",
+    "zh-Hans": "识别失败",
+    "zh-Hant": "辨識失敗"
+  },
+  "识别模型不可用，请重新安装应用。": {
+    "en": "The recognition model is unavailable. Reinstall the app.",
+    "ja": "認識モデルを利用できません。アプリを再インストールしてください。",
+    "zh-Hans": "识别模型不可用，请重新安装应用。",
+    "zh-Hant": "無法使用辨識模型，請重新安裝應用程式。"
+  },
+  "请先加载曲库并选择玩家档案。": {
+    "en": "Load the catalog and select a player profile first.",
+    "ja": "先に楽曲データを読み込み、プレイヤープロフィールを選択してください。",
+    "zh-Hans": "请先加载曲库并选择玩家档案。",
+    "zh-Hant": "請先載入曲庫並選擇玩家檔案。"
+  },
+  "请确认谱面并输入有效分数。": {
+    "en": "Confirm the chart and enter a valid score.",
+    "ja": "譜面を確認し、有効なスコアを入力してください。",
+    "zh-Hans": "请确认谱面并输入有效分数。",
+    "zh-Hant": "請確認譜面並輸入有效分數。"
+  },
+  "返回实时扫描": {
+    "en": "Back to live scan",
+    "ja": "リアルタイム認識に戻る",
+    "zh-Hans": "返回实时扫描",
+    "zh-Hant": "返回即時掃描"
+  },
+  "选择成绩图": {
+    "en": "Select score photo",
+    "ja": "リザルト画像を選択",
+    "zh-Hans": "选择成绩图",
+    "zh-Hant": "選擇成績圖"
+  },
+  "选择成绩图，在设备上识别并核对后保存。": {
+    "en": "Select a score photo, recognize it on-device, then review and save.",
+    "ja": "リザルト画像を選び、端末で認識した内容を確認して保存します。",
+    "zh-Hans": "选择成绩图，在设备上识别并核对后保存。",
+    "zh-Hant": "選擇成績圖，在裝置上辨識並確認後儲存。"
+  },
+  "无法启动相机": {
+    "en": "Could not start camera",
+    "ja": "カメラを起動できませんでした",
+    "zh-Hans": "无法启动相机",
+    "zh-Hant": "無法啟動相機"
+  },
+  "未识别到匹配谱面，请重新扫描。": {
+    "zh-Hans": "未识别到匹配谱面，请重新扫描。",
+    "zh-Hant": "未辨識到對應譜面，請重新掃描。",
+    "en": "No matching chart found. Please scan again.",
+    "ja": "対応する譜面を認識できませんでした。もう一度スキャンしてください。"
+  },
+  "请横持手机，将成绩画面对准取景框": {
+    "zh-Hans": "请横持手机，将成绩画面对准取景框",
+    "zh-Hant": "請橫持手機，將成績畫面對準取景框",
+    "en": "Hold your phone sideways and frame the score screen",
+    "ja": "スマートフォンを横向きに持ち、リザルト画面を枠内に収めてください"
+  },
+  "正在检查识别模型…": {
+    "zh-Hans": "正在检查识别模型…",
+    "zh-Hant": "正在檢查辨識模型…",
+    "en": "Checking recognition models…",
+    "ja": "認識モデルを確認中…"
+  },
+  "正在下载识别模型…": {
+    "zh-Hans": "正在下载识别模型…",
+    "zh-Hant": "正在下載辨識模型…",
+    "en": "Downloading recognition models…",
+    "ja": "認識モデルをダウンロード中…"
+  },
+  "识别模型有更新": {
+    "zh-Hans": "识别模型有更新",
+    "zh-Hant": "辨識模型有更新",
+    "en": "Recognition model update available",
+    "ja": "認識モデルの更新があります"
+  },
+  "模型下载失败": {
+    "zh-Hans": "模型下载失败",
+    "zh-Hant": "模型下載失敗",
+    "en": "Model download failed",
+    "ja": "モデルをダウンロードできませんでした"
+  },
+  "下载识别模型": {
+    "zh-Hans": "下载识别模型",
+    "zh-Hant": "下載辨識模型",
+    "en": "Download recognition models",
+    "ja": "認識モデルをダウンロード"
+  },
+  "首次扫描需要下载模型，下载后可离线识别。": {
+    "zh-Hans": "首次扫描需要下载模型，下载后可离线识别。",
+    "zh-Hant": "首次掃描需要下載模型，下載後可離線辨識。",
+    "en": "Download models before your first scan. Recognition then works offline.",
+    "ja": "初回スキャン前にモデルをダウンロードしてください。その後はオフラインで認識できます。"
+  },
+  "请检查网络连接后重试。": {
+    "zh-Hans": "请检查网络连接后重试。",
+    "zh-Hant": "請檢查網路連線後重試。",
+    "en": "Check your internet connection and try again.",
+    "ja": "ネットワーク接続を確認して再試行してください。"
+  },
+  "更新模型": {
+    "zh-Hans": "更新模型",
+    "zh-Hant": "更新模型",
+    "en": "Update models",
+    "ja": "モデルを更新"
+  },
+  "下载模型": {
+    "zh-Hans": "下载模型",
+    "zh-Hant": "下載模型",
+    "en": "Download models",
+    "ja": "モデルをダウンロード"
+  },
+  "现有模型仍可离线使用。": {
+    "zh-Hans": "现有模型仍可离线使用。",
+    "zh-Hant": "現有模型仍可離線使用。",
+    "en": "Downloaded models remain available offline.",
+    "ja": "ダウンロード済みモデルは引き続きオフラインで使用できます。"
+  },
+  "模型已就绪": {
+    "zh-Hans": "模型已就绪",
+    "zh-Hant": "模型已就緒",
+    "en": "Models ready",
+    "ja": "モデルの準備ができました"
+  },
+  "识别模型": {
+    "zh-Hans": "识别模型",
+    "zh-Hant": "辨識模型",
+    "en": "Recognition models",
+    "ja": "認識モデル"
+  },
+  "检查模型更新": {
+    "zh-Hans": "检查模型更新",
+    "zh-Hant": "檢查模型更新",
+    "en": "Check for model updates",
+    "ja": "モデルの更新を確認"
+  },
+  "识别模型不可用，请检查模型更新后重试。": {
+    "zh-Hans": "识别模型不可用，请检查模型更新后重试。",
+    "zh-Hant": "辨識模型無法使用，請檢查模型更新後重試。",
+    "en": "Recognition models are unavailable. Check for model updates and try again.",
+    "ja": "認識モデルを使用できません。モデルの更新を確認して再試行してください。"
   }
 }

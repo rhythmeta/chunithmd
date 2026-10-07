@@ -84,6 +84,7 @@ When modifying an existing feature, preserve these architectural boundaries unle
 ## Validation workflow
 
 - After Android navigation or animation changes, Codex should compile the Android app and stop. The user performs device installation, interaction testing, and visual acceptance.
+- When the user explicitly requests tests on their connected Android phone, build with `assembleDebug` / `assembleDebugAndroidTest`, install with `adb install -r -t`, and invoke `adb shell am instrument` directly. Do not run `connectedDebugAndroidTest` on their installed app: AGP's test cleanup uninstalls the target and deletes its data. Do not clear or uninstall the target app as part of testing.
 
 ## Android navigation lessons
 

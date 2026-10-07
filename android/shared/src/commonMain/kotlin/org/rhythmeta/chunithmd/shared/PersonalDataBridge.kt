@@ -81,6 +81,20 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
     }
 
     @Throws(Exception::class)
+    fun saveScannedScore(bundle: CatalogBundle, profileId: String, region: String, chartKey: String,
+        scoreText: String, clear: String, combo: String) {
+        val command = requireNotNull(org.rhythmeta.chunithmd.shared.scanner.ScoreScanner.prepareSave(
+            bundle, region, chartKey, scoreText, clear, combo)) { tr("请确认谱面并输入有效分数。") }
+        val state = read()
+        val profile = state.profiles.first { it.active }
+        require(profile.id == profileId && profile.server == region) { tr("玩家档案已变更，请重新识别。") }
+        val result = BackupScore(profileId = profile.id, chartKey = command.sheetKey, songId = command.songId,
+            score = command.score, rank = ChunithmScoreRules.rank(command.score),
+            achievedAt = Clock.System.now().toEpochMilliseconds(), clear = command.clear, fc = command.combo)
+        write(state.copy(playRecords = state.playRecords + BackupPlayRecord(uuid(), result)))
+    }
+
+    @Throws(Exception::class)
     fun deleteRecord(id: String) {
         val state = read()
         write(state.copy(playRecords = state.playRecords.filterNot { it.id == id }))

@@ -579,7 +579,6 @@ private fun CatalogApp(
     val homeTopBarScrollBehavior = MiuixScrollBehavior()
     var navigationBarHeightPx by remember { mutableIntStateOf(0) }
     val navigationBarBottomSpace = with(LocalDensity.current) { navigationBarHeightPx.toDp() } + 16.dp
-    val scanTopBarScrollBehavior = MiuixScrollBehavior()
     val catalogTopBarScrollBehavior = MiuixScrollBehavior()
     val settingsTopBarScrollBehavior = MiuixScrollBehavior()
     val themeTopBarScrollBehavior = MiuixScrollBehavior()
@@ -698,6 +697,14 @@ private fun CatalogApp(
     // Keep the detail page in the same navigation state as the root pages so its
     // enter/exit transition is observable and back can return to Settings.
     val navBackStack = rememberNavBackStack<AppRoute>(AppRoute.Home)
+    val scannerActivity = androidx.activity.compose.LocalActivity.current
+    val scannerVisible = selectedTab == 1 && navBackStack.lastOrNull() == AppRoute.Home
+    LaunchedEffect(scannerActivity, scannerVisible) {
+        // Keep scanner controls upright; camera orientation follows the physical sensor separately.
+        scannerActivity?.requestedOrientation = if (scannerVisible) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+    }
+
     fun pushRoute(route: AppRoute) {
         if (route == AppRoute.Recommendations) recommendationSwitcherVisible = true
         if (navBackStack.lastOrNull() != route) {
@@ -896,9 +903,18 @@ private fun CatalogApp(
     @Composable
     fun RootPage(page: Int, modifier: Modifier = Modifier) {
         Box(modifier) {
+            if (page == 1) {
+                org.rhythmeta.chunithmd.scanner.ScannerScreen(
+                    catalog = bundle, profile = activeProfile, profiles = profileRepository, scores = scoreRepository,
+                    enabled = selectedTab == 1 && navBackStack.lastOrNull() == AppRoute.Home,
+                    bottomPadding = navigationBarBottomSpace,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(), localJacketPath = repository::localJacketPath,
+                    modifier = Modifier.fillMaxSize().kyantLayerBackdrop(navigationBackdrop),
+                )
+                return@Box
+            }
             val topBarScrollBehavior = when (page) {
                 0 -> homeTopBarScrollBehavior
-                1 -> scanTopBarScrollBehavior
                 2 -> catalogTopBarScrollBehavior
                 8 -> randomSongTopBarScrollBehavior
                 9 -> recommendationTopBarScrollBehavior
@@ -973,7 +989,6 @@ private fun CatalogApp(
                         androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
                     }
                 }
-                1 -> BlankDestination(Modifier.padding(padding).fillMaxSize())
                 2 -> CompositionLocalProvider(LocalCatalogCoverTransition provides catalogCoverTransition) {
                 CatalogScreen(
                     modifier = Modifier.fillMaxSize(),

@@ -1,0 +1,6 @@
+Scanner regression fixtures from the existing chunithmd-ultralytics-v2 dataset.
+Test APK only; never included in the production app.
+
+jp.jpg: images/train/00E83B28-6E2A-4260-BDD7-546D53A052A5_1_105_c.jpeg
+cn.jpg: images/val/x-2101890779866390664-0.jpg
+we.jpg: images/train/x-2070703421343285651-0.jpg

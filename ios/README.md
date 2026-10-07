@@ -24,7 +24,7 @@ Xcode 使用同步文件夹自动收录这些目录中的源文件。UI 测试�
 
 ## 界面与功能
 
-- 底部导航为主页、扫描、设置及独立歌曲搜索入口。扫描与 Android 一样暂为占位页；收藏夹从主页进入，收藏分享链接会直接打开该页面。
+- 底部导航为主页、扫描、设置及独立歌曲搜索入口。扫描支持选择单张成绩图、端侧识别、核对谱面和分数后保存；收藏夹从主页进入，收藏分享链接会直接打开该页面。
 
 - 首页按 maimaid iOS 的实际布局对齐：16 点页边距、60 点头像与 Rating 角标、紧凑的 Best 50 入口、渐变图标与双列功能卡片。
 - 歌曲搜索是底部独立搜索按钮，进入后使用系统展开的搜索栏；支持别名、ID、排序和筛选。
@@ -36,6 +36,18 @@ Xcode 使用同步文件夹自动收录这些目录中的源文件。UI 测试�
 - 支持 Rhythmeta 账号、社区别名、云备份，以及水鱼、落雪和 Otogame 成绩导入。Otogame 登录使用独立的临时 WKWebView 会话。
 
 ## 数据边界
+
+两端应用均不内置模型。扫描页首次使用时下载模型，显示下载大小、进度、取消与重试；完整校验后可离线使用，有更新时保留当前可用版本直到新版本下载完成。iOS 下载 `ScoreDetector.mlpackage` 并在设备上编译、缓存 `mlmodelc`，定位 title、difficulty、level、score、clear、combo，再用系统 Vision 识别文字。Android 使用同一检测权重的 ONNX 和按需下载的 PaddleOCR v6 small 文字识别模型，支持 ASCII、中文、日文；iOS 不打包 PaddleOCR。图片不会上传。图像方向校正、模型推理和 OCR 在原生后台执行；框解码、文本解析、按档案地区匹配曲库及保存校验由 KMP `shared/scanner` 复用。
+
+模型源文件放在 `model-assets/`（不属于应用资源）。`node scripts/build-model-assets.mjs` 生成 Android/iOS 各自的清单与按 SHA-256 寻址的文件；独立的 `models-worker` 发布到 `https://chunithmd-models.rhythmeta.org`，由 `.github/workflows/build-model-assets.yml` 自动部署和校验。`scripts/export-score-detector.py`、`scripts/fetch-paddleocr.py` 的导出目标也在该目录。KMP `ScannerModelRepository` 负责白名单路径、尺寸与 SHA-256 校验、流式下载和原子激活，`ScannerModelManager` 维护两端共用的下载状态。缓存不进入个人数据备份；已完成的文件可在重试时复用。
+
+WE 的 level 只取属性字符，例如「狂」「止」，不取星级。同名 WE 谱面按属性匹配；结果不明确时需要手动选择。由于未点亮的灰色 FULL COMBO 也能被 OCR 读出，页面展示原始状态文字，COMBO 默认空白，由用户对照原图选择 FC／AJ／AJC。CLEAR 预填仅为 CLEAR／FAILED，不推断技能条状态。每次识别都要明确点击保存才写入当前档案的游玩记录。
+
+更换权重时，在仓库根目录运行 `python3 scripts/export-score-detector.py model-assets/exp.pt`。导出环境见脚本顶部；Core ML 导出在 macOS 执行。两端固定使用 RGB 1024×1024、114 灰色居中 letterbox、原始 `[1,10,21504]` 输出，类别顺序不可改，输出不含 objectness 和 NMS。脚本在导出后验证两种格式，更新资源及 `scripts/score-detector.json` 中的版本、源权重和资源 SHA-256；`python3 scripts/export-score-detector.py --check` 可检查资源完整性。更改输入大小或导出结构时需同步调整共享解码器。
+
+Android OCR 模型来自官方 `PaddlePaddle/PP-OCRv6_small_rec_onnx`，版本与 SHA-256 固定在 `scripts/paddleocr-v6.json`。运行 `python3 scripts/fetch-paddleocr.py` 下载并验证模型、从官方词表生成 Unicode JSON（需 PyYAML、onnx）；`--check` 仅用标准库检查资源。预处理为 BGR、48 像素高、保留比例并右侧补零，使用 CTC 解码。Android ONNX Runtime 固定为 1.30.0，避免旧版在 SM8850 上误用 SME2 指令导致 SIGILL。
+
+Android 扫描页沿用 maimaid 的全屏相机布局：右上角进入相册，底部结果卡片直接打开与手动记录共用的成绩录入面板，相机快门只保存照片。Android 扫描页面保持竖屏布局，提示横持手机；模型分析帧和照片按物理握持方向旋转，与页面方向独立。离开扫描页恢复系统方向设置。CameraX 在前台扫描页启用，申请 1920×1080 分析帧；首个有效谱面和分数立即展示卡片，后续变化按谱面身份与分数做连续帧确认，打开录入面板、处理照片及离开页面时暂停分析。相册结果保留到手动返回实时扫描，保存成绩仍需确认；iOS 扫描页保持现有交互。
 
 `PersonalDataBridge` 在 KMP 中复用成绩、Rating、推荐、牌子、导入和分享规则。Swift 的 Store 将共享状态转换为界面数据。
 

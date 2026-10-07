@@ -4,6 +4,30 @@ import kotlin.test.*
 import org.rhythmeta.chunithmd.shared.backup.*
 
 class PersonalDataBridgeTest {
+    @Test fun scannedScoreSavesSelectedWeChartAndRejectsStaleProfileWithoutWriting() {
+        val files = Files(); val bridge = PersonalDataBridge(files)
+        bridge.snapshotJson()
+        val profile = files.snapshot().profiles.single().id
+        val bundle = CatalogBundle(1, Catalog(songs = listOf(CatalogSong("we-song", "WE song", sheets = listOf(
+            CatalogSheet("we", "狂", "☆☆☆", regions = mapOf("jp" to true)),
+            CatalogSheet("we", "止", "☆☆", regions = mapOf("jp" to true)),
+        )))))
+        bridge.saveScannedScore(bundle, profile, "jp", "we-song:we:止", "１，００７，５００", "clear", "alljustice")
+        val result = files.snapshot().playRecords.single().result
+        assertEquals(profile, result.profileId)
+        assertEquals("we-song:we:止", result.chartKey)
+        assertEquals(1_007_500, result.score)
+        assertEquals("alljustice", result.fc)
+        val other = bridge.saveProfile(null, "Other", "jp", "")
+        bridge.activateProfile(other)
+        val before = files.data.getValue("personal.pb.gz").copyOf()
+        assertFails { bridge.saveScannedScore(bundle, profile, "jp", "we-song:we:止", "1,007,500", "clear", "") }
+        assertContentEquals(before, files.data.getValue("personal.pb.gz"))
+        files.write("restore-pending.pb.gz", before)
+        assertFails { bridge.saveScannedScore(bundle, other, "jp", "we-song:we:止", "1,007,500", "clear", "") }
+        assertContentEquals(before, files.data.getValue("personal.pb.gz"))
+    }
+
     @Test fun collectionPickerSavesMembershipAtomicallyAndPreservesOtherCharts() {
         val files = Files(); val bridge = PersonalDataBridge(files)
         bridge.saveCollection(null, "One"); bridge.saveCollection(null, "Two")

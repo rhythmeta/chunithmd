@@ -1,0 +1,8 @@
+PP-OCRv6_small_rec_onnx — PaddlePaddle / PaddleOCR
+Source: https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx
+Revision: b8f84f0b80c529de40b4fbb3544b84fa7233a513
+License: Apache License 2.0 (see PaddleOCR-LICENSE.txt).
+
+The official ONNX weights are redistributed unchanged. The UTF-8 JSON vocabulary
+is derived from inference.yml's character_dict with CTC blank and space tokens.
+Android preprocessing and CTC decoding are implemented in the client.

@@ -1,0 +1,23 @@
+{
+  "source": "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx",
+  "revision": "b8f84f0b80c529de40b4fbb3544b84fa7233a513",
+  "license": "Apache-2.0",
+  "source_sha256": {
+    "inference.onnx": "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634",
+    "inference.yml": "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1"
+  },
+  "input": "float32 NCHW BGR, height 48, pixel / 127.5 - 1; normalized zero right padding",
+  "width_buckets": [
+    320,
+    640,
+    1280,
+    2560
+  ],
+  "output": "[1,T,18710] probabilities; CTC blank 0, collapse repeats then remove blanks",
+  "assets_sha256": {
+    "model-assets/android/PaddleOCRv6Small.onnx": "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634",
+    "model-assets/android/PaddleOCRv6SmallVocab.json": "9a6f23b8c76457890a5e95976d440c468211068fb06a0c224cf828e6a95d9eff",
+    "model-assets/android/PaddleOCR-LICENSE.txt": "3840c5c0c61c294264d2dd77b8777be6ddd90121ef4e0e64abcd22edea581d6e",
+    "model-assets/android/PaddleOCR-NOTICE.txt": "503ec0b9931674a3d6b4711ca2df2d1edca8c827eedd52dfe5bcc4d3169ee3a1"
+  }
+}
