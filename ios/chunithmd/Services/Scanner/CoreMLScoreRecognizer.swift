@@ -74,7 +74,13 @@ actor CoreMLScoreRecognizer {
         guard let destination = CGImageDestinationCreateWithData(preview, UTType.jpeg.identifier as CFString, 1, nil) else { throw ScannerFailure.invalidImage }
         CGImageDestinationAddImage(destination, image, [kCGImageDestinationLossyCompressionQuality: 0.8] as CFDictionary)
         guard CGImageDestinationFinalize(destination) else { throw ScannerFailure.invalidImage }
-        return ScannerCapture(observationsJSON: String(decoding: json, as: UTF8.self), previewData: preview as Data)
+        let boxes = detections.map { detection in
+            let box = detection.box
+            return ScannerDetectedBox(field: detection.field,
+                rect: CGRect(x: Double(box.x), y: Double(box.y), width: Double(box.width), height: Double(box.height)))
+        }
+        return ScannerCapture(observationsJSON: String(decoding: json, as: UTF8.self), previewData: preview as Data,
+            boxes: boxes, imageSize: CGSize(width: image.width, height: image.height))
     }
 
     private func loadModel(files: ScannerModelFiles) throws -> MLModel {

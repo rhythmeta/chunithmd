@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(PersonalStore.self) private var personal
     @Bindable var account: RhythmetaAccountStore
     @AppStorage("appearance") private var appearance = "system"
+    @AppStorage("scanner.showBoundingBoxes") private var showBoundingBoxes = false
     var body: some View {
         List {
             Section {
@@ -39,6 +40,9 @@ struct SettingsView: View {
                 } label: { SettingsRowLabel(title: tr("主题"), icon: "moon.fill", color: .indigo) }
                     .tint(.secondary)
                     .accessibilityIdentifier("settings-theme")
+                Toggle(isOn: $showBoundingBoxes) {
+                    SettingsRowLabel(title: tr("显示识别框"), icon: "viewfinder", color: .green)
+                }.accessibilityIdentifier("settings-scanner-boxes")
             }
             SettingsAboutSection(account: account)
         }

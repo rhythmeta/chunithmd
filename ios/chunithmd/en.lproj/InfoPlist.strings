@@ -1,2 +1,3 @@
 "NSCameraUsageDescription" = "Use the camera to recognize CHUNITHM score screens on your device.";
 "NSPhotoLibraryAddUsageDescription" = "Save the recognized score photo to your photo library.";
+"NSMotionUsageDescription" = "Detect how you hold your phone to keep score scanning upright.";

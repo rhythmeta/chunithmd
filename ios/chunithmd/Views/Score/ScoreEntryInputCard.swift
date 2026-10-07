@@ -49,6 +49,6 @@ struct ScoreEntryInputCard: View {
                     options: FullChainType.entries.reversed().map { ($0.wireValue, tr($0.displayName)) }, selection: $chain)
             }
         }
-        .padding(24).background(.ultraThinMaterial, in: .rect(cornerRadius: 20))
+        .padding(24).background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 20))
     }
 }

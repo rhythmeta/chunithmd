@@ -1,2 +1,3 @@
 "NSCameraUsageDescription" = "カメラを使って端末上で CHUNITHM のリザルトを認識します。";
 "NSPhotoLibraryAddUsageDescription" = "認識したリザルトの写真を写真ライブラリに保存します。";
+"NSMotionUsageDescription" = "スマートフォンの持ち方を検出し、スコア画像の向きを正しく合わせます。";

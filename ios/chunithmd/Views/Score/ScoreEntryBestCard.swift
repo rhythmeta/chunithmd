@@ -18,7 +18,7 @@ struct ScoreEntryBestCard: View {
             Spacer(minLength: 0)
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.primary.opacity(0.03), in: .rect(cornerRadius: 12))
+        .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 12))
         .accessibilityElement(children: .combine)
     }
 }

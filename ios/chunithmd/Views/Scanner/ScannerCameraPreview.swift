@@ -5,7 +5,7 @@ struct ScannerCameraPreview: UIViewRepresentable {
     let enabled: Bool
     let analyzing: Bool
     let landscape: Int
-    let onFrame: @MainActor @Sendable (Data) async -> Void
+    let onFrame: @MainActor @Sendable (Data, ScannerPhysicalOrientation) async -> Void
     let onError: @MainActor @Sendable () -> Void
 
     final class Preview: UIView {

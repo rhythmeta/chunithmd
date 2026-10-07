@@ -15,10 +15,12 @@ struct ScannerView: View {
     @State private var visible = false
     @State private var cameraAllowed = false
     @State private var cameraFailed = false
-    @State private var landscape = 0
+    @State private var deviceOrientation = ScannerDeviceOrientation()
+    @AppStorage("scanner.showBoundingBoxes") private var showBoundingBoxes = false
 
     private var ready: Bool { models.state.usable && catalog.bundle != nil && personal.snapshot.activeProfile != nil }
     private var live: Bool { visible && scenePhase == .active && ready && !store.photoMode && !showPhotos && entry == nil }
+    private var landscape: Int { deviceOrientation.orientation.rawValue }
     private var song: CatalogSongViewData? { catalog.allSongs.first { $0.id == store.result?.match.songId } }
     private var status: String? {
         if let feedback = store.feedback { return feedback }
@@ -40,6 +42,11 @@ struct ScannerView: View {
             } else if cameraAllowed && models.state.usable {
                 ScannerCameraPreview(enabled: live, analyzing: live, landscape: landscape,
                     onFrame: recognizeFrame, onError: { cameraFailed = true })
+                    .ignoresSafeArea()
+            }
+            if showBoundingBoxes {
+                ScannerDetectionOverlay(boxes: store.detectedBoxes, imageSize: store.detectedImageSize,
+                    orientation: store.photoMode ? .portrait : store.detectedOrientation, aspectFill: !store.photoMode)
                     .ignoresSafeArea()
             }
             VStack {
@@ -102,7 +109,8 @@ struct ScannerView: View {
         }
         .onAppear(perform: appear)
         .onDisappear(perform: disappear)
-        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in updateOrientation() }
+        .task(id: live) { if live { await deviceOrientation.track() } }
+        .onChange(of: deviceOrientation.orientation) { if !store.photoMode { store.invalidate() } }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { cameraAllowed = AVCaptureDevice.authorizationStatus(for: .video) == .authorized }
             else { store.invalidate() }
@@ -121,24 +129,13 @@ struct ScannerView: View {
     private func appear() {
         visible = true
         ScannerOrientationPolicy.setScanning(true)
-        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-        updateOrientation()
         cameraAllowed = AVCaptureDevice.authorizationStatus(for: .video) == .authorized
         models.start()
         if models.state.usable { requestCamera() }
     }
     private func disappear() {
         visible = false; reset()
-        UIDevice.current.endGeneratingDeviceOrientationNotifications()
         ScannerOrientationPolicy.setScanning(false)
-    }
-    private func updateOrientation() {
-        switch UIDevice.current.orientation {
-        case .landscapeLeft: landscape = 1
-        case .landscapeRight: landscape = -1
-        case .portrait, .portraitUpsideDown: landscape = 0
-        default: break
-        }
     }
     private func requestCamera() {
         guard visible, models.state.usable else { return }
@@ -148,9 +145,10 @@ struct ScannerView: View {
             } else { cameraAllowed = AVCaptureDevice.authorizationStatus(for: .video) == .authorized }
         }
     }
-    private func recognizeFrame(_ data: Data) async {
-        guard live, landscape != 0, let bundle = catalog.bundle, let profile = personal.snapshot.activeProfile else { return }
-        do { await store.recognize(data: data, catalog: bundle, region: profile.server, files: try models.files(), live: true) }
+    private func recognizeFrame(_ data: Data, orientation: ScannerPhysicalOrientation) async {
+        guard live, landscape != 0, orientation == deviceOrientation.orientation,
+              let bundle = catalog.bundle, let profile = personal.snapshot.activeProfile else { return }
+        do { await store.recognize(data: data, catalog: bundle, region: profile.server, files: try models.files(), live: true, orientation: orientation) }
         catch { store.error = tr("识别模型不可用，请检查模型更新后重试。") }
     }
     private func recognizePhoto() async {

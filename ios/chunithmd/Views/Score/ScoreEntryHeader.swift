@@ -22,7 +22,7 @@ struct ScoreEntryHeader: View {
             Text("Lv." + sheet.level).font(.title2.bold()).foregroundStyle(tint).multilineTextAlignment(.trailing)
         }
         .fontDesign(.rounded).padding(16)
-        .background(.ultraThinMaterial, in: .rect(cornerRadius: 16))
+        .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
         .accessibilityElement(children: .combine)
     }
 }

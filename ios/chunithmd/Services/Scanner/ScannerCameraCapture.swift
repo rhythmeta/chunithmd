@@ -16,7 +16,7 @@ nonisolated final class ScannerCameraCapture: NSObject, AVCaptureVideoDataOutput
         var landscape: Int = 0
         var processing = false
         var lastFrame = 0.0
-        var onFrame: (@MainActor @Sendable (Data) async -> Void)?
+        var onFrame: (@MainActor @Sendable (Data, ScannerPhysicalOrientation) async -> Void)?
         var onError: (@MainActor @Sendable () -> Void)?
     }
     private let state = OSAllocatedUnfairLock(uncheckedState: State())
@@ -25,7 +25,7 @@ nonisolated final class ScannerCameraCapture: NSObject, AVCaptureVideoDataOutput
     var session: AVCaptureSession { state.withLockUnchecked { $0.session } }
 
     func update(enabled: Bool, analyzing: Bool, landscape: Int,
-                onFrame: @escaping @MainActor @Sendable (Data) async -> Void,
+                onFrame: @escaping @MainActor @Sendable (Data, ScannerPhysicalOrientation) async -> Void,
                 onError: @escaping @MainActor @Sendable () -> Void) {
         state.withLockUnchecked {
             $0.enabled = enabled; $0.analyzing = analyzing; $0.landscape = landscape
@@ -79,7 +79,7 @@ nonisolated final class ScannerCameraCapture: NSObject, AVCaptureVideoDataOutput
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         let now = ProcessInfo.processInfo.systemUptime
-        let frame = state.withLockUnchecked { state -> (Int, @MainActor @Sendable (Data) async -> Void)? in
+        let frame = state.withLockUnchecked { state -> (Int, @MainActor @Sendable (Data, ScannerPhysicalOrientation) async -> Void)? in
             guard state.enabled, state.analyzing, state.landscape != 0, !state.processing,
                   now - state.lastFrame >= 0.15, let callback = state.onFrame else { return nil }
             state.processing = true; state.lastFrame = now
@@ -90,7 +90,7 @@ nonisolated final class ScannerCameraCapture: NSObject, AVCaptureVideoDataOutput
             state.withLockUnchecked { $0.processing = false }; return
         }
         Task { @MainActor [self] in
-            await callback(data)
+            await callback(data, ScannerPhysicalOrientation(rawValue: orientation) ?? .portrait)
             state.withLockUnchecked { $0.processing = false }
         }
     }

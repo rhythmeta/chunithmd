@@ -71,7 +71,7 @@ struct ScoreEntryView: View {
                     .accessibilityIdentifier("score-entry-save")
                 }.padding(20).padding(.bottom, 32)
             }
-            .scrollDismissesKeyboard(.interactively).background(AppTheme.page)
+            .scrollDismissesKeyboard(.interactively).background(Color(.systemGroupedBackground))
             .navigationTitle(tr("记录成绩")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button(tr("取消")) { dismiss() } }
@@ -84,6 +84,7 @@ struct ScoreEntryView: View {
                 }
             }
         }
+        .presentationBackground(Color(.systemGroupedBackground))
         .onAppear(perform: loadInitialValues)
         .onChange(of: scoreText) { resetSaveState() }
         .onChange(of: clear) { resetSaveState() }

@@ -2,7 +2,7 @@ import Shared
 import SwiftUI
 
 struct ContentView: View {
-    enum TabSelection { case home, scan, settings, search }
+    enum TabSelection { case home, scan, search, settings }
     @State private var navigation = SongNavigation()
     @Namespace private var songTransitionNamespace
     @State private var catalog = CatalogStore()
@@ -22,15 +22,15 @@ struct ContentView: View {
             Tab(tr("扫描"), systemImage: "camera.viewfinder", value: .scan) {
                 NavigationStack { ScannerView() }
             }
-            Tab(tr("设置"), systemImage: "gearshape", value: .settings) {
-                NavigationStack { SettingsView(account: account) }
-            }
-            Tab(tr("歌曲"), systemImage: "magnifyingglass", value: .search, role: .search) {
+            Tab(tr("歌曲"), systemImage: "magnifyingglass", value: .search) {
                 NavigationStack {
                     CatalogView()
                         .searchable(text: $catalog.search, prompt: tr("歌曲、艺术家、别名..."))
                         .searchFocused($searchFocused)
                 }
+            }
+            Tab(tr("设置"), systemImage: "gearshape", value: .settings) {
+                NavigationStack { SettingsView(account: account) }
             }
         }
         .fullScreenCover(item: $navigation.song) { song in

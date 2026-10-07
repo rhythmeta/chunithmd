@@ -1,2 +1,3 @@
 "NSCameraUsageDescription" = "使用相机在设备上识别 CHUNITHM 成绩画面。";
 "NSPhotoLibraryAddUsageDescription" = "将识别到的成绩照片保存到相册。";
+"NSMotionUsageDescription" = "检测手机握持方向，让横持扫描时的成绩画面保持正向。";
