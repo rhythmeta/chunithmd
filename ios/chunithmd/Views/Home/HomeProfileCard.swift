@@ -20,10 +20,11 @@ struct HomeProfileCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
                         Text(profile?.name ?? tr("我的档案")).font(.system(size: 18, weight: .bold))
-                        Text(AppTheme.serverName(profile?.server ?? "jp"))
-                            .font(.system(size: 10, weight: .bold)).foregroundStyle(.white)
-                            .padding(.horizontal, 5).padding(.vertical, 2)
-                            .background(AppTheme.serverColor(profile?.server ?? "jp"), in: .rect(cornerRadius: 4))
+                        ScoreTintBadge(
+                            text: AppTheme.serverName(profile?.server ?? "jp"),
+                            tint: AnyShapeStyle(AppTheme.serverColor(profile?.server ?? "jp")),
+                            font: .system(size: 10, weight: .bold)
+                        )
                     }
                     Text(profile?.title.isEmpty == false ? profile?.title ?? "" : tr("点击编辑"))
                         .font(.system(size: 12)).foregroundStyle(.secondary)
