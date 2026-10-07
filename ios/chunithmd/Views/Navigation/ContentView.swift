@@ -15,7 +15,7 @@ struct ContentView: View {
     var body: some View {
         @Bindable var navigation = navigation
         TabView(selection: $selection) {
-            Tab(tr("首页"), systemImage: "house", value: .home) {
+            Tab(tr("主页"), systemImage: "house", value: .home) {
                 NavigationStack { HomeView() }
             }
             Tab(tr("收藏"), systemImage: "folder", value: .collections) {

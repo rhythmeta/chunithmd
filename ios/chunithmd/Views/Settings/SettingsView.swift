@@ -37,7 +37,7 @@ struct SettingsView: View {
                 Picker(selection: $appearance) {
                     Text(tr("跟随系统")).tag("system"); Text(tr("浅色")).tag("light"); Text(tr("深色")).tag("dark")
                 } label: { SettingsRowLabel(title: tr("主题"), icon: "moon.fill", color: .indigo) }
-                    .tint(.primary)
+                    .tint(.secondary)
                     .accessibilityIdentifier("settings-theme")
             }
             SettingsAboutSection(account: account)

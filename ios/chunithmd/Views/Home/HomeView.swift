@@ -31,7 +31,7 @@ struct HomeView: View {
             }.padding(16)
         }
         .background(AppTheme.page)
-        .navigationTitle(tr("首页"))
+        .navigationTitle(tr("主页"))
         .navigationDestination(for: HomeDestination.self) { destination in
             switch destination {
             case .best: BestTableView()

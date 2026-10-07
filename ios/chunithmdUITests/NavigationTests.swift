@@ -626,7 +626,7 @@ final class NavigationTests: XCTestCase {
         let app = catalog()
         let search = app.searchFields.firstMatch
         search.tap(); search.typeText("no-song-matches-this-search\n")
-        app.tabBars.buttons["首页"].tap()
+        app.tabBars.buttons["主页"].tap()
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "随机歌曲")).firstMatch.tap()
         let draw = app.buttons["random-draw"]
         XCTAssertTrue(draw.waitForExistence(timeout: 5))

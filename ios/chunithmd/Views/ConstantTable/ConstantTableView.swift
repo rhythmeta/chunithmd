@@ -89,12 +89,12 @@ struct ConstantTableView: View {
                     .frame(minWidth: 51, minHeight: 44, alignment: .trailing)
                     .contentShape(.rect)
                 }
-                .buttonStyle(.plain).foregroundStyle(.primary).tint(.primary)
+                .buttonStyle(.plain).foregroundStyle(.secondary)
                 .accessibilityLabel(tr("定数档位"))
                 .accessibilityValue(ConstantTableCalculatorKt.constantTableBaseLevelLabel(baseLevel: level))
                 .accessibilityIdentifier("constant-table-level")
             }
-            .frame(minHeight: 44).padding(.vertical, 8).padding(.horizontal, 16)
+            .frame(minHeight: 44).padding(.vertical, 8).padding(. horizontal, 16)
             Divider().padding(.horizontal, 16)
             Toggle(isOn: $includesScores) {
                 Label(tr("显示成绩徽标"), systemImage: includesScores ? "person.text.rectangle.fill" : "person.text.rectangle")

@@ -8,6 +8,20 @@ SwiftUI 原生客户端，最低支持 iOS 26。沿用项目的 Kotlin Multiplat
 
 首次启动会下载曲库及封面资源。后续启动使用本地缓存并检查更新；可在「设置 → 静态资源」手动更新。
 
+## 目录结构
+
+`chunithmd/` 沿用 maimaid iOS 的分类方式：
+
+- `MyApp.swift`：应用入口；资源目录和应用图标也保留在根目录。
+- `Models/`：共享层返回的 Swift 数据模型与界面数据结构。
+- `Services/`：KMP 状态桥接、原生存储适配和封面取色。
+- `Utils/`：本地化、主题及跨页面使用的样式工具。
+- `Views/`：按功能划分为 `Home`、`Catalog`、`Song`、`Best`、`Collections`、`Community`、`ConstantTable`、`Plate`、`Random`、`Recommendation`、`Score`、`ScoreQuery` 和 `Settings`。设置目录包含档案、静态数据、云端账户和成绩导入页面。
+- `Views/Components/`：跨页面复用的头像、封面网格、徽章、筛选控件和分享图片组件。
+- `Views/Navigation/`：底部导航、页面路由及歌曲转场。
+
+Xcode 使用同步文件夹自动收录这些目录中的源文件。UI 测试保留在同级 `chunithmdUITests/`，业务逻辑继续维护在 KMP `android/shared` 中。
+
 ## 界面与功能
 
 - 首页按 maimaid iOS 的实际布局对齐：16 点页边距、60 点头像与 Rating 角标、紧凑的 Best 50 入口、渐变图标与双列功能卡片。
@@ -23,7 +37,7 @@ SwiftUI 原生客户端，最低支持 iOS 26。沿用项目的 Kotlin Multiplat
 
 `PersonalDataBridge` 在 KMP 中复用成绩、Rating、推荐、牌子、导入和分享规则。Swift 的 Store 将共享状态转换为界面数据。
 
-iOS 通过 `Localization.swift` 的 `tr` 调用 KMP `AppStrings`。应用启动时使用共享的 `AppLanguage.resolve` 解析系统／应用语言，支持简体中文、繁体中文、英文和日文。翻译只维护在 `localization/strings.json`，带参数的文案使用 `{0}` 等占位符；歌曲名称、用户输入和存储用枚举值不翻译。`scripts/generate-localization.py --check` 同时检查 Swift 文案接入和共享翻译是否同步。
+iOS 通过 `Utils/Localization.swift` 的 `tr` 调用 KMP `AppStrings`。应用启动时使用共享的 `AppLanguage.resolve` 解析系统／应用语言，支持简体中文、繁体中文、英文和日文。翻译只维护在 `localization/strings.json`，带参数的文案使用 `{0}` 等占位符；歌曲名称、用户输入和存储用枚举值不翻译。`scripts/generate-localization.py --check` 同时检查 Swift 文案接入和共享翻译是否同步。
 
 Best 表沿用 maimaid 的分组列表、版本选择弹层和容量输入布局。版本覆盖仅在当前页面有效；B/N 容量由 KMP 校验并保存到 portable snapshot，复用既有 `android.chunithmd.best.*_count` 备份键。`BestTableResponse` 在共享层生成分组、Rating 和均值，界面与分享使用同一份结果。成绩行展示 Rank、分数、状态徽章、单曲 Rating 和定数，并接入歌曲详情的原生缩放转场。
 
