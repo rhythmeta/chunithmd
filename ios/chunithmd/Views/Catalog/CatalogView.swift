@@ -16,7 +16,7 @@ struct CatalogView: View {
         Group {
             if catalog.bundle == nil { CatalogLoadingView() }
             else if songs.isEmpty { ContentUnavailableView.search(text: catalog.search) }
-            else if grid { CoverGrid(songs: songs) }
+            else if grid { CoverGrid(songs: songs, showsProgress: true) }
             else {
                 ScrollView {
                     LazyVStack(spacing: 10) {

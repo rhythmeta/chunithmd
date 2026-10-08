@@ -8,6 +8,7 @@ struct SongTile: View {
     var caption: String? = nil
     var preferredSheet: String? = nil
     var showsDifficultyBorder = false
+    var showsProgress = false
     @State private var identity = UUID()
 
     var body: some View {
@@ -21,7 +22,7 @@ struct SongTile: View {
                     }
                 }
                 .overlay(alignment: .bottomTrailing) {
-                    if showsDifficultyBorder {
+                    if showsProgress || showsDifficultyBorder {
                         SongProgressDots(song: song, preferredSheet: preferredSheet)
                             .padding(.horizontal, radius > 6 ? 6 : 4).padding(.vertical, radius > 6 ? 3 : 2)
                             .background(.ultraThickMaterial, in: .capsule).environment(\.colorScheme, .light)
