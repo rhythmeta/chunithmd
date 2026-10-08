@@ -82,3 +82,9 @@ cd android
 新版模型清单为 `android-v2.json` / `ios-v2.json`，旧清单继续服务原客户端。新模型导出命令为 `python3 scripts/export-score-detector.py --kind song`，`--check` 校验导出哈希。
 
 Android 真机回归用 `./scripts/test-scanner-device.sh DEVICE_SERIAL`；该脚本只执行 `adb install -r` 覆盖安装并直接运行 instrumentation，不使用可能卸载应用、丢失个人数据的 Gradle connected 测试任务。签名不一致时会停止，不自动卸载。
+
+## IPA 构建
+
+GitHub Actions 的 **Build chunithmd IPA** 工作流在 iOS／共享层或相关构建配置变化时自动运行，也可手动触发。完整检出 Git 历史，以 `scripts/build-number.sh` 返回的 commit 总数作为构建号；Android 同样使用该脚本。两端当前版本为 `0.4`。本地 Xcode 的 Debug、Release 和 Archive 也通过「Set build number」阶段写入相同构建号，无需手改项目文件；可用 `CHUNITHMD_BUILD_NUMBER` 显式覆盖。
+
+工作流准备 Java 21、Gradle、Android SDK 和 Xcode，由 Xcode 构建 KMP Shared framework，再归档 iOS Release。产物 `chunithmd-ipa-unsigned-<commit>` 包含 `chunithmd.ipa`，不需要签名证书或 Apple 账号 Secrets；下载后需要自行签名才能安装，不用于直接上传 TestFlight。构建日志和 xcresult 单独保留 7 天。模型继续在应用内下载，不打入 IPA。

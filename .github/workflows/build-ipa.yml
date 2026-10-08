@@ -1,0 +1,98 @@
+name: Build chunithmd IPA
+
+"on":
+  push:
+    paths:
+      - ios/**
+      - android/shared/**
+      - android/app/build.gradle.kts
+      - android/gradle/**
+      - android/gradlew
+      - android/*.gradle.kts
+      - android/gradle.properties
+      - scripts/build-number.sh
+      - scripts/package-ipa.sh
+      - .github/workflows/build-ipa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chunithmd-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-ipa:
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve build number
+        run: echo "CHUNITHMD_BUILD_NUMBER=$(scripts/build-number.sh)" >> "$GITHUB_ENV"
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # The shared KMP module also configures an Android target.
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform
+        run: sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          java -version
+
+      - name: Archive app (unsigned)
+        env:
+          ARCHIVE_PATH: ${{ runner.temp }}/chunithmd.xcarchive
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          xcodebuild \
+            -project ios/chunithmd.xcodeproj \
+            -scheme chunithmd \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$ARCHIVE_PATH" \
+            -resultBundlePath "$PWD/build/chunithmd.xcresult" \
+            CODE_SIGNING_ALLOWED=NO \
+            CURRENT_PROJECT_VERSION="$CHUNITHMD_BUILD_NUMBER" \
+            archive 2>&1 | tee build/archive.log
+          scripts/package-ipa.sh "$ARCHIVE_PATH/Products/Applications/chunithmd.app" build/chunithmd.ipa
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: chunithmd-ipa-unsigned-${{ github.sha }}
+          path: build/chunithmd.ipa
+          if-no-files-found: error
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chunithmd-ios-build-diagnostics-${{ github.sha }}
+          path: |
+            build/archive.log
+            build/chunithmd.xcresult
+          if-no-files-found: warn
+          retention-days: 7

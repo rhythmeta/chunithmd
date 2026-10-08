@@ -54,3 +54,11 @@ xcuserdata/
 *.xcuserstate
 .kotlin/
 .wrangler/
+
+# iOS exports and Python generated files
+DerivedData/
+*.ipa
+*.xcarchive/
+*.xcresult/
+__pycache__/
+*.py[cod]

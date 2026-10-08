@@ -47,7 +47,7 @@ android {
         minSdk = 29
         targetSdk = 37
         versionCode = chunithmdBuildNumber.get()
-        versionName = "0.3.1"
+        versionName = "0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
