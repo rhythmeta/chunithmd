@@ -28,3 +28,5 @@ contracts, provenance and SHA-256 hashes. Keep both platform exports in sync.
 Export the song detector with `python3 scripts/export-score-detector.py --kind song`. Both detectors use 1024 RGB letterboxing; SongDetector outputs `[1,5,21504]` (title only). `scripts/song-detector.json` records its contract and hashes.
 
 New apps request `android-v2.json` / `ios-v2.json` (both detectors plus the platform OCR assets). Legacy manifests remain unchanged so installed v1 clients continue to work. Updating reuses verified OCR/score objects already in the local model cache. Models remain outside the app bundle.
+
+The existing `chunithmd-models.rhythmeta.org` custom domain is managed in the Cloudflare dashboard, like the static-assets Worker. Deployments intentionally omit `routes` so CI can publish model updates without zone-level route permissions. For a new Worker, bind the domain once before running the public asset verification.

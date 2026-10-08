@@ -4,6 +4,7 @@
   "compatibility_date": "2026-10-08",
   "workers_dev": false,
   "preview_urls": false,
-  "routes": [{ "pattern": "chunithmd-models.rhythmeta.org", "custom_domain": true }],
+  // The existing custom domain is managed in Cloudflare, like static-worker.
+  // CI only updates assets; it does not need zone-level route permissions.
   "assets": { "directory": "./public", "html_handling": "none", "not_found_handling": "none" }
 }
