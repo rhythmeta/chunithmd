@@ -19,6 +19,7 @@ import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.CropFree
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +38,7 @@ import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -51,6 +53,8 @@ fun SettingsHome(
     onDivingFish: () -> Unit,
     onLxns: () -> Unit,
     onOtogame: () -> Unit,
+    showScannerBoundingBoxes: Boolean,
+    onShowScannerBoundingBoxesChange: (Boolean) -> Unit,
 ) {
     var backendAvailable by remember(accountClient) { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(accountClient) {
@@ -115,6 +119,12 @@ fun SettingsHome(
                     title = tr("主题"),
                     summary = tr("自定义更多主题选项"),
                     onClick = onAppearance,
+                )
+                SwitchPreference(
+                    title = tr("显示识别框"),
+                    checked = showScannerBoundingBoxes,
+                    onCheckedChange = onShowScannerBoundingBoxesChange,
+                    startAction = { SettingsPreferenceIcon(Icons.Rounded.CropFree) },
                 )
             }
         }

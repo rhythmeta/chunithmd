@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.CropFree
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -56,6 +55,7 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 fun ScannerScreen(
     catalog: CatalogBundle?, profile: UserProfile?, profiles: ProfileRepository,
     scores: ScoreRepository, enabled: Boolean, bottomPadding: Dp,
+    showBoxes: Boolean,
     jacketBaseUrl: String, localJacketPath: (String) -> String?,
     modifier: Modifier = Modifier, model: ScannerViewModel = viewModel(),
 ) {
@@ -77,7 +77,6 @@ fun ScannerScreen(
     val controller = remember { ScannerCameraController() }
     var permissionGranted by remember { mutableStateOf(false) }
     var permissionRequested by rememberSaveable { mutableStateOf(false) }
-    var showBoxes by rememberSaveable { mutableStateOf(false) }
     var landscapeHeld by remember { mutableStateOf(false) }
     var cameraError by remember { mutableStateOf<String?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -141,7 +140,6 @@ fun ScannerScreen(
         Row(Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(top = 8.dp, end = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (state.image != null) ScannerOverlayButton(Icons.Rounded.Close, tr("返回实时扫描"), !state.saving, model::resumeLive)
-            else ScannerOverlayButton(Icons.Rounded.CropFree, tr("显示识别框"), true, { showBoxes = !showBoxes }, showBoxes)
             ScannerOverlayButton(Icons.Rounded.PhotoLibrary, tr("选择成绩图"), ready && !state.busy && !state.saving, {
                 photos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             })

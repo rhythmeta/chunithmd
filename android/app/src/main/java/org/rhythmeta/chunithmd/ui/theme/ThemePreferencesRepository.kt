@@ -30,6 +30,7 @@ class ThemePreferencesRepository(private val context: Context) {
             enableFloatingBottomBarBlur = values[FloatingBarBlurKey] ?: true,
             enablePredictiveBack = values[PredictiveBackKey] ?: true,
             pageScale = ((values[PageScaleKey] ?: 100) / 100f).coerceIn(0.8f, 1.1f),
+            showScannerBoundingBoxes = values[ScannerBoundingBoxesKey] ?: false,
         )
     }
 
@@ -44,6 +45,9 @@ class ThemePreferencesRepository(private val context: Context) {
     suspend fun setFloatingBarBlur(value: Boolean) = update { it.copy(enableFloatingBottomBarBlur = value && it.enableFloatingBottomBar) }
     suspend fun setPredictiveBack(value: Boolean) = update { it.copy(enablePredictiveBack = value) }
     suspend fun setPageScale(value: Float) = update { it.copy(pageScale = value.coerceIn(0.8f, 1.1f)) }
+    suspend fun setShowScannerBoundingBoxes(value: Boolean) {
+        context.themePreferencesDataStore.edit { it[ScannerBoundingBoxesKey] = value }
+    }
 
     private suspend fun update(transform: (AppThemeSettings) -> AppThemeSettings) {
         val current = settings.first()
@@ -71,5 +75,6 @@ class ThemePreferencesRepository(private val context: Context) {
         val FloatingBarBlurKey = booleanPreferencesKey("enable_floating_bottom_bar_blur")
         val PredictiveBackKey = booleanPreferencesKey("enable_predictive_back")
         val PageScaleKey = intPreferencesKey("page_scale")
+        val ScannerBoundingBoxesKey = booleanPreferencesKey("show_scanner_bounding_boxes")
     }
 }

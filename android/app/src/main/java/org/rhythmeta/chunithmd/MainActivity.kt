@@ -908,6 +908,7 @@ private fun CatalogApp(
                     catalog = bundle, profile = activeProfile, profiles = profileRepository, scores = scoreRepository,
                     enabled = selectedTab == 1 && navBackStack.lastOrNull() == AppRoute.Home,
                     bottomPadding = navigationBarBottomSpace,
+                    showBoxes = themeSettings.showScannerBoundingBoxes,
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(), localJacketPath = repository::localJacketPath,
                     modifier = Modifier.fillMaxSize().kyantLayerBackdrop(navigationBackdrop),
                 )
@@ -1028,6 +1029,8 @@ private fun CatalogApp(
                     onDivingFish = { pushRoute(AppRoute.DivingFish) },
                     onLxns = { pushRoute(AppRoute.Lxns) },
                     onOtogame = { pushRoute(AppRoute.Otogame) },
+                    showScannerBoundingBoxes = themeSettings.showScannerBoundingBoxes,
+                    onShowScannerBoundingBoxesChange = { scope.launch { themeRepository.setShowScannerBoundingBoxes(it) } },
                 )
             }
         }

@@ -101,6 +101,10 @@ internal fun ScannerDebugOverlay(state: ScannerUiState, modifier: Modifier = Mod
             textSize = 11.sp.toPx()
             typeface = android.graphics.Typeface.DEFAULT_BOLD
         }
+        val fontMetrics = paint.fontMetrics
+        val pad = 4.dp.toPx()
+        // Qualify font bounds: the detection's `top` below is a screen coordinate.
+        val labelHeight = fontMetrics.bottom - fontMetrics.top + pad * 2
         state.observations.forEach { region ->
             val box = rotateScanBoxForPreview(region.box, state.previewRotationDegrees)
             val left = offsetX + box.x * width
@@ -108,13 +112,11 @@ internal fun ScannerDebugOverlay(state: ScannerUiState, modifier: Modifier = Mod
             drawRect(Color(0xFFFFD60A), Offset(left, top), Size(box.width * width, box.height * height),
                 style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
             val label = "${region.field} ${(region.confidence * 100).toInt()}%"
-            val pad = 4.dp.toPx()
             val labelWidth = paint.measureText(label) + pad * 2
-            val labelHeight = paint.fontMetrics.run { bottom - top } + pad * 2
             val x = left.coerceIn(0f, (size.width - labelWidth).coerceAtLeast(0f))
             val y = (top - labelHeight).coerceIn(0f, (size.height - labelHeight).coerceAtLeast(0f))
             drawRect(Color(0xFFFFD60A), Offset(x, y), Size(labelWidth, labelHeight))
-            drawContext.canvas.nativeCanvas.drawText(label, x + pad, y + pad - paint.fontMetrics.top, paint)
+            drawContext.canvas.nativeCanvas.drawText(label, x + pad, y + pad - fontMetrics.top, paint)
         }
     }
 }

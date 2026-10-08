@@ -9,6 +9,7 @@ object BackupSettings {
         "theme.palette_style" to "string", "theme.color_spec" to "string",
         "theme.enable_blur" to "bool", "theme.enable_floating_bottom_bar" to "bool",
         "theme.enable_floating_bottom_bar_blur" to "bool", "theme.enable_predictive_back" to "bool",
+        "theme.show_scanner_bounding_boxes" to "bool",
         "catalog.sort" to "string", "catalog.ascending" to "bool",
         "catalog.categories" to "strings", "catalog.versions" to "strings",
         "catalog.difficulties" to "strings", "catalog.types" to "strings",

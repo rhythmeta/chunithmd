@@ -58,6 +58,7 @@ data class AppThemeSettings(
     val enableFloatingBottomBarBlur: Boolean = true,
     val enablePredictiveBack: Boolean = true,
     val pageScale: Float = 1f,
+    val showScannerBoundingBoxes: Boolean = false,
 )
 
 val DefaultAppThemeSettings = AppThemeSettings()
