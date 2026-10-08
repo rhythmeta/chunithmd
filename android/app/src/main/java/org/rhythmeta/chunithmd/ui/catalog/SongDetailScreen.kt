@@ -931,9 +931,12 @@ private fun ChartDetailCard(
                     difficulty = sheet.difficulty,
                     counts = sheet.noteCounts,
                 )
-                RatingTableSection(
-                    constant = sheet.internalLevelValue ?: sheet.levelValue,
-                )
+                if (!isWorldsEnd) {
+                    RatingTableSection(
+                        constant = sheet.internalLevelValue ?: sheet.levelValue,
+                        bestScore = bestRecord?.score,
+                    )
+                }
                 ChartScoreToleranceSection(song.songId, sheet, accentColor)
                 if (records.isNotEmpty()) {
                     ScoreHistorySection(
@@ -1187,8 +1190,10 @@ private fun RecordStatusBadges(
 @Composable
 private fun RatingTableSection(
     constant: Double?,
+    bestScore: Int?,
 ) {
     val level = constant?.takeIf { it > 0.0 && it.isFinite() } ?: return
+    val personalRating = bestScore?.let { calculateSingleRating(level, it) }
     var expanded by rememberSaveable(level) { mutableStateOf(false) }
     val rows = remember(level) { buildRatingTable(level) }
     val chevronRotation by animateFloatAsState(
@@ -1215,6 +1220,14 @@ private fun RatingTableSection(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
+            personalRating?.let { rating ->
+                MiuixText(
+                    formatRating(rating),
+                    style = MiuixTheme.textStyles.footnote2.copy(fontFeatureSettings = "tnum"),
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(end = 8.dp),
+                )
+            }
             MiuixIcon(
                 Icons.Rounded.ChevronRight,
                 contentDescription = if (expanded) tr("收起 Rating") else tr("展开 Rating"),
