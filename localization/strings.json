@@ -4612,5 +4612,83 @@
     "zh-Hant": "未辨識到相符歌曲，請重新掃描。",
     "en": "No matching song found. Please scan again.",
     "ja": "一致する楽曲が見つかりません。もう一度スキャンしてください。"
+  },
+  "下载资源并继续": {
+    "en": "Download and continue",
+    "ja": "ダウンロードして続ける",
+    "zh-Hans": "下载资源并继续",
+    "zh-Hant": "下載資源並繼續"
+  },
+  "先下载曲库和封面，识别模型可在扫描时按需下载。": {
+    "en": "Download the song catalog and jackets first. Recognition models are downloaded when you use scanning.",
+    "ja": "まず楽曲データとジャケットをダウンロードします。認識モデルはスキャン時にダウンロードできます。",
+    "zh-Hans": "先下载曲库和封面，识别模型可在扫描时按需下载。",
+    "zh-Hant": "先下載曲庫和封面，辨識模型可在掃描時按需下載。"
+  },
+  "分别管理不同玩家和服务器的成绩，在设置中创建或切换档案。": {
+    "en": "Keep players and servers separate. Create or switch profiles in Settings.",
+    "ja": "プレイヤーやサーバーごとにスコアを管理。設定でプロフィールを作成・切替できます。",
+    "zh-Hans": "分别管理不同玩家和服务器的成绩，在设置中创建或切换档案。",
+    "zh-Hant": "分別管理不同玩家和伺服器的成績，在設定中建立或切換檔案。"
+  },
+  "多档案管理": {
+    "en": "Multiple profiles",
+    "ja": "プロフィール管理",
+    "zh-Hans": "多档案管理",
+    "zh-Hant": "多檔案管理"
+  },
+  "快速扫描": {
+    "en": "Quick scan",
+    "ja": "かんたんスキャン",
+    "zh-Hans": "快速扫描",
+    "zh-Hant": "快速掃描"
+  },
+  "本地离线": {
+    "en": "Available offline",
+    "ja": "オフラインで使える",
+    "zh-Hans": "本地离线",
+    "zh-Hant": "本機離線"
+  },
+  "欢迎使用": {
+    "en": "Welcome to",
+    "ja": "ようこそ",
+    "zh-Hans": "欢迎使用",
+    "zh-Hant": "歡迎使用"
+  },
+  "正在下载资源…": {
+    "en": "Downloading resources…",
+    "ja": "データをダウンロード中…",
+    "zh-Hans": "正在下载资源…",
+    "zh-Hant": "正在下載資源…"
+  },
+  "竖持查歌，横持查分。首次扫描时下载识别模型。": {
+    "en": "Hold upright to find songs, sideways to scan scores. Download recognition models when you first scan.",
+    "ja": "縦向きで楽曲検索、横向きでスコア読取。初回スキャン時に認識モデルをダウンロードします。",
+    "zh-Hans": "竖持查歌，横持查分。首次扫描时下载识别模型。",
+    "zh-Hant": "直持查歌，橫持查分。首次掃描時下載辨識模型。"
+  },
+  "记录每一次进步。": {
+    "en": "Keep track of your progress.",
+    "ja": "上達の記録を、いつでも。",
+    "zh-Hans": "记录每一次进步。",
+    "zh-Hant": "記錄每一次進步。"
+  },
+  "资源下载后，离线也能查看歌曲与记录成绩。": {
+    "en": "After downloading resources, browse songs and record scores offline.",
+    "ja": "データのダウンロード後は、オフラインでも楽曲の閲覧やスコアの記録ができます。",
+    "zh-Hans": "资源下载后，离线也能查看歌曲与记录成绩。",
+    "zh-Hant": "資源下載後，離線也能查看歌曲與記錄成績。"
+  },
+  "资源下载失败，请检查网络后重试。": {
+    "en": "Download failed. Check your connection and try again.",
+    "ja": "ダウンロードに失敗しました。接続を確認して再試行してください。",
+    "zh-Hans": "资源下载失败，请检查网络后重试。",
+    "zh-Hant": "資源下載失敗，請檢查網路後重試。"
+  },
+  "重试下载": {
+    "en": "Retry download",
+    "ja": "ダウンロードを再試行",
+    "zh-Hans": "重试下载",
+    "zh-Hant": "重試下載"
   }
 }

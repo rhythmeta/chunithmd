@@ -11,26 +11,35 @@ struct ContentView: View {
     @State private var selection = TabSelection.home
     @State private var homePath: [HomeDestination] = []
     @FocusState private var searchFocused: Bool
+    @AppStorage("onboarding.completed") private var onboardingCompleted = false
     @AppStorage("appearance") private var appearance = "system"
 
     var body: some View {
         @Bindable var navigation = navigation
-        TabView(selection: $selection) {
-            Tab(tr("主页"), systemImage: "house", value: .home) {
-                NavigationStack(path: $homePath) { HomeView() }
-            }
-            Tab(tr("扫描"), systemImage: "camera.viewfinder", value: .scan) {
-                NavigationStack { ScannerView() }
-            }
-            Tab(tr("歌曲"), systemImage: "magnifyingglass", value: .search) {
-                NavigationStack {
-                    CatalogView()
-                        .searchable(text: $catalog.search, prompt: tr("歌曲、艺术家、别名..."))
-                        .searchFocused($searchFocused)
+        Group {
+            if !catalog.hasLoadedLocal {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).background(AppTheme.page)
+            } else if OnboardingPolicy.shared.needsOnboarding(completed: onboardingCompleted, hasCatalog: catalog.bundle != nil) {
+                FirstLaunchView()
+            } else {
+                TabView(selection: $selection) {
+                    Tab(tr("主页"), systemImage: "house", value: .home) {
+                        NavigationStack(path: $homePath) { HomeView() }
+                    }
+                    Tab(tr("扫描"), systemImage: "camera.viewfinder", value: .scan) {
+                        NavigationStack { ScannerView() }
+                    }
+                    Tab(tr("歌曲"), systemImage: "magnifyingglass", value: .search) {
+                        NavigationStack {
+                            CatalogView()
+                                .searchable(text: $catalog.search, prompt: tr("歌曲、艺术家、别名..."))
+                                .searchFocused($searchFocused)
+                        }
+                    }
+                    Tab(tr("设置"), systemImage: "gearshape", value: .settings) {
+                        NavigationStack { SettingsView(account: account) }
+                    }
                 }
-            }
-            Tab(tr("设置"), systemImage: "gearshape", value: .settings) {
-                NavigationStack { SettingsView(account: account) }
             }
         }
         .fullScreenCover(item: $navigation.song) { song in
@@ -49,8 +58,15 @@ struct ContentView: View {
         .onChange(of: navigation.song) { _, song in
             if song != nil { searchFocused = false }
         }
-        .task { catalog.start(); personal.reload(catalog: catalog) }
-        .onChange(of: catalog.bundleJson) { personal.reload(catalog: catalog) }
+        .task {
+            catalog.start(automaticallyDownload: onboardingCompleted)
+            if catalog.bundle != nil { onboardingCompleted = true }
+            personal.reload(catalog: catalog)
+        }
+        .onChange(of: catalog.bundleJson) {
+            if catalog.bundle != nil { onboardingCompleted = true }
+            personal.reload(catalog: catalog)
+        }
         .onChange(of: account.community.approvedAliases) { updateAliases() }
         .onChange(of: account.community.personalAliases) { updateAliases() }
         .onChange(of: account.state.busy) { _, busy in if !busy { personal.reload(catalog: catalog) } }

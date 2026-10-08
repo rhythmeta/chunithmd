@@ -38,6 +38,7 @@ final class CatalogStore {
     private(set) var bundle: CatalogBundle?
     private(set) var allSongs: [CatalogSongViewData] = []
     private var started = false
+    private(set) var hasLoadedLocal = false
     private var searchTask: Task<Void, Never>?
     private(set) var songs: [CatalogSongViewData] = []
     private(set) var manifest: StaticManifestViewData?
@@ -91,12 +92,13 @@ final class CatalogStore {
         ascending = UserDefaults.standard.object(forKey: "catalog.sortAscending") as? Bool ?? true
     }
 
-    func start() {
+    func start(automaticallyDownload: Bool = true) {
         guard !started else { return }; started = true
+        defer { hasLoadedLocal = true }
         if let json = bridge.loadSnapshotJson() {
             install(json)
             Task { await checkForUpdate() }
-        } else {
+        } else if automaticallyDownload {
             refresh()
         }
     }

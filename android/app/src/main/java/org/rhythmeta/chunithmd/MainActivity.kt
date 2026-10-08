@@ -229,18 +229,55 @@ class CatalogStateViewModel : ViewModel() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var localLoadJob: Job? = null
+    var localLoaded by mutableStateOf(false)
+        private set
+    var isRefreshing by mutableStateOf(false)
+        private set
 
     fun loadLocal(repository: CatalogRepository) {
-        if (bundle != null || localLoadJob?.isActive == true) return
+        if (localLoaded || localLoadJob?.isActive == true) return
         localLoadJob = scope.launch {
-            val localSnapshot = withContext(Dispatchers.IO) {
-                runCatching { repository.loadLocal() }.getOrNull()
-            }
-            localSnapshot?.let { snapshot ->
-                manifest = snapshot.manifest
-                bundle = withContext(Dispatchers.Default) {
-                    CatalogJson.decodeBundle(snapshot.bundleJson)
+            try {
+                val local = withContext(Dispatchers.IO) {
+                    repository.loadLocal()?.let { it.manifest to CatalogJson.decodeBundle(it.bundleJson) }
                 }
+                if (local != null) {
+                    manifest = local.first
+                    bundle = local.second
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // A missing or invalid cache is recovered by the first-launch download.
+            } finally {
+                localLoaded = true
+            }
+        }
+    }
+
+    fun refresh(repository: CatalogRepository) {
+        if (isRefreshing) return
+        isRefreshing = true
+        error = null
+        sync = CatalogSyncState(CatalogSyncStage.Downloading, tr("正在下载歌曲目录"))
+        scope.launch {
+            try {
+                val downloaded = withContext(Dispatchers.IO) {
+                    val snapshot = repository.downloadAndApply { state ->
+                        scope.launch { if (isRefreshing) sync = state }
+                    }
+                    snapshot.manifest to CatalogJson.decodeBundle(snapshot.bundleJson)
+                }
+                manifest = downloaded.first
+                bundle = downloaded.second
+                sync = CatalogSyncState(CatalogSyncStage.Ready)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                error = failure.message ?: tr("资源同步失败")
+                sync = CatalogSyncState(CatalogSyncStage.Failed, error)
+            } finally {
+                isRefreshing = false
             }
         }
     }
@@ -387,9 +424,11 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
-                    CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator, pendingCollectionLink, ::sendLogs) {
-                        pendingCollectionLink = null
-                        intent?.data = null
+                    org.rhythmeta.chunithmd.ui.onboarding.FirstLaunchGate(catalogState, repository) {
+                        CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator, pendingCollectionLink, ::sendLogs) {
+                            pendingCollectionLink = null
+                            intent?.data = null
+                        }
                     }
                 }
             }
@@ -655,26 +694,7 @@ private fun CatalogApp(
         }
     }
 
-    fun refresh() {
-        scope.launch {
-            error = null
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    repository.downloadAndApply { state -> sync = state }
-                }
-            }.onSuccess { snapshot ->
-                manifest = snapshot.manifest
-                catalogBundle = withContext(Dispatchers.Default) {
-                    CatalogJson.decodeBundle(snapshot.bundleJson)
-                }
-            }.onFailure {
-                error = it.message ?: tr("资源同步失败")
-                sync = CatalogSyncState(CatalogSyncStage.Failed, error)
-            }
-        }
-    }
-
-    LaunchedEffect(repository, catalogState) { catalogState.loadLocal(repository) }
+    fun refresh() { catalogState.refresh(repository) }
 
     val playableRegion = activeProfile?.server?.wireValue ?: "jp"
     val songs = remember(bundle, debouncedSearch, sort, ascending, filters, playableRegion, favoriteSongIds) {

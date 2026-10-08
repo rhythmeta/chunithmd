@@ -6,7 +6,7 @@ SwiftUI 原生客户端，最低支持 iOS 26。沿用项目的 Kotlin Multiplat
 
 打开 `chunithmd.xcodeproj`，选择共享的 `chunithmd` scheme 和 iOS 26 或更高版本的模拟器。Xcode 的构建阶段会生成并嵌入 KMP Shared framework。真机运行需配置自己的签名团队。
 
-首次启动会下载曲库及封面资源。后续启动使用本地缓存并检查更新；可在「设置 → 静态资源」手动更新。
+首次启动显示欢迎引导，点击「下载资源并继续」后下载曲库及封面，完成后进入主页并持久化完成状态。下载失败可在引导页重试；已有有效曲库的老用户直接进入主页。后续启动使用本地缓存并检查更新；可在「设置 → 静态资源」手动更新。
 
 ## 目录结构
 
@@ -88,3 +88,7 @@ Android 真机回归用 `./scripts/test-scanner-device.sh DEVICE_SERIAL`；该�
 GitHub Actions 的 **Build chunithmd IPA** 工作流在 iOS／共享层或相关构建配置变化时自动运行，也可手动触发。完整检出 Git 历史，以 `scripts/build-number.sh` 返回的 commit 总数作为构建号；Android 同样使用该脚本。两端当前版本为 `0.4`。本地 Xcode 的 Debug、Release 和 Archive 也通过「Set build number」阶段写入相同构建号，无需手改项目文件；可用 `CHUNITHMD_BUILD_NUMBER` 显式覆盖。
 
 工作流准备 Java 21、Gradle、Android SDK 和 Xcode，由 Xcode 构建 KMP Shared framework，再归档 iOS Release。产物 `chunithmd-ipa-unsigned-<commit>` 包含 `chunithmd.ipa`，不需要签名证书或 Apple 账号 Secrets；下载后需要自行签名才能安装，不用于直接上传 TestFlight。构建日志和 xcresult 单独保留 7 天。模型继续在应用内下载，不打入 IPA。
+
+## 首次启动引导
+
+两端共用 `OnboardingPolicy` 判断入口，等待本地状态读取完成后才展示页面，避免老用户启动时闪现引导。完成标记分别保存在 Android DataStore 和 iOS UserDefaults，升级时已有有效曲库会自动补记。新用户只有完整下载并安装曲库后才进入主页；失败不写完成标记，重试不并发启动下载。Android 下载由 ViewModel 持有，重建 Activity 时保留进度。已完成用户即使删除资源缓存也可进入应用，并重新下载曲库。引导不会加载扫描模型或请求相机权限，默认档案沿用原有创建逻辑，后续在设置里切换服务器或增加档案。
