@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -155,7 +154,7 @@ internal class CatalogCoverTransition(
     private val returnSpec = NavSettleSpec.Spring(dampingRatio = 1f, stiffness = 700f)
     private val enterMotion = NavMotion(
         commit = returnSpec,
-        programmatic = NavSettleSpec.Tween(400, FastOutSlowInEasing),
+        programmatic = NavSettleSpec.Tween(400, CatalogEmphasizedEasing),
     )
     private val returnMotion = NavMotion(
         commit = returnSpec,
