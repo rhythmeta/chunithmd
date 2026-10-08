@@ -16,6 +16,7 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 @Composable
 internal fun ScannerModelDownloadPanel(state: ScannerModelState, models: ScannerModelManager,
     modifier: Modifier = Modifier, compact: Boolean = false) {
+    if (state.stage == "loading") return
     Column(modifier.widthIn(max = 460.dp).squircleSurface(Color(0xEE202020), 24.dp, SquircleExtension).padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(tr(when (state.stage) {

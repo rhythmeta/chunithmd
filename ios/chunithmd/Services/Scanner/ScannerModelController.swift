@@ -7,6 +7,7 @@ import Shared
 final class ScannerModelController {
     private(set) var state = ScannerModelViewState()
     @ObservationIgnored private var bridge: ScannerModelBridge?
+    @ObservationIgnored private var started = false
 
     init() {
         do {
@@ -24,13 +25,15 @@ final class ScannerModelController {
     }
 
     func start() {
+        guard !started else { return }
+        started = true
         bridge?.observe { @Sendable [weak self] json in
             Task { @MainActor [weak self] in
                 guard let self, let state = try? JSONDecoder().decode(ScannerModelViewState.self, from: Data(json.utf8)) else { return }
                 self.state = state
             }
         }
-        bridge?.check()
+        bridge?.prepare()
     }
     func check() { bridge?.check() }
     func download() { bridge?.download() }

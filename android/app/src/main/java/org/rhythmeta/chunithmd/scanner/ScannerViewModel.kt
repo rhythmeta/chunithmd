@@ -34,7 +34,7 @@ data class ScannerUiState(
 class ScannerViewModel(application: Application) : AndroidViewModel(application) {
     val models = ScannerModelManager(java.io.File(application.noBackupFilesDir, "scanner-models").path, "android")
     private val recognizer = AndroidScoreRecognizer(application, models)
-    init { models.check() }
+    init { models.prepare() }
     override fun onCleared() { models.close(); super.onCleared() }
     private val mutable = MutableStateFlow(ScannerUiState())
     val state = mutable.asStateFlow()

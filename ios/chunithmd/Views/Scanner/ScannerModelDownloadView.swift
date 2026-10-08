@@ -6,6 +6,7 @@ struct ScannerModelDownloadView: View {
     var body: some View {
         VStack(spacing: 14) {
             switch models.state.stage {
+            case "loading": EmptyView()
             case "checking": ProgressView(tr("正在检查识别模型…"))
             case "downloading":
                 ProgressView(value: Double(models.state.downloadedBytes), total: Double(max(1, models.state.totalBytes))) {

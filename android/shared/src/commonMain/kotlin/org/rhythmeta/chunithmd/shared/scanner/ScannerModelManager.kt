@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ScannerModelState(
-    val stage: String = "checking",
+    val stage: String = "loading",
     val usable: Boolean = false,
     val downloadedBytes: Long = 0,
     val totalBytes: Long = 0,
@@ -24,12 +24,24 @@ class ScannerModelManager(private val repository: ScannerModelRepository) {
     val snapshot: ScannerModelSnapshot? get() = current.value
     private var pending: ScannerModelManifest? = null
     private var operation: Job? = null
+    private var prepared = false
 
-    fun check() = start {
-        mutable.value = ScannerModelState(usable = snapshot != null)
+    /** Called by screen lifecycle. Restore locally first and inspect updates once per manager. */
+    fun prepare() = start {
+        if (prepared) return@start
+        prepared = true
+        inspect(silent = true)
+    }
+
+    fun check() = start { inspect(silent = false) }
+
+    private suspend fun inspect(silent: Boolean) {
+        mutable.value = ScannerModelState(stage = if (silent) "loading" else "checking", usable = snapshot != null)
         try {
             current.value = repository.loadCached()
-            mutable.value = mutable.value.copy(usable = snapshot != null)
+            // A network request must not keep an already usable camera behind a checking panel.
+            mutable.value = ScannerModelState(stage = if (snapshot != null && silent) "ready" else "checking",
+                usable = snapshot != null)
             val manifest = repository.fetchManifest()
             pending = manifest
             mutable.value = ScannerModelState(
@@ -77,6 +89,7 @@ class ScannerModelBridge(directory: String) {
         observer = scope.launch { manager.state.collect { onState(scannerModelJson.encodeToString(it)) } }
     }
     fun check() = manager.check()
+    fun prepare() = manager.prepare()
     fun download() = manager.download()
     fun cancelDownload() = manager.cancelDownload()
     fun snapshotJson(): String? = manager.snapshot?.let { scannerModelJson.encodeToString(it) }

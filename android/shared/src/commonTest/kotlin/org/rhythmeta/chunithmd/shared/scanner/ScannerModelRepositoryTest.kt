@@ -19,6 +19,8 @@ class ScannerModelRepositoryTest {
         var network = true
         var corrupt: String? = null
         var cancelAt: String? = null
+        var manifestGate: CompletableDeferred<Unit>? = null
+        var manifestStarted: CompletableDeferred<Unit>? = null
         val requests = mutableListOf<String>()
         val bodies = mutableMapOf<String, String>()
         var manifest = manifest("v1")
@@ -34,7 +36,11 @@ class ScannerModelRepositoryTest {
             check(network) { "Offline" }
             val path = request.url.encodedPath
             requests += path
-            if (path.endsWith("android.json")) respond(scannerModelJson.encodeToString(manifest))
+            if (path.endsWith("android.json")) {
+                manifestStarted?.complete(Unit)
+                manifestGate?.await()
+                respond(scannerModelJson.encodeToString(manifest))
+            }
             else {
                 val digest = path.substringAfterLast('/')
                 if (digest == cancelAt) throw CancellationException("Cancelled transfer")
@@ -125,7 +131,7 @@ class ScannerModelRepositoryTest {
             val manager = ScannerModelManager(repo)
             try {
                 manager.check()
-                val state = withContext(Dispatchers.Default) { withTimeout(5000) { manager.state.first { it.stage != "checking" } } }
+                val state = withContext(Dispatchers.Default) { withTimeout(5000) { manager.state.first { it.stage == "ready" } } }
                 assertEquals("ready", state.stage)
                 assertTrue(state.usable && state.offline)
                 assertNotNull(manager.snapshot)
@@ -138,10 +144,41 @@ class ScannerModelRepositoryTest {
         val manager = ScannerModelManager(f.repository())
         try {
             manager.check()
-            val state = withContext(Dispatchers.Default) { withTimeout(5000) { manager.state.first { it.stage != "checking" } } }
+            val state = withContext(Dispatchers.Default) { withTimeout(5000) { manager.state.first { it.stage == "failed" } } }
             assertEquals("failed", state.stage)
             assertFalse(state.usable)
             assertNull(manager.snapshot)
+        } finally { manager.close(); f.clean() }
+    }
+
+    @Test fun cachedStartupStaysReadyWhileRemoteUpdateCheckIsBlocked() = runTest {
+        val f = Fixture(); val repo = f.repository()
+        val manager = ScannerModelManager(repo)
+        try {
+            val cached = repo.download(repo.fetchManifest()) { _, _ -> }
+            f.manifest = f.manifest("v2")
+            val gate = CompletableDeferred<Unit>()
+            val started = CompletableDeferred<Unit>()
+            f.manifestGate = gate; f.manifestStarted = started
+            manager.prepare()
+            withContext(Dispatchers.Default) { withTimeout(5000) { started.await() } }
+            assertEquals("ready", manager.state.value.stage)
+            assertTrue(manager.state.value.usable)
+            assertEquals(cached, manager.snapshot)
+            gate.complete(Unit)
+            val updated = withContext(Dispatchers.Default) { withTimeout(5000) { manager.state.first { it.stage == "update" } } }
+            assertTrue(updated.usable)
+            assertEquals(cached, manager.snapshot)
+        } finally { manager.close(); f.clean() }
+    }
+
+    @Test fun emptyStartupStillOffersDownload() = runTest {
+        val f = Fixture(); val manager = ScannerModelManager(f.repository())
+        try {
+            manager.prepare()
+            val state = withContext(Dispatchers.Default) { withTimeout(5000) { manager.state.first { it.stage == "required" } } }
+            assertFalse(state.usable)
+            assertTrue(state.totalBytes > 0)
         } finally { manager.close(); f.clean() }
     }
 }

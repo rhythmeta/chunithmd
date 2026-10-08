@@ -88,9 +88,9 @@ struct ScannerView: View {
                         .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)))
                 } else { Spacer() }
             }
-            if !models.state.usable {
+            if !models.state.usable && models.state.stage != "loading" {
                 ScannerModelDownloadView(models: models)
-            } else if !cameraAllowed && !store.photoMode {
+            } else if models.state.usable && !cameraAllowed && !store.photoMode {
                 ScannerCameraPermissionView(request: requestCamera)
             }
         }
