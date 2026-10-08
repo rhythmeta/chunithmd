@@ -8,10 +8,10 @@ import Vision
 
 /// Serial actor keeps Core ML/Vision and image processing off the UI actor.
 actor CoreMLScoreRecognizer {
-    private var model: MLModel?
+    private var models: [String: MLModel] = [:]
     private var modelRevision: String?
 
-    func recognize(data: Data, region: String, files: ScannerModelFiles) throws -> ScannerCapture {
+    func recognize(data: Data, region: String, files: ScannerModelFiles, songMode: Bool = false) throws -> ScannerCapture {
         try Task.checkCancellation()
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
@@ -20,7 +20,8 @@ actor CoreMLScoreRecognizer {
                 kCGImageSourceThumbnailMaxPixelSize: 2560,
                 kCGImageSourceShouldCacheImmediately: true
               ] as CFDictionary) else { throw ScannerFailure.invalidImage }
-        let detector = try loadModel(files: files)
+        let channels = songMode ? 5 : 10
+        let detector = try loadModel(files: files, songMode: songMode)
         let boxed = try letterbox(image)
         guard let constraint = detector.modelDescription.inputDescriptionsByName["image"]?.imageConstraint else {
             throw ScannerFailure.modelContract
@@ -29,24 +30,25 @@ actor CoreMLScoreRecognizer {
         let output = try detector.prediction(from: MLDictionaryFeatureProvider(dictionary: ["image": input]))
         guard let name = output.featureNames.first,
               let raw = output.featureValue(for: name)?.multiArrayValue,
-              raw.shape.count == 3, raw.shape[0].intValue == 1, raw.shape[1].intValue == 10 else {
+              raw.shape.count == 3, raw.shape[0].intValue == 1, raw.shape[1].intValue == channels else {
             throw ScannerFailure.modelContract
         }
         let count = raw.shape[2].intValue
-        let values = KotlinFloatArray(size: Int32(10 * count))
+        let values = KotlinFloatArray(size: Int32(channels * count))
         let strides = raw.strides.map(\.intValue)
         if raw.dataType == .float32 {
             let pointer = raw.dataPointer.assumingMemoryBound(to: Float.self)
-            for channel in 0..<10 {
+            for channel in 0..<channels {
                 for index in 0..<count { values.set(index: Int32(channel * count + index), value: pointer[channel * strides[1] + index * strides[2]]) }
             }
         } else {
-            for channel in 0..<10 {
+            for channel in 0..<channels {
                 for index in 0..<count { values.set(index: Int32(channel * count + index), value: raw[[0, NSNumber(value: channel), NSNumber(value: index)]].floatValue) }
             }
         }
-        let detections = ScoreDetection.shared.decode(values: values, channels: 10, count: Int32(count),
-            sourceWidth: Int32(image.width), sourceHeight: Int32(image.height))
+        let detections = songMode
+            ? ScoreDetection.shared.decodeTitle(values: values, channels: Int32(channels), count: Int32(count), sourceWidth: Int32(image.width), sourceHeight: Int32(image.height))
+            : ScoreDetection.shared.decode(values: values, channels: Int32(channels), count: Int32(count), sourceWidth: Int32(image.width), sourceHeight: Int32(image.height))
         guard !detections.isEmpty else { throw ScannerFailure.noFields }
         var observations: [[String: Any]] = []
         for detection in detections {
@@ -83,25 +85,27 @@ actor CoreMLScoreRecognizer {
             boxes: boxes, imageSize: CGSize(width: image.width, height: image.height))
     }
 
-    private func loadModel(files: ScannerModelFiles) throws -> MLModel {
-        if let model, modelRevision == files.revision { return model }
+    private func loadModel(files: ScannerModelFiles, songMode: Bool) throws -> MLModel {
+        let name = songMode ? "SongDetector" : "ScoreDetector"
+        if modelRevision != files.revision { models.removeAll(); modelRevision = files.revision }
+        if let model = models[name] { return model }
         let directory = URL(filePath: files.directory, directoryHint: .isDirectory)
-        let compiled = directory.appending(path: "ScoreDetector.mlmodelc", directoryHint: .isDirectory)
+        let compiled = directory.appending(path: "\(name).mlmodelc", directoryHint: .isDirectory)
         let config = MLModelConfiguration()
         config.computeUnits = .all
         // Compiled caches can become invalid after an OS upgrade; rebuild from verified source.
         if let cached = try? MLModel(contentsOf: compiled, configuration: config) {
-            model = cached; modelRevision = files.revision
+            models[name] = cached
             return cached
         }
-        let package = directory.appending(path: "ScoreDetector.mlpackage", directoryHint: .isDirectory)
+        let package = directory.appending(path: "\(name).mlpackage", directoryHint: .isDirectory)
         let temporary = try MLModel.compileModel(at: package)
         defer { try? FileManager.default.removeItem(at: temporary) }
         try Task.checkCancellation()
         if FileManager.default.fileExists(atPath: compiled.path) { try FileManager.default.removeItem(at: compiled) }
         try FileManager.default.moveItem(at: temporary, to: compiled)
         let loaded = try MLModel(contentsOf: compiled, configuration: config)
-        model = loaded; modelRevision = files.revision
+        models[name] = loaded
         return loaded
     }
 

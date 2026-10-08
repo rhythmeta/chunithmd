@@ -909,6 +909,7 @@ private fun CatalogApp(
                     enabled = selectedTab == 1 && navBackStack.lastOrNull() == AppRoute.Home,
                     bottomPadding = navigationBarBottomSpace,
                     showBoxes = themeSettings.showScannerBoundingBoxes,
+                    onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(), localJacketPath = repository::localJacketPath,
                     modifier = Modifier.fillMaxSize().kyantLayerBackdrop(navigationBackdrop),
                 )

@@ -1,0 +1,27 @@
+{
+  "source": "exp-2.pt",
+  "source_sha256": "c16a29cda9542bfd4b6811d6cdce103c73a2706a3a9c4a827f1ef2a60fccf711",
+  "export_versions": {
+    "ultralytics": "8.4.19",
+    "torch": "2.8.0",
+    "onnx": "1.19.1",
+    "coremltools": "9.0"
+  },
+  "input_size": 1024,
+  "classes": [
+    "title"
+  ],
+  "output_shape": [
+    1,
+    5,
+    21504
+  ],
+  "layout": "NCHW RGB 0..1; raw cx,cy,w,h pixels + class probabilities; no objectness or NMS",
+  "letterbox": "round resized dimensions; centered integer padding; RGB 114",
+  "assets_sha256": {
+    "model-assets/android/SongDetector.onnx": "93740b266dd7850833bbdc91115bc4f348520fe217eec429e223f189a9b7f43f",
+    "model-assets/ios/SongDetector.mlpackage/Data/com.apple.CoreML/model.mlmodel": "faf1f5519487602d264c35d9b4225d95d01ab2898906afc4fd6a74dfa726c629",
+    "model-assets/ios/SongDetector.mlpackage/Data/com.apple.CoreML/weights/weight.bin": "db25fe2d0d20ee548f19ac73c6e496bf36859abed656b28aaaac1e5f8738a89c",
+    "model-assets/ios/SongDetector.mlpackage/Manifest.json": "dfd070d9c60799f4d3183fbd5b7d4059406968eb164fb5675684e9f5b264265c"
+  }
+}

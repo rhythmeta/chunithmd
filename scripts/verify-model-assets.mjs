@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
 const base = process.env.CHUNITHMD_MODEL_BASE_URL ?? 'https://chunithmd-models.rhythmeta.org';
-for (const platform of ['android', 'ios']) {
+for (const platform of ['android', 'ios', 'android-v2', 'ios-v2']) {
   const response = await fetch(`${base}/${platform}.json`, { cache: 'no-cache', signal: AbortSignal.timeout(60000) });
   if (!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
   const manifest = await response.json();

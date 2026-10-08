@@ -63,9 +63,15 @@ internal fun ScannerResultCard(state: ScannerUiState, catalog: CatalogBundle?, j
             Spacer(Modifier.width(12.dp))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(candidate.title, maxLines = 1,
-                fontWeight = FontWeight.Bold, style = MiuixTheme.textStyles.body2.copy(fontSize = 12.sp, lineHeight = 14.sp),
-                modifier = Modifier.fillMaxWidth().basicMarquee())
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(candidate.type.uppercase(), color = Color.White, fontWeight = FontWeight.Bold,
+                    style = MiuixTheme.textStyles.body2.copy(fontSize = 8.sp, lineHeight = 9.sp),
+                    modifier = Modifier.squircleSurface(color, 4.dp, SquircleExtension)
+                        .padding(horizontal = 3.dp, vertical = .5.dp))
+                Text(candidate.title, maxLines = 1,
+                    fontWeight = FontWeight.Bold, style = MiuixTheme.textStyles.body2.copy(fontSize = 12.sp, lineHeight = 14.sp),
+                    modifier = Modifier.weight(1f).basicMarquee())
+            }
             Text(if (isWe) "WORLD'S END" else (candidate.difficulty).uppercase(), color = color,
                 fontWeight = FontWeight.Bold, style = MiuixTheme.textStyles.body2.copy(fontSize = 11.sp, lineHeight = 13.sp))
         }
@@ -76,7 +82,7 @@ internal fun ScannerResultCard(state: ScannerUiState, catalog: CatalogBundle?, j
                 style = MiuixTheme.textStyles.body2.copy(fontSize = 10.sp, lineHeight = 12.sp))
         }
         Text(if (isWe) ScoreScanner.attribute(fields.level) else candidate.level,
-            color = color, fontWeight = FontWeight.Black,
+            color = color.copy(alpha = .85f), fontWeight = FontWeight.Black,
             style = MiuixTheme.textStyles.body1.copy(fontSize = 20.sp, lineHeight = 22.sp),
             modifier = Modifier.padding(start = 8.dp))
         Icon(Icons.Rounded.ChevronRight, null, tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = .4f),

@@ -22,7 +22,19 @@ for (const [platform, files] of Object.entries(assets)) {
     copyFileSync(source, target);
     return { filename, sha256, size: bytes.length };
   });
+  // Keep v1 manifests unchanged for installed clients that validate an exact file whitelist.
   writeFileSync(resolve(output, `${platform}.json`), JSON.stringify({ schemaVersion: 1, entries }) + '\n');
+  const songFiles = platform === 'android' ? ['SongDetector.onnx'] : [
+    'SongDetector.mlpackage/Manifest.json', 'SongDetector.mlpackage/Data/com.apple.CoreML/model.mlmodel',
+    'SongDetector.mlpackage/Data/com.apple.CoreML/weights/weight.bin'];
+  const songEntries = songFiles.map(filename => {
+    const source = resolve(root, 'model-assets', platform, filename);
+    const bytes = readFileSync(source);
+    const sha256 = createHash('sha256').update(bytes).digest('hex');
+    copyFileSync(source, resolve(output, 'files', sha256));
+    return { filename, sha256, size: bytes.length };
+  });
+  writeFileSync(resolve(output, `${platform}-v2.json`), JSON.stringify({ schemaVersion: 1, entries: [...entries, ...songEntries] }) + '\n');
   console.log(`${platform}: ${entries.length} files, ${entries.reduce((n, e) => n + e.size, 0)} bytes`);
 }
 for (const filename of ['PaddleOCR-LICENSE.txt', 'PaddleOCR-NOTICE.txt']) {

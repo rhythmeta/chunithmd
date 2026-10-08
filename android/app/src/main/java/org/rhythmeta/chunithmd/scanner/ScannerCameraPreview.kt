@@ -80,7 +80,7 @@ internal fun ScannerCameraPreview(
     analyzing: Boolean,
     isProcessingFrame: () -> Boolean,
     controller: ScannerCameraController,
-    onFrame: (Bitmap, Int) -> Unit,
+    onFrame: (Bitmap, Int, Boolean) -> Unit,
     onLandscapeChanged: (Boolean) -> Unit,
     onError: (String?) -> Unit,
     modifier: Modifier = Modifier,
@@ -122,18 +122,20 @@ internal fun ScannerCameraPreview(
         val previewSensorRotation = AtomicInteger(0)
         var cameraInfo: CameraInfo? = null
         // Analysis/capture orientation follows how the phone is held, independently of the portrait UI.
-        analysis.targetRotation = Surface.ROTATION_90
-        capture.targetRotation = Surface.ROTATION_90
+        analysis.targetRotation = Surface.ROTATION_0
+        capture.targetRotation = Surface.ROTATION_0
+        var physicalRotation = Surface.ROTATION_0
         val orientationListener = object : OrientationEventListener(context) {
             override fun onOrientationChanged(orientation: Int) {
                 if (disposed) return
-                val rotation = landscapeTargetRotation(orientation)
-                landscapeHeld.set(rotation != null)
-                currentLandscape(rotation != null)
-                if (rotation != null) {
-                    analysis.targetRotation = rotation
-                    capture.targetRotation = rotation
-                }
+                val target = scannerTargetRotation(orientation, physicalRotation)
+                if (target == physicalRotation) return
+                physicalRotation = target
+                val landscape = target == Surface.ROTATION_90 || target == Surface.ROTATION_270
+                landscapeHeld.set(landscape)
+                currentLandscape(landscape)
+                analysis.targetRotation = target
+                capture.targetRotation = target
             }
         }
         val displays = context.getSystemService(DisplayManager::class.java)
@@ -163,15 +165,16 @@ internal fun ScannerCameraPreview(
                         analysis.setAnalyzer(executor) { image ->
                             image.use {
                                 val now = SystemClock.elapsedRealtime()
-                                if (currentAnalyzing && landscapeHeld.get() && !currentProcessingFrame() && now - lastFrame >= 150) {
+                                if (currentAnalyzing && !currentProcessingFrame() && now - lastFrame >= 150) {
                                     lastFrame = now
+                                    val frameLandscape = landscapeHeld.get()
                                     val previewRotation = (previewSensorRotation.get() - image.imageInfo.rotationDegrees + 360) % 360
                                     val frame = runCatching { image.toUprightBitmap() }.getOrElse { error ->
                                         main.execute { if (!disposed) currentError(error.localizedMessage ?: tr("识别失败")) }
                                         null
                                     }
                                     if (frame != null) main.execute {
-                                        if (disposed || !currentAnalyzing) frame.recycle() else currentFrame(frame, previewRotation)
+                                        if (disposed || !currentAnalyzing || (frame.width > frame.height) != frameLandscape) frame.recycle() else currentFrame(frame, previewRotation, frameLandscape)
                                     }
                                 }
                             }

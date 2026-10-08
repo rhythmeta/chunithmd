@@ -27,14 +27,22 @@ object ScoreDetection {
     /** Pinned export contract: [1, 10, N], pixel xywh followed by six class probabilities.
      * No objectness column and no embedded NMS. Reject incompatible replacement models. */
     fun decode(values: FloatArray, channels: Int, count: Int, sourceWidth: Int, sourceHeight: Int): List<ScanDetection> {
-        require(channels == 10 && count > 0 && values.size == channels * count) { "Unsupported detector output" }
+        return decodeFields(values, channels, count, sourceWidth, sourceHeight, fields, 0.25f)
+    }
+
+    fun decodeTitle(values: FloatArray, channels: Int, count: Int, sourceWidth: Int, sourceHeight: Int): List<ScanDetection> =
+        decodeFields(values, channels, count, sourceWidth, sourceHeight, listOf("title"), 0.35f)
+
+    private fun decodeFields(values: FloatArray, channels: Int, count: Int, sourceWidth: Int, sourceHeight: Int,
+        fields: List<String>, threshold: Float): List<ScanDetection> {
+        require(channels == fields.size + 4 && count > 0 && values.size == channels * count) { "Unsupported detector output" }
         val fit = letterbox(sourceWidth, sourceHeight)
         val candidates = mutableListOf<ScanDetection>()
         for (i in 0 until count) {
             var cls = 0
-            for (c in 1..5) if (values[(c + 4) * count + i] > values[(cls + 4) * count + i]) cls = c
+            for (c in 1 until fields.size) if (values[(c + 4) * count + i] > values[(cls + 4) * count + i]) cls = c
             val confidence = values[(cls + 4) * count + i]
-            if (!confidence.isFinite() || confidence !in 0.25f..1f) continue
+            if (!confidence.isFinite() || confidence !in threshold..1f) continue
             val cx = values[i]; val cy = values[count + i]
             val w = values[2 * count + i]; val h = values[3 * count + i]
             if (!listOf(cx, cy, w, h).all(Float::isFinite) || w <= 0 || h <= 0) continue

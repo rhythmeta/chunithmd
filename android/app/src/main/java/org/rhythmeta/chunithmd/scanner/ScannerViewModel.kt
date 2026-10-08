@@ -23,6 +23,7 @@ import org.rhythmeta.chunithmd.shared.scanner.*
 
 data class ScannerUiState(
     val image: Uri? = null, val busy: Boolean = false, val saving: Boolean = false,
+    val songMatch: ScanSongMatch? = null,
     val fields: ScanFields? = null, val match: ScanChartCandidate? = null,
     val clear: String = "", val combo: String = "",
     val error: String? = null, val saved: Boolean = false,
@@ -44,6 +45,17 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
     private var liveJob: Job? = null
     private val inferenceMutex = Mutex()
     private val stabilizer = LiveScanStabilizer()
+    private val songStabilizer = LiveSongStabilizer()
+    private var songMode = true
+    private var generation = 0L
+
+    fun setLandscape(landscape: Boolean) {
+        if (songMode == !landscape) return
+        songMode = !landscape
+        generation++
+        liveJob?.cancel(); stabilizer.reset(); songStabilizer.reset()
+        if (mutable.value.image == null && !mutable.value.reviewVisible && !mutable.value.saving) mutable.value = ScannerUiState()
+    }
     private var active = false
     private val frameInFlight = AtomicBoolean(false)
     val isProcessingFrame: Boolean get() = frameInFlight.get()
@@ -52,12 +64,15 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
         active = enabled
         if (!enabled) {
             liveJob?.cancel()
-            stabilizer.reset()
+            stabilizer.reset(); songStabilizer.reset(); generation++
         }
     }
 
     /** Called on the main thread; frames are dropped while one inference is in flight. */
-    fun analyzeLiveFrame(bitmap: Bitmap, previewRotationDegrees: Int) {
+    fun analyzeLiveFrame(bitmap: Bitmap, previewRotationDegrees: Int, landscape: Boolean) {
+        if (songMode == landscape) { bitmap.recycle(); return }
+        val frameSongMode = !landscape
+        val token = generation
         val bundle = catalog
         val region = profile?.server?.wireValue
         val state = mutable.value
@@ -69,15 +84,23 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
         liveJob = viewModelScope.launch {
             val started = SystemClock.elapsedRealtime()
             try {
-                val observations = inferenceMutex.withLock { recognizer.recognize(bitmap) }
+                val observations = inferenceMutex.withLock { recognizer.recognize(bitmap, frameSongMode) }
                 ensureActive()
-                if (!active || mutable.value.reviewVisible || mutable.value.image != null) return@launch
+                if (token != generation || !active || mutable.value.reviewVisible || mutable.value.image != null) return@launch
                 val fields = ScoreScanner.fields(observations)
                 mutable.value = mutable.value.copy(observations = observations,
                     imageWidth = bitmap.width, imageHeight = bitmap.height, previewRotationDegrees = previewRotationDegrees, error = null)
+                if (frameSongMode) {
+                    val match = withContext(Dispatchers.Default) { SongScanner.match(bundle, fields.title, region) }
+                    ensureActive()
+                    if (token != generation || !active || mutable.value.image != null) return@launch
+                    if (songStabilizer.accept(match)) mutable.value = mutable.value.copy(songMatch = match, fields = fields, match = null)
+                    else if (songStabilizer.shouldClear) mutable.value = mutable.value.copy(songMatch = null, fields = null)
+                    return@launch
+                }
                 val review = withContext(Dispatchers.Default) { ScoreScanner.review(bundle, fields, region) }
                 ensureActive()
-                if (!active || mutable.value.reviewVisible || mutable.value.image != null) return@launch
+                if (token != generation || !active || mutable.value.reviewVisible || mutable.value.image != null) return@launch
                 if (BuildConfig.DEBUG) Log.d("ScannerLive", "frame=${bitmap.width}x${bitmap.height} fields=${observations.size} matched=${ScoreScanner.automaticMatch(review)?.key} durationMs=${SystemClock.elapsedRealtime() - started}")
                 if (stabilizer.accept(review)) {
                     mutable.value = mutable.value.copy(fields = review.fields, match = ScoreScanner.automaticMatch(review),
@@ -88,8 +111,8 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
             } catch (error: CancellationException) { throw error }
             catch (error: Exception) {
                 ensureActive()
-                stabilizer.reset()
-                mutable.value = mutable.value.copy(fields = null, match = null,
+                stabilizer.reset(); songStabilizer.reset(); generation++
+                mutable.value = mutable.value.copy(fields = null, match = null, songMatch = null,
                     error = error.localizedMessage ?: tr("识别失败"))
             }
         }.also { task -> task.invokeOnCompletion { bitmap.recycle(); frameInFlight.set(false) } }
@@ -105,12 +128,12 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
     }
     fun resumeLive() {
         if (mutable.value.saving || models.snapshot == null) return
-        job?.cancel(); liveJob?.cancel(); stabilizer.reset(); mutable.value = ScannerUiState()
+        job?.cancel(); liveJob?.cancel(); stabilizer.reset(); songStabilizer.reset(); generation++; mutable.value = ScannerUiState()
     }
 
     fun bind(catalog: CatalogBundle?, profile: UserProfile?) {
         if (this.profile?.id != profile?.id || this.profile?.server != profile?.server) {
-            job?.cancel(); liveJob?.cancel(); stabilizer.reset(); mutable.value = ScannerUiState()
+            job?.cancel(); liveJob?.cancel(); stabilizer.reset(); songStabilizer.reset(); generation++; mutable.value = ScannerUiState()
         }
         this.catalog = catalog; this.profile = profile
     }
@@ -118,15 +141,23 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
         val bundle = catalog ?: return
         val region = profile?.server?.wireValue ?: return
         if (mutable.value.saving || models.snapshot == null) return
-        job?.cancel(); liveJob?.cancel(); stabilizer.reset(); mutable.value = ScannerUiState(image = uri, busy = true)
+        job?.cancel(); liveJob?.cancel(); stabilizer.reset(); songStabilizer.reset(); generation++; mutable.value = ScannerUiState(image = uri, busy = true)
         job = viewModelScope.launch {
             try {
                 val observations = inferenceMutex.withLock { recognizer.recognize(uri) }
-                if (observations.isEmpty()) error(tr("未找到成绩字段，请选择清晰的单张成绩图。"))
                 val review = withContext(Dispatchers.Default) { ScoreScanner.review(bundle, ScoreScanner.fields(observations), region) }
                 ensureActive()
                 // Gray inactive combo labels can also be read by OCR. Leave the status unselected.
                 val match = ScoreScanner.automaticMatch(review)
+                if (match == null || review.parsedScore == null) {
+                    val songObservations = inferenceMutex.withLock { recognizer.recognize(uri, true) }
+                    val fields = ScoreScanner.fields(songObservations)
+                    val song = withContext(Dispatchers.Default) { SongScanner.match(bundle, fields.title, region) }
+                    ensureActive()
+                    mutable.value = ScannerUiState(image = uri, fields = fields, songMatch = song,
+                        error = if (song == null) tr("未识别到匹配歌曲，请重新扫描。") else null)
+                    return@launch
+                }
                 mutable.value = ScannerUiState(image = uri, fields = review.fields, match = match, clear = review.clear,
                     error = if (match == null) tr("未识别到匹配谱面，请重新扫描。") else null)
             } catch (e: CancellationException) { throw e }

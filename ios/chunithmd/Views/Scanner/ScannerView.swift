@@ -4,6 +4,8 @@ import SwiftUI
 
 struct ScannerView: View {
     @Environment(CatalogStore.self) private var catalog
+    @Environment(SongNavigation.self) private var navigation
+    @State private var songSourceID = UUID()
     @Environment(PersonalStore.self) private var personal
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -19,7 +21,7 @@ struct ScannerView: View {
     @AppStorage("scanner.showBoundingBoxes") private var showBoundingBoxes = false
 
     private var ready: Bool { models.state.usable && catalog.bundle != nil && personal.snapshot.activeProfile != nil }
-    private var live: Bool { visible && scenePhase == .active && ready && !store.photoMode && !showPhotos && entry == nil }
+    private var live: Bool { visible && scenePhase == .active && ready && !store.photoMode && !showPhotos && entry == nil && navigation.song == nil }
     private var landscape: Int { deviceOrientation.orientation.rawValue }
     private var song: CatalogSongViewData? { catalog.allSongs.first { $0.id == store.result?.match.songId } }
     private var status: String? {
@@ -28,7 +30,6 @@ struct ScannerView: View {
         if !models.state.usable { return nil }
         if !ready { return tr("请先加载曲库并选择玩家档案。") }
         if !store.photoMode && cameraFailed { return tr("相机暂不可用，请使用相册识别。") }
-        if !store.photoMode && cameraAllowed && landscape == 0 { return tr("请横持手机，将成绩画面对准取景框") }
         return nil
     }
 
@@ -84,8 +85,19 @@ struct ScannerView: View {
                         .padding(.top, 12).padding(.bottom, 20)
                     }
                     ScannerResultCardView(result: result, song: song, onTap: openEntry)
-                        .padding(.horizontal, 20).padding(.bottom, 24)
-                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)))
+                        .padding(.horizontal, 20).padding(.bottom, 40)
+                        .transition(reduceMotion ? .opacity : .asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)),
+                            removal: .opacity.combined(with: .scale(scale: 0.95))))
+                } else if let match = store.songResult, let song = catalog.allSongs.first(where: { $0.id == match.songId }) {
+                    ScannerSongCardView(song: song) {
+                        store.invalidate()
+                        navigation.open(song, sourceID: songSourceID)
+                    }
+                    .padding(.horizontal, 20).padding(.bottom, 40)
+                    .transition(reduceMotion ? .opacity : .asymmetric(
+                        insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)),
+                        removal: .opacity.combined(with: .scale(scale: 0.95))))
                 } else { Spacer() }
             }
             if !models.state.usable && models.state.stage != "loading" {
@@ -102,6 +114,7 @@ struct ScannerView: View {
         .toolbar(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .tabBar)
         .animation(reduceMotion ? nil : .snappy, value: store.result?.match.id)
+        .animation(reduceMotion ? nil : .snappy, value: store.songResult?.songId)
         .photosPicker(isPresented: $showPhotos, selection: $photo, matching: .images)
         .sheet(item: $entry, onDismiss: reset) { selection in
             ScoreEntryView(song: selection.song, sheet: selection.sheet, initialScore: selection.result.score,
@@ -110,7 +123,7 @@ struct ScannerView: View {
         .onAppear(perform: appear)
         .onDisappear(perform: disappear)
         .task(id: live) { if live { await deviceOrientation.track() } }
-        .onChange(of: deviceOrientation.orientation) { if !store.photoMode { store.invalidate() } }
+        .onChange(of: deviceOrientation.orientation) { if !store.photoMode { store.orientationChanged() } }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { cameraAllowed = AVCaptureDevice.authorizationStatus(for: .video) == .authorized }
             else { store.invalidate() }
@@ -146,7 +159,7 @@ struct ScannerView: View {
         }
     }
     private func recognizeFrame(_ data: Data, orientation: ScannerPhysicalOrientation) async {
-        guard live, landscape != 0, orientation == deviceOrientation.orientation,
+        guard live, orientation == deviceOrientation.orientation,
               let bundle = catalog.bundle, let profile = personal.snapshot.activeProfile else { return }
         do { await store.recognize(data: data, catalog: bundle, region: profile.server, files: try models.files(), live: true, orientation: orientation) }
         catch { store.error = tr("识别模型不可用，请检查模型更新后重试。") }

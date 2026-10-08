@@ -55,7 +55,7 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 fun ScannerScreen(
     catalog: CatalogBundle?, profile: UserProfile?, profiles: ProfileRepository,
     scores: ScoreRepository, enabled: Boolean, bottomPadding: Dp,
-    showBoxes: Boolean,
+    showBoxes: Boolean, onOpenSong: (String) -> Unit,
     jacketBaseUrl: String, localJacketPath: (String) -> String?,
     modifier: Modifier = Modifier, model: ScannerViewModel = viewModel(),
 ) {
@@ -77,7 +77,6 @@ fun ScannerScreen(
     val controller = remember { ScannerCameraController() }
     var permissionGranted by remember { mutableStateOf(false) }
     var permissionRequested by rememberSaveable { mutableStateOf(false) }
-    var landscapeHeld by remember { mutableStateOf(false) }
     var cameraError by remember { mutableStateOf<String?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var capturing by remember { mutableStateOf(false) }
@@ -116,7 +115,7 @@ fun ScannerScreen(
         } else if (permissionGranted) {
             ScannerCameraPreview(
                 enabled = resumed, analyzing = ready && !state.reviewVisible && !state.saving,
-                isProcessingFrame = { model.isProcessingFrame }, onLandscapeChanged = { landscapeHeld = it },
+                isProcessingFrame = { model.isProcessingFrame }, onLandscapeChanged = model::setLandscape,
                 controller = controller, onFrame = model::analyzeLiveFrame, onError = { cameraError = it },
                 modifier = Modifier.fillMaxSize(),
             )
@@ -151,7 +150,6 @@ fun ScannerScreen(
             state.error != null -> state.error
             !ready -> tr("请先加载曲库并选择玩家档案。")
             state.image == null && cameraError != null -> cameraError
-            state.image == null && permissionGranted && !landscapeHeld -> tr("请横持手机，将成绩画面对准取景框")
             else -> null
         }
         if (status != null) Row(
@@ -180,6 +178,15 @@ fun ScannerScreen(
                         .squircleBorder(3.dp, Color.White, 32.dp, SquircleExtension)) {
                     Box(Modifier.size(52.dp).squircleSurface(Color.White, 26.dp, SquircleExtension))
                     if (capturing) CircularProgressIndicator(size = 22.dp, strokeWidth = 2.dp)
+                }
+            }
+            AnimatedVisibility(state.songMatch != null,
+                enter = scaleIn(initialScale = .9f) + fadeIn(), exit = scaleOut(targetScale = .95f) + fadeOut()) {
+                state.songMatch?.let { song ->
+                    ScannerSongCard(song, catalog, jacketBaseUrl, localJacketPath) {
+                        model.setActive(false)
+                        onOpenSong(song.songId)
+                    }
                 }
             }
             AnimatedVisibility(state.match != null,

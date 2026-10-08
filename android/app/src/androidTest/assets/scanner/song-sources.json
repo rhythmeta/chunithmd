@@ -1,0 +1,52 @@
+[
+  {
+    "file": "images/val/select_017.jpg",
+    "scene": "selection_and_confirmation",
+    "width": 1280,
+    "height": 720,
+    "source_url": "https://www.youtube.com/watch?v=NEzbQbEs4Mg",
+    "image_url": "https://i.ytimg.com/vi/NEzbQbEs4Mg/maxresdefault.jpg",
+    "download_url": "https://i.ytimg.com/vi/NEzbQbEs4Mg/maxresdefault.jpg",
+    "source_title": "2/2) チュウニズム / CHUNITHM - Ver. 1.40 Guest play based Songs ...",
+    "source_text": "",
+    "original_filename": "img-5f7e9a2997a26869.jpg",
+    "sha256": "581625bcdebf25ca64bdc17938d14ab0569617d091306893e041985ce1f8743b",
+    "annotation_status": "title bbox reviewed",
+    "source_group": "87110f61526f",
+    "split": "val",
+    "class_id": 0,
+    "class_name": "title",
+    "bbox_xyxy": [
+      534.9999998785714,
+      514.9999999880952,
+      744.9999998785714,
+      536.999999988095
+    ],
+    "test_asset": "song-ascii.jpg"
+  },
+  {
+    "file": "images/val/select_055.jpg",
+    "scene": "selection_and_confirmation",
+    "width": 534,
+    "height": 949,
+    "source_url": "https://www.aruki-mendes.biz/entry/2018/05/25/011210",
+    "image_url": "https://cdn-ak.f.st-hatena.com/images/fotolife/n/nasubinmail/20180525/20180525193500.png",
+    "download_url": "https://cdn-ak.f.st-hatena.com/images/fotolife/n/nasubinmail/20180525/20180525193500.png",
+    "source_title": "チュウニズムの初心者向けの解説　①遊び方の解説 - 音ゲーの遊び方を丁寧に解説するブログ",
+    "source_text": "",
+    "original_filename": "web-bf0d66d9b9c35704.jpg",
+    "sha256": "42f266a0a227e41890ae5890c4257ec6a4b0d53df1404310dee3876403730c2f",
+    "annotation_status": "title bbox reviewed",
+    "source_group": "446691b1a564",
+    "split": "val",
+    "class_id": 0,
+    "class_name": "title",
+    "bbox_xyxy": [
+      241.707745851476,
+      471.87375136336385,
+      400.20610819342704,
+      503.54763969986675
+    ],
+    "test_asset": "song-jp.jpg"
+  }
+]

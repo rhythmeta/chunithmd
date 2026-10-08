@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 
 /// Device-space gravity, independent of the interface orientation and rotation lock.
 /// Raw values also select the camera buffer's existing upright / upside-down transform.
@@ -6,6 +7,14 @@ nonisolated enum ScannerPhysicalOrientation: Int {
     case portrait = 0
     case landscapeLeft = 1
     case landscapeRight = -1
+
+    var imageOrientation: CGImagePropertyOrientation {
+        switch self {
+        case .portrait: .right
+        case .landscapeLeft: .up
+        case .landscapeRight: .down
+        }
+    }
 
     func updated(gravityX x: Double, gravityY y: Double) -> Self {
         guard x.isFinite, y.isFinite else { return self }

@@ -7,6 +7,7 @@ import UIKit
 @MainActor @Observable
 final class ScannerStore {
     private(set) var result: ScannerResult?
+    private(set) var songResult: ScannerSongPresentation.Match?
     private(set) var preview: UIImage?
     private(set) var busy = false
     private(set) var photoMode = false
@@ -18,18 +19,20 @@ final class ScannerStore {
     var feedback: String?
     private let recognizer = CoreMLScoreRecognizer()
     private let matching = NativeLiveScoreScanner()
+    private let songMatching = NativeLiveSongScanner()
     private var generation = UUID()
     private var inFlight = false
 
     func reset() {
         invalidate()
-        photoMode = false; preview = nil; result = nil; error = nil; feedback = nil
+        photoMode = false; preview = nil; result = nil; songResult = nil; error = nil; feedback = nil
     }
 
     func invalidate() {
         generation = UUID()
         detectedBoxes = []; detectedImageSize = .zero
     }
+    func orientationChanged() { invalidate(); result = nil; songResult = nil; error = nil }
     func beginPhoto() { reset(); photoMode = true; busy = true }
 
     func recognize(data: Data, catalog: CatalogBundle, region: String, files: ScannerModelFiles, live: Bool,
@@ -41,13 +44,41 @@ final class ScannerStore {
         inFlight = true
         defer { inFlight = false; if generation == token { busy = false } }
         do {
-            let capture = try await recognizer.recognize(data: data, region: region, files: files)
+            var songMode = live && orientation == .portrait
+            let capture: ScannerCapture
+            if live {
+                capture = try await recognizer.recognize(data: data, region: region, files: files, songMode: songMode)
+            } else {
+                // Imported photos are classified by their fields, never by the shape of the photo.
+                let scoreCapture: ScannerCapture?
+                do { scoreCapture = try await recognizer.recognize(data: data, region: region, files: files) }
+                catch ScannerFailure.noFields { scoreCapture = nil }
+                let hasScore = scoreCapture.map { Self.hasScoreFields($0.observationsJSON) } ?? false
+                if hasScore, let scoreCapture { capture = scoreCapture }
+                else {
+                    songMode = true
+                    capture = try await recognizer.recognize(data: data, region: region, files: files, songMode: true)
+                }
+            }
             try Task.checkCancellation()
             guard generation == token else { return }
             detectedBoxes = capture.boxes
             detectedImageSize = capture.imageSize
             detectedOrientation = orientation
             if !live { preview = UIImage(data: capture.previewData) }
+            if songMode {
+                let json = try await songMatching.reviewJson(catalog: catalog, observationsJson: capture.observationsJSON,
+                    region: region, live: live, session: token.uuidString)
+                try Task.checkCancellation()
+                guard generation == token else { return }
+                let state = try JSONDecoder().decode(ScannerSongPresentation.self, from: Data(json.utf8))
+                if state.accepted { songResult = state.match; result = nil; error = nil }
+                else if state.shouldClear || !live {
+                    songResult = nil
+                    if !live { error = tr("未识别到匹配歌曲，请重新扫描。") }
+                }
+                return
+            }
             let json = try await matching.reviewJson(catalog: catalog, observationsJson: capture.observationsJSON, region: region, live: live, session: token.uuidString)
             try Task.checkCancellation()
             guard generation == token else { return }
@@ -65,16 +96,30 @@ final class ScannerStore {
             detectedBoxes = []; detectedImageSize = .zero
             if live, case ScannerFailure.noFields = error {
                 // Count empty frames too, so an old card disappears when the camera moves away.
+                if orientation == .portrait {
+                    if let json = try? await songMatching.reviewJson(catalog: catalog, observationsJson: "[]", region: region,
+                        live: true, session: token.uuidString),
+                       let state = try? JSONDecoder().decode(ScannerSongPresentation.self, from: Data(json.utf8)),
+                       generation == token, state.shouldClear { songResult = nil }
+                    return
+                }
                 if let json = try? await matching.reviewJson(catalog: catalog, observationsJson: "[]", region: region, live: true, session: token.uuidString),
                    let state = try? JSONDecoder().decode(ScannerPresentation.self, from: Data(json.utf8)), generation == token, state.shouldClear { result = nil }
                 return
             }
             switch error {
-            case ScannerFailure.noFields: self.error = tr("未找到成绩字段，请选择清晰的单张成绩图。")
+            case ScannerFailure.noFields: self.error = tr("未识别到匹配歌曲，请重新扫描。")
             case ScannerFailure.modelMissing, ScannerFailure.modelContract: self.error = tr("识别模型不可用，请检查模型更新后重试。")
             default: self.error = tr("识别失败") + ": " + error.localizedDescription
             }
         }
+    }
+
+    private static func hasScoreFields(_ json: String) -> Bool {
+        guard let rows = try? JSONSerialization.jsonObject(with: Data(json.utf8)) as? [[String: Any]] else { return false }
+        let score = rows.first { $0["field"] as? String == "score" }?["text"] as? String ?? ""
+        let difficulty = rows.first { $0["field"] as? String == "difficulty" }?["text"] as? String ?? ""
+        return ScoreScanner.shared.parseScore(raw: score) != nil && ScoreScanner.shared.difficulty(raw: difficulty) != nil
     }
 
     func savePhoto() async {

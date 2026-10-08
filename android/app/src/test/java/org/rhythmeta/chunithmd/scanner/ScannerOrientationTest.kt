@@ -13,6 +13,19 @@ class ScannerOrientationTest {
         for (angle in listOf(-1, 0, 44, 135, 180, 224, 315, 359)) assertNull(landscapeTargetRotation(angle))
     }
 
+    @Test fun portraitUsesPortraitFramesAndDiagonalHoldsDoNotSwitchModels() {
+        assertEquals(Surface.ROTATION_0, scannerTargetRotation(0, Surface.ROTATION_90))
+        assertEquals(Surface.ROTATION_180, scannerTargetRotation(180, Surface.ROTATION_0))
+        assertEquals(Surface.ROTATION_270, scannerTargetRotation(90, Surface.ROTATION_0))
+        assertEquals(Surface.ROTATION_90, scannerTargetRotation(270, Surface.ROTATION_0))
+        for (angle in listOf(-1, 45, 135, 225, 315)) {
+            assertEquals(Surface.ROTATION_90, scannerTargetRotation(angle, Surface.ROTATION_90))
+            assertEquals(Surface.ROTATION_0, scannerTargetRotation(angle, Surface.ROTATION_0))
+        }
+        val box = ScanBox(.1f, .2f, .3f, .4f)
+        assertEquals(box, rotateScanBoxForPreview(box, 0))
+    }
+
     @Test fun landscapeBoxesRotateBackIntoPortraitPreviewCoordinates() {
         val box = ScanBox(.1f, .2f, .3f, .4f)
         val clockwise = rotateScanBoxForPreview(box, 90)

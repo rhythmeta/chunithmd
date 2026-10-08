@@ -25,7 +25,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: python3 scripts/export-score-detector.py --check && python3 scripts/fetch-paddleocr.py --check
+      - run: python3 scripts/export-score-detector.py --check && python3 scripts/export-score-detector.py --kind song --check && python3 scripts/fetch-paddleocr.py --check
       - run: node scripts/build-model-assets.mjs
       - run: pnpm exec wrangler deploy --config models-worker/wrangler.jsonc
         env:

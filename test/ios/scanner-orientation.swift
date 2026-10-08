@@ -5,6 +5,9 @@ import CoreGraphics
 struct ScannerOrientationChecks {
     static func main() {
         typealias Orientation = ScannerPhysicalOrientation
+        precondition(Orientation.portrait.imageOrientation == .right)
+        precondition(Orientation.landscapeLeft.imageOrientation == .up)
+        precondition(Orientation.landscapeRight.imageOrientation == .down)
         // The interface can stay portrait (including rotation lock) for either hold.
         let left = Orientation.portrait.updated(gravityX: -0.98, gravityY: 0.03)
         precondition(left == .landscapeLeft && left.rawValue == 1)

@@ -119,8 +119,8 @@ object ScoreScanner {
         }
     }
     private fun fold(raw: String): String = raw.map { if (it in '！'..'～') (it.code - 0xfee0).toChar() else it }.joinToString("")
-    private fun titleKey(raw: String): String = fold(raw).lowercase().filter(Char::isLetterOrDigit)
-    private fun similarity(a: String, b: String): Double {
+    internal fun titleKey(raw: String): String = fold(raw).lowercase().filter(Char::isLetterOrDigit)
+    internal fun similarity(a: String, b: String): Double {
         if (a == b) return 1.0
         if (a.isEmpty() || b.isEmpty()) return 0.0
         var row = IntArray(b.length + 1) { it }

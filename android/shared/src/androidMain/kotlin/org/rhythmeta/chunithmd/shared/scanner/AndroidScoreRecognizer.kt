@@ -18,21 +18,21 @@ import kotlin.math.*
 class AndroidScoreRecognizer(context: Context, private val models: ScannerModelManager) {
     private val context = context.applicationContext
 
-    suspend fun recognize(uri: Uri): List<ScanObservation> = withContext(Dispatchers.Default) {
+    suspend fun recognize(uri: Uri, songMode: Boolean = false): List<ScanObservation> = withContext(Dispatchers.Default) {
         currentCoroutineContext().ensureActive()
         val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri)) { decoder, info, _ ->
             decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
             val ratio = min(1.0, 2560.0 / max(info.size.width, info.size.height))
             decoder.setTargetSize(max(1, (info.size.width * ratio).roundToInt()), max(1, (info.size.height * ratio).roundToInt()))
         }
-        try { recognize(bitmap) } finally { bitmap.recycle() }
+        try { recognize(bitmap, songMode) } finally { bitmap.recycle() }
     }
 
     /** The caller owns camera frames and recycles them after this suspending call finishes. */
-    suspend fun recognize(bitmap: Bitmap): List<ScanObservation> = withContext(Dispatchers.Default) {
+    suspend fun recognize(bitmap: Bitmap, songMode: Boolean = false): List<ScanObservation> = withContext(Dispatchers.Default) {
         currentCoroutineContext().ensureActive()
         val snapshot = checkNotNull(models.snapshot) { "Download scanner models first" }
-        val detections = detect(bitmap, snapshot)
+        val detections = detect(bitmap, snapshot, songMode)
         currentCoroutineContext().ensureActive()
         if (detections.isEmpty()) return@withContext emptyList()
         AndroidPaddleRecognizer(snapshot).use { recognizer ->
@@ -47,7 +47,7 @@ class AndroidScoreRecognizer(context: Context, private val models: ScannerModelM
         }
     }
 
-    private fun detect(source: Bitmap, snapshot: ScannerModelSnapshot): List<ScanDetection> {
+    private fun detect(source: Bitmap, snapshot: ScannerModelSnapshot, songMode: Boolean): List<ScanDetection> {
         val n = ScoreDetection.inputSize
         val fit = ScoreDetection.letterbox(source.width, source.height)
         val input = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888)
@@ -67,7 +67,7 @@ class AndroidScoreRecognizer(context: Context, private val models: ScannerModelM
         val env = OrtEnvironment.getEnvironment()
         OrtSession.SessionOptions().use { options ->
             options.setIntraOpNumThreads(2)
-            val model = snapshot.file("ScoreDetector.onnx")
+            val model = snapshot.file(if (songMode) "SongDetector.onnx" else "ScoreDetector.onnx")
             env.createSession(model, options).use { session ->
                 val inputInfo = session.inputInfo.values.single().info as TensorInfo
                 require(inputInfo.shape.contentEquals(longArrayOf(1, 3, n.toLong(), n.toLong()))) { "Unsupported detector input" }
@@ -75,9 +75,10 @@ class AndroidScoreRecognizer(context: Context, private val models: ScannerModelM
                     session.run(mapOf(session.inputNames.single() to tensor)).use { result ->
                         val output = result[0] as OnnxTensor
                         val shape = output.info.shape
-                        require(shape.size == 3 && shape[0] == 1L && shape[1] == 10L) { "Unsupported detector output" }
+                        require(shape.size == 3 && shape[0] == 1L && shape[1] == (if (songMode) 5L else 10L)) { "Unsupported detector output" }
                         val raw = FloatArray(shape[1].toInt() * shape[2].toInt()); output.floatBuffer.get(raw)
-                        return ScoreDetection.decode(raw, shape[1].toInt(), shape[2].toInt(), source.width, source.height)
+                        return if (songMode) ScoreDetection.decodeTitle(raw, shape[1].toInt(), shape[2].toInt(), source.width, source.height)
+                        else ScoreDetection.decode(raw, shape[1].toInt(), shape[2].toInt(), source.width, source.height)
                     }
                 }
             }

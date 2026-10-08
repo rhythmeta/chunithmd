@@ -25,7 +25,7 @@ class ScannerModelRepositoryTest {
         val bodies = mutableMapOf<String, String>()
         var manifest = manifest("v1")
         fun manifest(version: String): ScannerModelManifest {
-            val entries = listOf("ScoreDetector.onnx", "PaddleOCRv6Small.onnx", "PaddleOCRv6SmallVocab.json").map { name ->
+            val entries = listOf("SongDetector.onnx", "ScoreDetector.onnx", "PaddleOCRv6Small.onnx", "PaddleOCRv6SmallVocab.json").map { name ->
                 val bytes = "$name-$version".encodeUtf8()
                 bodies[bytes.sha256().hex()] = bytes.utf8()
                 ScannerModelEntry(name, bytes.sha256().hex(), bytes.size.toLong())
@@ -36,7 +36,7 @@ class ScannerModelRepositoryTest {
             check(network) { "Offline" }
             val path = request.url.encodedPath
             requests += path
-            if (path.endsWith("android.json")) {
+            if (path.endsWith("android-v2.json")) {
                 manifestStarted?.complete(Unit)
                 manifestGate?.await()
                 respond(scannerModelJson.encodeToString(manifest))
@@ -119,7 +119,7 @@ class ScannerModelRepositoryTest {
                 f.manifest = invalid
                 assertFailsWith<IllegalArgumentException> { repo.fetchManifest() }
             }
-            assertTrue(f.requests.all { it.endsWith("android.json") })
+            assertTrue(f.requests.all { it.endsWith("android-v2.json") })
         } finally { repo.close(); f.clean() }
     }
 

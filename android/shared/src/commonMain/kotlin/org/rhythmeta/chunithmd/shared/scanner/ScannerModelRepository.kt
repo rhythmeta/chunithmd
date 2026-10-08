@@ -43,9 +43,11 @@ class ScannerModelRepository(
     private val active = root / "active-$platform.json"
     private val mutex = Mutex()
     private val required = when (platform) {
-        "android" -> setOf("ScoreDetector.onnx", "PaddleOCRv6Small.onnx", "PaddleOCRv6SmallVocab.json")
+        "android" -> setOf("SongDetector.onnx", "ScoreDetector.onnx", "PaddleOCRv6Small.onnx", "PaddleOCRv6SmallVocab.json")
         "ios" -> setOf("ScoreDetector.mlpackage/Manifest.json", "ScoreDetector.mlpackage/Data/com.apple.CoreML/model.mlmodel",
-            "ScoreDetector.mlpackage/Data/com.apple.CoreML/weights/weight.bin")
+            "ScoreDetector.mlpackage/Data/com.apple.CoreML/weights/weight.bin",
+            "SongDetector.mlpackage/Manifest.json", "SongDetector.mlpackage/Data/com.apple.CoreML/model.mlmodel",
+            "SongDetector.mlpackage/Data/com.apple.CoreML/weights/weight.bin")
         else -> error("Unknown scanner platform")
     }
 
@@ -56,7 +58,7 @@ class ScannerModelRepository(
         return manifest.copy(entries = manifest.entries.sortedBy { it.filename })
     }
 
-    suspend fun fetchManifest(): ScannerModelManifest = client.prepareGet("$baseUrl/$platform.json").execute { response ->
+    suspend fun fetchManifest(): ScannerModelManifest = client.prepareGet("$baseUrl/$platform-v2.json").execute { response ->
         check(response.status.isSuccess()) { "Model manifest HTTP ${response.status.value}" }
         validate(scannerModelJson.decodeFromString<ScannerModelManifest>(response.bodyAsText()))
     }

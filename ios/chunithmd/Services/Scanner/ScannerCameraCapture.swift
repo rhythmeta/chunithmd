@@ -80,7 +80,7 @@ nonisolated final class ScannerCameraCapture: NSObject, AVCaptureVideoDataOutput
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         let now = ProcessInfo.processInfo.systemUptime
         let frame = state.withLockUnchecked { state -> (Int, @MainActor @Sendable (Data, ScannerPhysicalOrientation) async -> Void)? in
-            guard state.enabled, state.analyzing, state.landscape != 0, !state.processing,
+            guard state.enabled, state.analyzing, !state.processing,
                   now - state.lastFrame >= 0.15, let callback = state.onFrame else { return nil }
             state.processing = true; state.lastFrame = now
             return (state.landscape, callback)
@@ -97,7 +97,7 @@ nonisolated final class ScannerCameraCapture: NSObject, AVCaptureVideoDataOutput
 
     private func encodeFrame(_ sampleBuffer: CMSampleBuffer, orientation: Int) -> Data? {
         guard let buffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return nil }
-        let source = CIImage(cvPixelBuffer: buffer).oriented(orientation == 1 ? .up : .down)
+        let source = CIImage(cvPixelBuffer: buffer).oriented((ScannerPhysicalOrientation(rawValue: orientation) ?? .portrait).imageOrientation)
         guard let image = context.createCGImage(source, from: source.extent) else { return nil }
         let data = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(data, UTType.jpeg.identifier as CFString, 1, nil) else { return nil }
