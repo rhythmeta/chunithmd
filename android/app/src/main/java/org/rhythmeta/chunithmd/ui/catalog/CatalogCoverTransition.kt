@@ -154,7 +154,7 @@ internal class CatalogCoverTransition(
     private val returnSpec = NavSettleSpec.Spring(dampingRatio = 1f, stiffness = 700f)
     private val enterMotion = NavMotion(
         commit = returnSpec,
-        programmatic = NavSettleSpec.Tween(400, CatalogEmphasizedEasing),
+        programmatic = NavSettleSpec.Tween(500, CatalogEmphasizedEasing),
     )
     private val returnMotion = NavMotion(
         commit = returnSpec,
