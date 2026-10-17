@@ -7,7 +7,6 @@ import org.rhythmeta.chunithmd.shared.localization.tr
 
 import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -88,6 +87,7 @@ import org.rhythmeta.chunithmd.ui.components.clearStatusColor
 import org.rhythmeta.chunithmd.ui.components.comboStatusColor
 import org.rhythmeta.chunithmd.ui.components.chainStatusColor
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import org.rhythmeta.chunithmd.ui.components.playerRatingColors
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
@@ -480,7 +480,7 @@ private fun BestTableEntryCard(
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().basicMarquee())
+                    Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().fadingMarquee())
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             entry.rank,

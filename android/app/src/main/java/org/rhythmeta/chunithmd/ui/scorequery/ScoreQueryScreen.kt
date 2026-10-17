@@ -6,7 +6,6 @@ import org.rhythmeta.chunithmd.ui.catalog.SongCoverDecorations
 
 import org.rhythmeta.chunithmd.shared.localization.tr
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -90,6 +89,7 @@ import org.rhythmeta.chunithmd.ui.catalog.ultimaStripedBrush
 import org.rhythmeta.chunithmd.ui.catalog.WORLDS_END_GRADIENT_COLORS
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import org.rhythmeta.chunithmd.ui.components.squircleShape
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
@@ -415,7 +415,7 @@ private fun ScoreQueryListRow(
             }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().basicMarquee())
+                Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().fadingMarquee())
                 Text(
                     String.format(Locale.ROOT, "%,d", entry.score),
                     style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),

@@ -20,7 +20,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
@@ -156,6 +155,7 @@ import org.rhythmeta.chunithmd.shared.sortForHistory
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.dashedSquircleBorder
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import org.rhythmeta.chunithmd.ui.components.clearStatusColor
 import org.rhythmeta.chunithmd.ui.components.comboStatusColor
 import org.rhythmeta.chunithmd.ui.components.chainStatusColor
@@ -546,7 +546,7 @@ private fun SongDetailHeader(
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.fillMaxWidth().onGloballyPositioned(titleBounds::updateTitle)
-                .basicMarquee().clickable { onCopyText(CatalogSongFormatter.displayTitle(song)) },
+                .fadingMarquee().clickable { onCopyText(CatalogSongFormatter.displayTitle(song)) },
         )
         MiuixText(
             text = song.artist.ifBlank { tr("未知艺术家") },
@@ -554,7 +554,7 @@ private fun SongDetailHeader(
             color = accentColor,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth().basicMarquee().clickable { onCopyText(song.artist) },
+            modifier = Modifier.fillMaxWidth().fadingMarquee().clickable { onCopyText(song.artist) },
         )
         if (aliases.isNotEmpty()) {
             Row(

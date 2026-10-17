@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.ThumbDown
@@ -39,6 +38,7 @@ import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
 import org.rhythmeta.chunithmd.shared.community.*
 import org.rhythmeta.chunithmd.ui.components.SongListScrollBar
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -162,7 +162,7 @@ private fun CommunitySongHeader(
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Clip,
-                    modifier = Modifier.fillMaxWidth().basicMarquee(),
+                    modifier = Modifier.fillMaxWidth().fadingMarquee(),
                 )
                 Text(tr("{0} 个候选别名", count), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }

@@ -2,7 +2,6 @@ package org.rhythmeta.chunithmd.scanner
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -30,6 +29,7 @@ import org.rhythmeta.chunithmd.shared.ChunithmScoreRules
 import org.rhythmeta.chunithmd.shared.scanner.ScoreScanner
 import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.squircle.squircleBorder
@@ -70,7 +70,7 @@ internal fun ScannerResultCard(state: ScannerUiState, catalog: CatalogBundle?, j
                         .padding(horizontal = 3.dp, vertical = .5.dp))
                 Text(candidate.title, maxLines = 1,
                     fontWeight = FontWeight.Bold, style = MiuixTheme.textStyles.body2.copy(fontSize = 12.sp, lineHeight = 14.sp),
-                    modifier = Modifier.weight(1f).basicMarquee())
+                    modifier = Modifier.weight(1f).fadingMarquee())
             }
             Text(if (isWe) "WORLD'S END" else (candidate.difficulty).uppercase(), color = color,
                 fontWeight = FontWeight.Bold, style = MiuixTheme.textStyles.body2.copy(fontSize = 11.sp, lineHeight = 13.sp))

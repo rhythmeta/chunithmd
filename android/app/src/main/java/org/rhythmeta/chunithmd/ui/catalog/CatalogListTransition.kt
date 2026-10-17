@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Box
@@ -28,6 +27,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.style.TextOverflow
+import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import top.yukonga.miuix.kmp.basic.Text
 
 internal enum class CatalogTextElement { Title, Artist }
@@ -89,7 +89,7 @@ internal fun CatalogListText(
     ) {
         Text(
             text = text, style = style, color = color, maxLines = maxLines, overflow = overflow,
-            modifier = Modifier.fillMaxWidth().basicMarquee(),
+            modifier = Modifier.fillMaxWidth().fadingMarquee(),
             onTextLayout = { measurement.layout = it; updateMeasurement() },
         )
     }

@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.scanner
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -21,6 +20,7 @@ import java.io.File
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.scanner.ScanSongMatch
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.squircle.squircleBorder
@@ -56,13 +56,13 @@ internal fun ScannerSongCard(
             Text(
                 song.title, maxLines = 1, fontWeight = FontWeight.Bold,
                 style = MiuixTheme.textStyles.body2.copy(fontSize = 12.sp, lineHeight = 14.sp),
-                modifier = Modifier.fillMaxWidth().basicMarquee(),
+                modifier = Modifier.fillMaxWidth().fadingMarquee(),
             )
             Text(
                 song.artist, maxLines = 1,
                 style = MiuixTheme.textStyles.body2.copy(fontSize = 10.sp, lineHeight = 12.sp),
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                modifier = Modifier.basicMarquee(),
+                modifier = Modifier.fadingMarquee(),
             )
         }
         Icon(
