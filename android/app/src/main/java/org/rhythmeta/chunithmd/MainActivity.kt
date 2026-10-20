@@ -429,10 +429,15 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
-                    org.rhythmeta.chunithmd.ui.onboarding.FirstLaunchGate(catalogState, repository) {
-                        CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator, pendingCollectionLink, ::sendLogs, appUpdateViewModel) {
-                            pendingCollectionLink = null
-                            intent?.data = null
+                    // MIUIX overlays share a root host above pages and the floating tab bar.
+                    top.yukonga.miuix.kmp.basic.Scaffold(
+                        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+                    ) {
+                        org.rhythmeta.chunithmd.ui.onboarding.FirstLaunchGate(catalogState, repository) {
+                            CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator, pendingCollectionLink, ::sendLogs, appUpdateViewModel) {
+                                pendingCollectionLink = null
+                                intent?.data = null
+                            }
                         }
                     }
                 }

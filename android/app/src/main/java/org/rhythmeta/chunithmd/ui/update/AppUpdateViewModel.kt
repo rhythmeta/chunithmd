@@ -1,5 +1,6 @@
 package org.rhythmeta.chunithmd.ui.update
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CancellationException
@@ -15,6 +16,8 @@ class AppUpdateViewModel(private val repository: AppUpdateRepository) : ViewMode
     val state = repository.state
     private val requested = MutableStateFlow(false)
     val dialogRequested = requested.asStateFlow()
+    private val manualRequest = MutableStateFlow(false)
+    val manualDialogRequested = manualRequest.asStateFlow()
     private val installRequest = MutableStateFlow(false)
     val shouldInstall = installRequest.asStateFlow()
     private var foreground = false
@@ -32,8 +35,12 @@ class AppUpdateViewModel(private val repository: AppUpdateRepository) : ViewMode
     }
 
     fun check(automatic: Boolean = false) {
+        Log.d("AppUpdateDbg", "check automatic=$automatic")
         val generation = ++checkGeneration
-        if (!automatic) requested.value = true
+        if (!automatic) {
+            manualRequest.value = true
+            requested.value = true
+        }
         viewModelScope.launch {
             val checked = repository.check(automatic)
             if (generation == checkGeneration && (!automatic || checked) && state.value.manifest != null) requested.value = true
@@ -45,7 +52,13 @@ class AppUpdateViewModel(private val repository: AppUpdateRepository) : ViewMode
         if (!value) installRequest.value = false
     }
 
-    fun dismiss() { checkGeneration++; requested.value = false; installRequest.value = false }
+    fun dismiss() {
+        Log.d("AppUpdateDbg", "dismiss")
+        checkGeneration++
+        requested.value = false
+        manualRequest.value = false
+        installRequest.value = false
+    }
 
     fun download() {
         installRequest.value = foreground

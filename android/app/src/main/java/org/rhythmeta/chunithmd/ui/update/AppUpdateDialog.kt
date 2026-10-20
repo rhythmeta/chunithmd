@@ -55,7 +55,7 @@ fun AppUpdateDialog(
     val maxContentHeight = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.height.toDp() * 0.58f }
     val title = when {
         manifest != null -> tr("发现新 CI 构建")
-        state.phase == AppUpdatePhase.Latest -> tr("当前已是最新版本")
+        state.phase == AppUpdatePhase.Latest -> tr("已是最新构建")
         else -> tr("检查应用更新")
     }
     OverlayDialog(show = show, title = title, onDismissRequest = onDismiss) {
@@ -106,7 +106,7 @@ fun AppUpdateDialog(
                         LinearProgressIndicator()
                     }
                     AppUpdatePhase.Ready -> Text(tr(if (canInstall) "下载完成，准备安装" else "允许安装此来源的应用后继续"))
-                    AppUpdatePhase.Latest -> Text(tr("当前已是最新版本。"))
+                    AppUpdatePhase.Latest -> Text(tr("当前已安装最新可用的 CI 构建。"))
                     else -> Unit
                 }
                 state.failure?.let {

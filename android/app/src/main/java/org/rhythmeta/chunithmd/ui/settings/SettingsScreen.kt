@@ -131,6 +131,12 @@ fun SettingsHome(
         }
         item {
             SettingsSection(title = tr("关于")) {
+                SettingsRow(
+                    icon = Icons.Rounded.Download,
+                    title = tr("检查更新"),
+                    summary = tr("检查并下载最新 CI 构建"),
+                    onClick = onCheckUpdates,
+                )
                 SettingsHealthRow(backendAvailable)
                 SettingsRow(
                     icon = Icons.Rounded.BugReport,
@@ -138,18 +144,12 @@ fun SettingsHome(
                     summary = tr("收集应用诊断信息并分享，用于排查问题"),
                     onClick = onSendLogs,
                 )
-                SettingsRow(
-                    icon = Icons.Rounded.Download,
-                    title = tr("检查更新"),
-                    summary = tr("检查并下载最新 CI 构建"),
-                    onClick = onCheckUpdates,
-                )
                 BasicComponent(
                     title = tr("版本"),
                     startAction = { SettingsPreferenceIcon(Icons.Rounded.Info) },
                     endActions = {
                         Text(
-                            text = BuildConfig.VERSION_NAME,
+                            text = "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceVariantActions,
                         )
