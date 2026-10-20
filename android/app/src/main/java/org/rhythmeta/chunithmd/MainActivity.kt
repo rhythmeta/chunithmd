@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -193,6 +194,7 @@ import org.rhythmeta.chunithmd.ui.community.CommunityAliasHomeCard
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop as rememberKyantLayerBackdrop
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
 
 @Serializable
 private sealed interface AppRoute : NavKey {
@@ -430,9 +432,7 @@ class MainActivity : ComponentActivity() {
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
                     // MIUIX overlays share a root host above pages and the floating tab bar.
-                    top.yukonga.miuix.kmp.basic.Scaffold(
-                        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
-                    ) {
+                    Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0)) {
                         org.rhythmeta.chunithmd.ui.onboarding.FirstLaunchGate(catalogState, repository) {
                             CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator, pendingCollectionLink, ::sendLogs, appUpdateViewModel) {
                                 pendingCollectionLink = null

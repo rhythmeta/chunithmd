@@ -1,7 +1,6 @@
 package org.rhythmeta.chunithmd.ui.update
 
 import android.content.Intent
-import android.util.Log
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -49,10 +48,8 @@ fun AppUpdateHost(viewModel: AppUpdateViewModel, blocked: Boolean) {
             if (canInstall) viewModel.install { file -> installation.launch(installer.installIntent(file)) }
         }
     }
-    val show = requested && (manualRequest || (!blocked && resumed))
-    Log.d("AppUpdateDbg", "compose show=$show requested=$requested manual=$manualRequest blocked=$blocked resumed=$resumed phase=${state.phase} manifest=${state.manifest?.versionCode}")
     AppUpdateDialog(
-        show = show,
+        show = requested && (manualRequest || (!blocked && resumed)),
         state = state,
         canInstall = canInstall,
         onDismiss = viewModel::dismiss,

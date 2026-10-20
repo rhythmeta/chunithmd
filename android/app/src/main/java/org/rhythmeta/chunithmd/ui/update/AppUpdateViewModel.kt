@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.ui.update
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CancellationException
@@ -35,7 +34,6 @@ class AppUpdateViewModel(private val repository: AppUpdateRepository) : ViewMode
     }
 
     fun check(automatic: Boolean = false) {
-        Log.d("AppUpdateDbg", "check automatic=$automatic")
         val generation = ++checkGeneration
         if (!automatic) {
             manualRequest.value = true
@@ -53,7 +51,6 @@ class AppUpdateViewModel(private val repository: AppUpdateRepository) : ViewMode
     }
 
     fun dismiss() {
-        Log.d("AppUpdateDbg", "dismiss")
         checkGeneration++
         requested.value = false
         manualRequest.value = false

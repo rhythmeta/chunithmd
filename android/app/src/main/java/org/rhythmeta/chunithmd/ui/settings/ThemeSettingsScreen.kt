@@ -245,9 +245,10 @@ private fun PageScaleDialog(show: Boolean, currentScale: () -> Float, onChange: 
             value = value,
             maxLines = 1,
             onValueChange = { if (it.isEmpty() || it.all(Char::isDigit)) value = it },
+            modifier = Modifier.padding(bottom = 16.dp),
             trailingIcon = { Text("%", Modifier.padding(horizontal = 16.dp), color = MiuixTheme.colorScheme.onSurfaceVariantActions) },
         )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             TextButton(text = tr("取消"), onClick = onDismiss, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(20.dp))
             TextButton(text = tr("确定"), onClick = { onChange((value.toIntOrNull() ?: (currentScale() * 100).toInt()).coerceIn(80, 110) / 100f); onDismiss() }, modifier = Modifier.weight(1f))

@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.core.update
 
-import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -39,7 +38,6 @@ class AppUpdateRepository(
 
     suspend fun check(automatic: Boolean = false): Boolean {
         restored.await()
-        Log.d("AppUpdateDbg", "repo.check automatic=$automatic started=$automaticCheckStarted pending=${pending != null} phase=${state.value.phase} lockFree=${checkMutex.isLocked.not()}")
         if (automatic && automaticCheckStarted) return false
         if (automatic) automaticCheckStarted = true
         if (!automatic && pending != null && state.value.phase == AppUpdatePhase.Failed) cancel()
@@ -49,7 +47,6 @@ class AppUpdateRepository(
             mutableState.value = AppUpdateState(phase = AppUpdatePhase.Checking)
             val manifest = remote.fetchManifest()
             AppUpdatePolicy.validate(manifest, updateUrl, packageName)
-            Log.d("AppUpdateDbg", "remote versionCode=${manifest.versionCode} sha=${manifest.sha} installedCode=$installedCode installedSha=$installedSha newer=${AppUpdatePolicy.isNewer(manifest, installedCode, installedSha)}")
             if (!AppUpdatePolicy.isNewer(manifest, installedCode, installedSha)) {
                 mutableState.value = AppUpdateState(phase = AppUpdatePhase.Latest)
                 return false
@@ -61,7 +58,6 @@ class AppUpdateRepository(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Log.d("AppUpdateDbg", "check failed: $error")
             mutableState.value = AppUpdateState(phase = AppUpdatePhase.Failed, failure = failure(error, AppUpdateFailure.Network))
             return false
         } finally {
