@@ -170,6 +170,7 @@ import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBar
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBarBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
 import org.rhythmeta.chunithmd.ui.theme.ThemePreferencesRepository
+import org.rhythmeta.chunithmd.ui.update.AppUpdateViewModel
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
@@ -401,6 +402,10 @@ class MainActivity : ComponentActivity() {
         val collectionRepository = SongCollectionRepository(applicationContext)
         val backupCoordinator = org.rhythmeta.chunithmd.shared.backup.BackupCoordinator(accountClient,
             org.rhythmeta.chunithmd.account.AndroidSnapshotStore(applicationContext, profileRepository, scoreRepository, collectionRepository, favoriteSongRepository))
+        val appUpdateViewModel = ViewModelProvider(
+            this,
+            AppUpdateViewModel.Factory((application as ChunithmdApplication).appUpdateRepository),
+        )[AppUpdateViewModel::class.java]
         receiveAuth(intent)
         receiveCollection(intent)
         setContent {
@@ -425,7 +430,7 @@ class MainActivity : ComponentActivity() {
                     LocalDensity provides Density(baseDensity.density * themeSettings.pageScale, baseDensity.fontScale),
                 ) {
                     org.rhythmeta.chunithmd.ui.onboarding.FirstLaunchGate(catalogState, repository) {
-                        CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator, pendingCollectionLink, ::sendLogs) {
+                        CatalogApp(repository, catalogPreferencesRepository, themeRepository, themeSettings, profileRepository, profileAvatarStore, scoreRepository, favoriteSongRepository, bestTablePreferencesRepository, catalogState, collectionRepository, accountClient, backupCoordinator, pendingCollectionLink, ::sendLogs, appUpdateViewModel) {
                             pendingCollectionLink = null
                             intent?.data = null
                         }
@@ -453,6 +458,7 @@ private fun CatalogApp(
     backupCoordinator: org.rhythmeta.chunithmd.shared.backup.BackupCoordinator,
     pendingCollectionLink: String?,
     onSendLogs: () -> Unit,
+    appUpdateViewModel: AppUpdateViewModel,
     onCollectionLinkConsumed: () -> Unit,
 ) {
     var catalogBundle by catalogState::bundle
@@ -1050,6 +1056,7 @@ private fun CatalogApp(
                     onDivingFish = { pushRoute(AppRoute.DivingFish) },
                     onLxns = { pushRoute(AppRoute.Lxns) },
                     onOtogame = { pushRoute(AppRoute.Otogame) },
+                    onCheckUpdates = { appUpdateViewModel.check() },
                     showScannerBoundingBoxes = themeSettings.showScannerBoundingBoxes,
                     onShowScannerBoundingBoxesChange = { scope.launch { themeRepository.setShowScannerBoundingBoxes(it) } },
                 )
@@ -1552,6 +1559,13 @@ private fun CatalogApp(
         repository = profileRepository,
         avatarStore = profileAvatarStore,
         onDismiss = { quickEditProfile = null },
+    )
+
+    org.rhythmeta.chunithmd.ui.update.AppUpdateHost(
+        viewModel = appUpdateViewModel,
+        blocked = navBackStack.size > 1 || selectedTab !in listOf(0, 3) || filterOpen || sortOpen ||
+            profileCreateRequested || bestTableShareRequested || randomSongFilterRequested ||
+            scoreQueryFilterOpen || constantTableFilterOpen || quickEditProfile != null,
     )
 
 }

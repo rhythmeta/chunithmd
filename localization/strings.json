@@ -4690,5 +4690,209 @@
     "ja": "ダウンロードを再試行",
     "zh-Hans": "重试下载",
     "zh-Hant": "重試下載"
+  },
+  "发现新 CI 构建": {
+    "en": "New CI build found",
+    "ja": "新しい CI ビルドが見つかりました",
+    "zh-Hans": "发现新 CI 构建",
+    "zh-Hant": "發現新的 CI 建置"
+  },
+  "当前已是最新版本": {
+    "en": "You're up to date",
+    "ja": "最新バージョンです",
+    "zh-Hans": "当前已是最新版本",
+    "zh-Hant": "目前已是最新版本"
+  },
+  "检查应用更新": {
+    "en": "Check for app updates",
+    "ja": "アプリの更新を確認",
+    "zh-Hans": "检查应用更新",
+    "zh-Hant": "檢查應用程式更新"
+  },
+  "分支与提交": {
+    "en": "Branch and commit",
+    "ja": "ブランチとコミット",
+    "zh-Hans": "分支与提交",
+    "zh-Hant": "分支與提交"
+  },
+  "最新提交作者": {
+    "en": "Latest commit author",
+    "ja": "最新コミットの作者",
+    "zh-Hans": "最新提交作者",
+    "zh-Hant": "最新提交作者"
+  },
+  "构建时间": {
+    "en": "Build time",
+    "ja": "ビルド日時",
+    "zh-Hans": "构建时间",
+    "zh-Hant": "建置時間"
+  },
+  "自当前构建以来的更改": {
+    "en": "Changes since your build",
+    "ja": "現在のビルド以降の変更",
+    "zh-Hans": "自当前构建以来的更改",
+    "zh-Hant": "目前建置之後的變更"
+  },
+  "变更记录不完整或仅显示最近 20 条": {
+    "en": "Change history is incomplete or limited to the latest 20 commits.",
+    "ja": "変更履歴が不完全か、最新 20 件のみ表示しています。",
+    "zh-Hans": "变更记录不完整或仅显示最近 20 条",
+    "zh-Hant": "變更記錄不完整或僅顯示最近 20 筆"
+  },
+  "查看完整变更": {
+    "en": "View full changes",
+    "ja": "すべての変更を表示",
+    "zh-Hans": "查看完整变更",
+    "zh-Hant": "查看完整變更"
+  },
+  "正在检查更新…": {
+    "en": "Checking for updates…",
+    "ja": "更新を確認中…",
+    "zh-Hans": "正在检查更新…",
+    "zh-Hant": "正在檢查更新…"
+  },
+  "正在下载更新…": {
+    "en": "Downloading update…",
+    "ja": "更新をダウンロード中…",
+    "zh-Hans": "正在下载更新…",
+    "zh-Hant": "正在下載更新…"
+  },
+  "下载进度：{0} / {1} MB": {
+    "en": "Download progress: {0} / {1} MB",
+    "ja": "ダウンロード進捗：{0} / {1} MB",
+    "zh-Hans": "下载进度：{0} / {1} MB",
+    "zh-Hant": "下載進度：{0} / {1} MB"
+  },
+  "正在验证 APK…": {
+    "en": "Verifying APK…",
+    "ja": "APK を検証中…",
+    "zh-Hans": "正在验证 APK…",
+    "zh-Hant": "正在驗證 APK…"
+  },
+  "下载完成，准备安装": {
+    "en": "Download complete. Ready to install.",
+    "ja": "ダウンロードが完了しました。インストールできます。",
+    "zh-Hans": "下载完成，准备安装",
+    "zh-Hant": "下載完成，準備安裝"
+  },
+  "允许安装此来源的应用后继续": {
+    "en": "Allow installs from this source to continue.",
+    "ja": "続行するには、この提供元からのアプリのインストールを許可してください。",
+    "zh-Hans": "允许安装此来源的应用后继续",
+    "zh-Hant": "允許安裝此來源的應用程式後繼續"
+  },
+  "当前已是最新版本。": {
+    "en": "You already have the latest version.",
+    "ja": "すでに最新バージョンです。",
+    "zh-Hans": "当前已是最新版本。",
+    "zh-Hant": "目前已是最新版本。"
+  },
+  "重新检查": {
+    "en": "Check again",
+    "ja": "もう一度確認",
+    "zh-Hans": "重新检查",
+    "zh-Hant": "重新檢查"
+  },
+  "分享": {
+    "en": "Share",
+    "ja": "共有",
+    "zh-Hans": "分享",
+    "zh-Hant": "分享"
+  },
+  "分享 APK 下载链接": {
+    "en": "Share APK download link",
+    "ja": "APK のダウンロードリンクを共有",
+    "zh-Hans": "分享 APK 下载链接",
+    "zh-Hant": "分享 APK 下載連結"
+  },
+  "安装更新": {
+    "en": "Install update",
+    "ja": "更新をインストール",
+    "zh-Hans": "安装更新",
+    "zh-Hant": "安裝更新"
+  },
+  "允许安装": {
+    "en": "Allow installation",
+    "ja": "インストールを許可",
+    "zh-Hans": "允许安装",
+    "zh-Hant": "允許安裝"
+  },
+  "下载更新": {
+    "en": "Download update",
+    "ja": "更新をダウンロード",
+    "zh-Hans": "下载更新",
+    "zh-Hant": "下載更新"
+  },
+  "重试": {
+    "en": "Retry",
+    "ja": "再試行",
+    "zh-Hans": "重试",
+    "zh-Hant": "重試"
+  },
+  "无法连接更新服务，请检查网络后重试。": {
+    "en": "Can't reach the update service. Check your connection and try again.",
+    "ja": "更新サービスに接続できません。通信状態を確認して再試行してください。",
+    "zh-Hans": "无法连接更新服务，请检查网络后重试。",
+    "zh-Hant": "無法連線至更新服務，請檢查網路後重試。"
+  },
+  "更新信息无效，请稍后重试。": {
+    "en": "The update information is invalid. Try again later.",
+    "ja": "更新情報が無効です。しばらくしてから再試行してください。",
+    "zh-Hans": "更新信息无效，请稍后重试。",
+    "zh-Hant": "更新資訊無效，請稍後重試。"
+  },
+  "当前设备不支持此更新。": {
+    "en": "This update isn't supported on your device.",
+    "ja": "この端末は今回の更新に対応していません。",
+    "zh-Hans": "当前设备不支持此更新。",
+    "zh-Hant": "目前裝置不支援此更新。"
+  },
+  "存储空间不足，无法下载更新。": {
+    "en": "There isn't enough storage to download the update.",
+    "ja": "更新のダウンロードに必要な空き容量がありません。",
+    "zh-Hans": "存储空间不足，无法下载更新。",
+    "zh-Hant": "儲存空間不足，無法下載更新。"
+  },
+  "APK 下载失败，请重试。": {
+    "en": "APK download failed. Try again.",
+    "ja": "APK のダウンロードに失敗しました。再試行してください。",
+    "zh-Hans": "APK 下载失败，请重试。",
+    "zh-Hant": "APK 下載失敗，請重試。"
+  },
+  "下载文件校验失败，请重新下载。": {
+    "en": "The downloaded file failed verification. Download it again.",
+    "ja": "ダウンロードしたファイルの検証に失敗しました。もう一度ダウンロードしてください。",
+    "zh-Hans": "下载文件校验失败，请重新下载。",
+    "zh-Hant": "下載檔案驗證失敗，請重新下載。"
+  },
+  "更新包与当前应用不匹配。": {
+    "en": "This update package doesn't match the installed app.",
+    "ja": "この更新パッケージはインストール済みのアプリと一致しません。",
+    "zh-Hans": "更新包与当前应用不匹配。",
+    "zh-Hant": "更新套件與目前的應用程式不相符。"
+  },
+  "更新包签名与当前应用不兼容。": {
+    "en": "This update package isn't signed for the installed app.",
+    "ja": "この更新パッケージの署名はインストール済みアプリと互換性がありません。",
+    "zh-Hans": "更新包签名与当前应用不兼容。",
+    "zh-Hant": "更新套件簽章與目前的應用程式不相容。"
+  },
+  "无法打开系统安装程序。": {
+    "en": "The system installer couldn't be opened.",
+    "ja": "システムインストーラーを開けません。",
+    "zh-Hans": "无法打开系统安装程序。",
+    "zh-Hant": "無法開啟系統安裝程式。"
+  },
+  "检查更新": {
+    "en": "Check for updates",
+    "ja": "更新を確認",
+    "zh-Hans": "检查更新",
+    "zh-Hant": "檢查更新"
+  },
+  "检查并下载最新 CI 构建": {
+    "en": "Check for and download the latest CI build",
+    "ja": "最新の CI ビルドを確認してダウンロード",
+    "zh-Hans": "检查并下载最新 CI 构建",
+    "zh-Hant": "檢查並下載最新 CI 建置"
   }
 }

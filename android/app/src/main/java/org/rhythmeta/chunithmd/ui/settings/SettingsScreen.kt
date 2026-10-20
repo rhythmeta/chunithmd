@@ -50,6 +50,7 @@ fun SettingsHome(
     onAccount: () -> Unit,
     accountClient: RhythmetaClient,
     onSendLogs: () -> Unit,
+    onCheckUpdates: () -> Unit,
     onDivingFish: () -> Unit,
     onLxns: () -> Unit,
     onOtogame: () -> Unit,
@@ -136,6 +137,12 @@ fun SettingsHome(
                     title = tr("发送日志"),
                     summary = tr("收集应用诊断信息并分享，用于排查问题"),
                     onClick = onSendLogs,
+                )
+                SettingsRow(
+                    icon = Icons.Rounded.Download,
+                    title = tr("检查更新"),
+                    summary = tr("检查并下载最新 CI 构建"),
+                    onClick = onCheckUpdates,
                 )
                 BasicComponent(
                     title = tr("版本"),

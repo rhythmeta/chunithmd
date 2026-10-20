@@ -21,6 +21,19 @@ val chunithmdBuildNumber = providers.environmentVariable("CHUNITHMD_BUILD_NUMBER
         value.toIntOrNull()?.takeIf { it > 0 }
             ?: error("Invalid CHUNITHMD_BUILD_NUMBER: $value")
     }
+fun gitBuildValue(vararg arguments: String) = providers.exec {
+    workingDir(rootProject.projectDir.parentFile)
+    commandLine("git", *arguments)
+}.standardOutput.asText.map(String::trim)
+val chunithmdGitSha = providers.environmentVariable("GITHUB_SHA")
+    .orElse(gitBuildValue("rev-parse", "HEAD"))
+val chunithmdGitBranch = providers.environmentVariable("GITHUB_REF_NAME")
+    .orElse(gitBuildValue("rev-parse", "--abbrev-ref", "HEAD"))
+val chunithmdBuildTime = providers.environmentVariable("CHUNITHMD_BUILD_TIME")
+    .orElse(gitBuildValue("show", "-s", "--format=%cI", "HEAD"))
+val chunithmdUpdateUrl = providers.gradleProperty("CHUNITHMD_UPDATE_URL")
+    .orElse("https://assets.rhythmeta.org/android/chunithmd/ci/main/latest.json")
+fun buildConfigString(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 val splitReleaseApks = providers.gradleProperty("CHUNITHMD_SPLIT_RELEASE_APKS")
     .map { it.toBoolean() }
     .orElse(false)
@@ -47,9 +60,13 @@ android {
         minSdk = 29
         targetSdk = 37
         versionCode = chunithmdBuildNumber.get()
-        versionName = "0.4"
+        versionName = "0.4.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "GIT_SHA", buildConfigString(chunithmdGitSha.get()))
+        buildConfigField("String", "GIT_BRANCH", buildConfigString(chunithmdGitBranch.get()))
+        buildConfigField("String", "BUILD_TIME", buildConfigString(chunithmdBuildTime.get()))
+        buildConfigField("String", "UPDATE_URL", buildConfigString(chunithmdUpdateUrl.get()))
     }
 
     signingConfigs {
@@ -120,6 +137,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:${libs.versions.lifecycleRuntimeKtx.get()}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${libs.versions.lifecycleRuntimeKtx.get()}")
     implementation(project(":shared"))
     implementation(libs.miuix.ui)
@@ -136,6 +154,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.protobuf.javalite)
     testImplementation(libs.junit)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
