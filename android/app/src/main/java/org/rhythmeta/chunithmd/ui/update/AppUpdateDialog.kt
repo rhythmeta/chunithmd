@@ -77,7 +77,7 @@ fun AppUpdateDialog(
                     UpdateInfoRow(tr("最新提交作者"), manifest.author)
                     UpdateInfoRow(tr("构建时间"), localizedTime(manifest.builtAt, LocalConfiguration.current.locales[0]))
                     Text(tr("自当前构建以来的更改"), style = MiuixTheme.textStyles.subtitle, modifier = Modifier.padding(top = 4.dp))
-                    state.changes.commits.forEach { commit ->
+                    state.changes.commits.take(2).forEach { commit ->
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("• ${commit.title}", style = MiuixTheme.textStyles.body2)
                             Text(commit.sha.take(8), style = MiuixTheme.textStyles.footnote2.copy(fontFamily = FontFamily.Monospace),
