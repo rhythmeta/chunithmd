@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -48,7 +49,6 @@ import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
-import androidx.core.net.toUri
 import kotlin.time.Duration.Companion.milliseconds
 
 /** maimaid's camera-first scanner, with CHUNITHM fields reviewed before saving. */

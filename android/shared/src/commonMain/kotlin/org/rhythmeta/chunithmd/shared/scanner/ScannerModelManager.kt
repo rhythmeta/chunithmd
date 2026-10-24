@@ -32,6 +32,7 @@ class ScannerModelManager(private val repository: ScannerModelRepository) {
         prepared = true
         inspect(silent = true)
     }
+
     fun check() = start { inspect(silent = false) }
 
     private suspend fun inspect(silent: Boolean) {
@@ -77,6 +78,7 @@ class ScannerModelManager(private val repository: ScannerModelRepository) {
     fun cancelDownload() { if (mutable.value.stage == "downloading") operation?.cancel() }
     fun close() { scope.cancel(); repository.close() }
 }
+
 /** Callback ownership/cancellation stays here instead of duplicating download logic in Swift. */
 class ScannerModelBridge(directory: String) {
     private val manager = ScannerModelManager(directory, "ios")

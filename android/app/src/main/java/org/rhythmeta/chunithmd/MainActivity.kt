@@ -222,6 +222,7 @@ private sealed interface AppRoute : NavKey {
     @Serializable data class SongDetail(val songId: String) : AppRoute
     @Serializable data class CatalogSongDetail(val songId: String, val transitionId: String = "") : AppRoute
 }
+
 /** Keeps the decoded catalog across Activity recreation caused by rotation. */
 class CatalogStateViewModel : ViewModel() {
     var bundle: CatalogBundle? by mutableStateOf(null)
@@ -289,6 +290,7 @@ class CatalogStateViewModel : ViewModel() {
 //        super.onCleared()
     }
 }
+
 private val SettingsDetailTransition = object : NavTransition by NavTransitions.MiuixDefault {
     override val motion: NavMotion = NavMotion(
         commit = NavTransitions.MiuixDefault.motion.commit,

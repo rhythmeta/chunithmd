@@ -114,6 +114,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
@@ -1162,6 +1163,7 @@ private fun RecordStatusBadges(
     accentColor: Color,
     modifier: Modifier = Modifier,
     showClear: Boolean = true,
+    compact: Boolean = false,
 ) {
     val statuses = buildList {
         FullComboType.displayName(fullCombo)?.let { add(it to Color(0xFFFFB300)) }
@@ -1176,12 +1178,12 @@ private fun RecordStatusBadges(
         statuses.forEach { (text, color) ->
             MiuixText(
                 tr(text),
-                style = MiuixTheme.textStyles.footnote2,
+                style = MiuixTheme.textStyles.footnote2.copy(fontSize = if (compact) 10.sp else MiuixTheme.textStyles.footnote2.fontSize),
                 fontWeight = FontWeight.Bold,
                 color = color,
                 modifier = Modifier
                     .squircleSurface(color.copy(alpha = 0.14f), 5.dp, SquircleExtension)
-                    .padding(horizontal = 5.dp, vertical = 2.dp),
+                    .padding(horizontal = if (compact) 4.dp else 5.dp, vertical = if (compact) 1.dp else 2.dp),
             )
         }
     }
@@ -1480,7 +1482,7 @@ private fun ScoreHistoryRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.width(72.dp)) {
-            MiuixText(playedAt.format(dateFormatter), style = MiuixTheme.textStyles.footnote1, fontWeight = FontWeight.Bold)
+            MiuixText(playedAt.format(dateFormatter), style = MiuixTheme.textStyles.footnote2, fontWeight = FontWeight.Bold)
             MiuixText(playedAt.format(timeFormatter), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
         }
         Column(modifier = Modifier.weight(1f)) {
@@ -1499,6 +1501,7 @@ private fun ScoreHistoryRow(
                 fullChain = record.fullChain,
                 accentColor = accentColor,
                 modifier = Modifier.padding(top = 3.dp),
+                compact = true,
             )
         }
         MiuixIconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {

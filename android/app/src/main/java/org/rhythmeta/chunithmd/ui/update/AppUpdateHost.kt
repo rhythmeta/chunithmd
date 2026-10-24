@@ -10,11 +10,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.core.net.toUri
 import org.rhythmeta.chunithmd.BuildConfig
 import org.rhythmeta.chunithmd.core.update.ApkInstaller
 import org.rhythmeta.chunithmd.core.update.AppUpdatePhase
