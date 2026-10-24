@@ -568,6 +568,7 @@ private fun SongDetailHeader(
                         style = MiuixTheme.textStyles.footnote2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier
+                            .clip(org.rhythmeta.chunithmd.ui.components.squircleShape(50.dp))
                             .clickable { onCopyText(alias) }
                             .squircleSurface(color = surfaceColor, cornerRadius = 50.dp, extension = SquircleExtension)
                             .then(
