@@ -29,6 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,7 +62,6 @@ import org.rhythmeta.chunithmd.shared.PlateProgressResponse
 import org.rhythmeta.chunithmd.shared.PlateType
 import org.rhythmeta.chunithmd.shared.ProfileServer
 import org.rhythmeta.chunithmd.shared.ScoreRecord
-import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import org.rhythmeta.chunithmd.ui.components.squircleShape
 import top.yukonga.miuix.kmp.basic.Card
@@ -72,8 +73,8 @@ import top.yukonga.miuix.kmp.basic.ProgressIndicatorDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
-import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -175,7 +176,6 @@ fun PlateProgressScreen(
                                         PlateJacket(
                                             chart = chart,
                                             plateType = loaded.plateType,
-                                            showDifficultyBorder = difficulty == null,
                                             jacketBaseUrl = jacketBaseUrl,
                                             localJacketPath = localJacketPath,
                                             onClick = { onOpenSong(chart.song.songId) },
@@ -264,14 +264,21 @@ private fun PlateSectionHeader(section: PlateLevelSection, plateType: PlateType)
 private fun PlateJacket(
     chart: PlateChartEntry,
     plateType: PlateType,
-    showDifficultyBorder: Boolean,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
     onClick: () -> Unit,
 ) {
-    val coverNavigation = rememberSongCoverNavigation(chart.song.songId, onClick, 9.dp, key = chart,
-        saturation = if (chart.achieved) 1f else 0.08f, imageAlpha = if (chart.achieved) 1f else 0.55f, cardColor = MiuixTheme.colorScheme.surfaceVariant)
     val accent = plateColor(plateType)
+    val borderWidth by animateDpAsState(
+        targetValue = if (chart.achieved) 2.dp else 0.dp,
+        animationSpec = tween(durationMillis = 350),
+        label = "plate-jacket-border",
+    )
+    val coverNavigation = rememberSongCoverNavigation(chart.song.songId, onClick, 9.dp, key = chart,
+        saturation = if (chart.achieved) 1f else 0.08f,
+        imageAlpha = if (chart.achieved) 1f else 0.55f,
+        cardColor = MiuixTheme.colorScheme.surfaceVariant,
+        cardBorderColor = if (chart.achieved) accent else null)
     val title = CatalogSongFormatter.displayTitle(chart.song)
     val status = if (chart.achieved) tr("已完成") else tr("未完成")
     val imageModel = remember(chart.song.imageName, jacketBaseUrl, localJacketPath) {
@@ -279,7 +286,8 @@ private fun PlateJacket(
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${chart.song.imageName.trimStart('/')}" }
     }
     Box(
-        Modifier.fillMaxWidth().aspectRatio(1f).then(coverNavigation.modifier).clip(squircleShape(9.dp))
+        Modifier.fillMaxWidth().aspectRatio(1f).then(coverNavigation.modifier)
+            .clip(squircleShape(9.dp))
             .background(MiuixTheme.colorScheme.surfaceVariant)
             .semantics { contentDescription = "$title ${chart.sheet.difficulty.uppercase()} $status" }
             .clickable(onClick = coverNavigation::open),
@@ -306,16 +314,16 @@ private fun PlateJacket(
                         .squircleSurface(achievementColor(label).copy(alpha = 0.96f), 4.dp).padding(horizontal = 4.dp, vertical = 1.dp),
                 )
             }
-            if (showDifficultyBorder || chart.achieved) {
-                Box(
-                    Modifier.fillMaxSize().squircleBorder(
-                        width = if (chart.achieved) 2.dp else 1.dp,
-                        color = if (showDifficultyBorder) difficultyColor(chart.sheet.difficulty) else accent,
-                        cornerRadius = 9.dp,
-                        extension = SquircleExtension,
-                    ),
-                )
-            }
+        }
+        if (borderWidth > 0.dp) {
+            Box(
+                Modifier.fillMaxSize().squircleBorder(
+                    width = borderWidth,
+                    color = accent,
+                    cornerRadius = 9.dp,
+                    extension = SquircleExtension,
+                ),
+            )
         }
     }
 }

@@ -21,12 +21,14 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.nav.core.LocalNavTransitionScope
+import top.yukonga.miuix.kmp.squircle.addSquircleRect
 import kotlin.math.max
 
 /** Content phases share the navigation driver's progress, including interrupted and cancelled back. */
@@ -157,6 +159,28 @@ internal fun CatalogContainerTransform(
             )
             CatalogListTextOverlay(state, { catalogContainerProgress(navigation.relativeDepth) },
                 Modifier.fillMaxSize().clearAndSetSemantics {})
+        }
+        Canvas(Modifier.fillMaxSize().clearAndSetSemantics {}) {
+            val progress = catalogContainerProgress(navigation.relativeDepth)
+            state.genericSource?.cardBorderColor?.let { color ->
+                val borderProgress = ((0.5f - progress) / 0.5f).coerceIn(0f, 1f)
+                if (borderProgress > 0f) {
+                    val width = 0.5.dp.toPx() + 1.5.dp.toPx() * borderProgress
+                    val bounds = state.bounds(size, progress)
+                    val radius = state.boundsCornerRadiusPx(this, progress)
+                    val path = Path().apply {
+                        addSquircleRect(
+                            width = bounds.width - width,
+                            height = bounds.height - width,
+                            cornerRadius = (radius - width / 2f).coerceAtLeast(0f),
+                            extension = 1.2f,
+                        )
+                    }
+                    translate(bounds.left + width / 2f, bounds.top + width / 2f) {
+                        drawPath(path, color, style = Stroke(width))
+                    }
+                }
+            }
         }
     }
 }

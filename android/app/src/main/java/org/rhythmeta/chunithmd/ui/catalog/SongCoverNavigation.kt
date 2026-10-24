@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -18,6 +19,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import org.rhythmeta.chunithmd.ui.components.squircleShape
 
 /** Each rendered chart has its own anchor, even when several cells show the same song. */
 internal class SongCoverSource(
@@ -29,6 +31,7 @@ internal class SongCoverSource(
 ) {
     var cardBounds by mutableStateOf<Rect?>(null)
     var cardColor by mutableStateOf<Color?>(null)
+    var cardBorderColor by mutableStateOf<Color?>(null)
     var cardCornerRadius by mutableStateOf(0.dp)
     var bodyBounds by mutableStateOf<Rect?>(null)
     var bodySize by mutableStateOf(IntSize.Zero)
@@ -82,13 +85,18 @@ internal fun rememberSongCoverNavigation(
     saturation: Float = 1f,
     imageAlpha: Float = 1f,
     cardColor: Color? = null,
+    cardBorderColor: Color? = null,
     cardCornerRadius: Dp = 14.dp,
 ): SongCoverNavigation {
     val host = LocalSongNavigationHost.current.takeIf { enabled }
     val identity = "${currentCompositeKeyHashCode}:$songId:$key"
     val local = remember(identity) { SongCoverSource(songId, identity, cornerRadius, saturation, imageAlpha) }
     val source = host?.active?.genericSource?.takeIf { it.identity == identity } ?: local
-    SideEffect { source.cardColor = cardColor; source.cardCornerRadius = cardCornerRadius }
+    SideEffect {
+        source.cardColor = cardColor
+        source.cardBorderColor = cardBorderColor
+        source.cardCornerRadius = cardCornerRadius
+    }
     return remember(source, host, onClick) { SongCoverNavigation(source, host, onClick) }
 }
 
@@ -119,7 +127,7 @@ internal fun SongCoverDecorationsOverlay(state: CatalogCoverTransition, progress
         translationX = bounds.left
         translationY = bounds.top
         clip = true
-    }, content = decorations)
+    }.clip(source.cornerRadius.let { squircleShape(it) }), content = decorations)
 }
 
 /** Capture the original row layout as one group; the hero's reserved space stays empty in flight. */
