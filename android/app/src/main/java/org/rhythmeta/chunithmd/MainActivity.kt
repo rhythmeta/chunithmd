@@ -941,7 +941,7 @@ private fun CatalogApp(
                     showBoxes = themeSettings.showScannerBoundingBoxes,
                     onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(), localJacketPath = repository::localJacketPath,
-                    modifier = Modifier.fillMaxSize().kyantLayerBackdrop(navigationBackdrop),
+                    modifier = Modifier.fillMaxSize(),
                 )
                 return@Box
             }
@@ -1035,7 +1035,6 @@ private fun CatalogApp(
                     listState = catalogListState,
                     gridState = catalogGridState,
                     gridMode = catalogGridMode,
-                    navigationBackdrop = navigationBackdrop,
                     searchScrollConnection = searchScrollConnection,
                     topBarScrollConnection = topBarScrollConnection,
                     onRetry = ::refresh,
@@ -1049,7 +1048,6 @@ private fun CatalogApp(
                 else -> SettingsHome(
                     Modifier.padding(padding).fillMaxSize()
                         .background(MiuixTheme.colorScheme.surface)
-                        .kyantLayerBackdrop(navigationBackdrop)
                         .nestedScroll(topBarScrollConnection),
                     { pushRoute(AppRoute.Theme) },
                     { pushRoute(AppRoute.Resources) },
@@ -1506,9 +1504,12 @@ private fun CatalogApp(
                 }
                 AnimatedContent(
                     targetState = selectedTab,
-                    modifier = Modifier.fillMaxSize().graphicsLayer {
-                        translationX = size.width * rootBackProgress.value
-                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .kyantLayerBackdrop(navigationBackdrop)
+                        .graphicsLayer {
+                            translationX = size.width * rootBackProgress.value
+                        },
                     transitionSpec = {
                         if (!animateRootTransition) {
                             EnterTransition.None togetherWith ExitTransition.None

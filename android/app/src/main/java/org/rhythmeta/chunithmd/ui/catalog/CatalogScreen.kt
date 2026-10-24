@@ -40,7 +40,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.kyant.backdrop.backdrops.LayerBackdrop
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSort
@@ -61,7 +60,6 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowListPopup
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import com.kyant.backdrop.backdrops.layerBackdrop as kyantLayerBackdrop
 
 @Composable
 internal fun CatalogScreen(
@@ -77,7 +75,6 @@ internal fun CatalogScreen(
     listState: LazyListState,
     gridState: CatalogPhotoGridState,
     gridMode: Boolean,
-    navigationBackdrop: LayerBackdrop,
     searchScrollConnection: NestedScrollConnection,
     topBarScrollConnection: NestedScrollConnection,
     onRetry: () -> Unit,
@@ -91,7 +88,6 @@ internal fun CatalogScreen(
         InitialLoad(sync, error, onRetry, modifier.padding(top = contentTopPadding))
     } else {
         val scrollModifier = modifier
-            .kyantLayerBackdrop(navigationBackdrop)
             .nestedScroll(searchScrollConnection)
             .nestedScroll(topBarScrollConnection)
         val openSong: (CatalogSong) -> Unit = { song ->
