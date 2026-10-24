@@ -27,7 +27,6 @@ object SongScanner {
         return best
     }
 }
-
 /** Require two agreeing frames, including the first card; clear stale cards after three misses. */
 class LiveSongStabilizer {
     private var pending: String? = null
@@ -43,7 +42,6 @@ class LiveSongStabilizer {
     }
     fun reset() { pending = null; locked = null; misses = 0 }
 }
-
 @Serializable
 private data class SongScanPresentation(val match: ScanSongMatch?, val accepted: Boolean, val shouldClear: Boolean)
 

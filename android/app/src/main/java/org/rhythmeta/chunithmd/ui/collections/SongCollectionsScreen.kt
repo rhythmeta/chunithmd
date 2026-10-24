@@ -198,7 +198,7 @@ fun SongCollectionsScreen(
                 TextButton(tr("取消"), enabled = !busy, onClick = ::dismiss, modifier = Modifier.weight(1f))
                 Button(enabled = !busy && draft.isNotBlank(), modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColorsPrimary(), onClick = {
                     perform {
-                        if (renaming) repository.rename(requireNotNull(collection).id, draft) else repository.create(draft)
+                        if (renaming) repository.rename(collection.id, draft) else repository.create(draft)
                         uiState.createRequested = false
                         uiState.renameRequested = false
                     }

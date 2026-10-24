@@ -1,10 +1,10 @@
 package org.rhythmeta.chunithmd.shared.localization
 
-enum class AppLanguage(val tag: String, val nativeName: String) {
-    SimplifiedChinese("zh-Hans", "简体中文"),
-    TraditionalChinese("zh-Hant", "繁體中文"),
-    English("en", "English"),
-    Japanese("ja", "日本語");
+enum class AppLanguage(val tag: String) {
+    SimplifiedChinese("zh-Hans"),
+    TraditionalChinese("zh-Hant"),
+    English("en"),
+    Japanese("ja");
 
     companion object {
         fun fromTag(tag: String): AppLanguage? {

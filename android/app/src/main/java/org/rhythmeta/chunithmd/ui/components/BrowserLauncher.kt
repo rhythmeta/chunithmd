@@ -6,9 +6,7 @@ import androidx.core.net.toUri
 
 fun Context.openInAppBrowser(url: String): Boolean {
     val uri = url.toUri()
-    if (uri.scheme !in setOf("http", "https")) return false
-
-    return runCatching {
+    return uri.scheme in setOf("http", "https") && runCatching {
         CustomTabsIntent.Builder()
             .setColorScheme(CustomTabsIntent.COLOR_SCHEME_SYSTEM)
             .setShowTitle(true)

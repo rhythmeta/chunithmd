@@ -27,14 +27,14 @@ class CatalogPhotoGridState internal constructor(index: Int = 0, offset: Int = 0
     internal fun slotKey(slot: PhotoGridSlot): Pair<Int, Int> =
         (slot.row + rowKeyOffset) to (slot.column - (geometry?.centerColumn ?: 0))
 
-    val firstVisibleItemIndex: Int get() = requestedPosition?.first ?: geometry?.let {
-        it.visibleIndices(scrollOffset, scrollOffset + viewportHeight).firstOrNull()
-    } ?: 0
+    val firstVisibleItemIndex: Int get() = requestedPosition?.first ?: geometry?.visibleIndices(scrollOffset, scrollOffset + viewportHeight)
+        ?.firstOrNull()
+    ?: 0
     val firstVisibleItemScrollOffset: Int get() = requestedPosition?.second ?: geometry?.let {
         (scrollOffset - it.cell(firstVisibleItemIndex).y).roundToInt().coerceAtLeast(0)
     } ?: 0
     internal val maxScroll: Float get() = maxScrollFor(geometry)
-    internal val outsideScrollBounds: Boolean get() = scrollOffset < 0f || scrollOffset > maxScroll
+    internal val outsideScrollBounds: Boolean get() = scrollOffset !in 0f..maxScroll
 
     private fun maxScrollFor(grid: CatalogGridGeometry?) =
         ((grid?.contentHeight ?: 0f) + topPadding + bottomPadding - viewportHeight).coerceAtLeast(0f)

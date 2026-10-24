@@ -15,7 +15,7 @@ object LxnsImportPolicy {
         if ((response["success"] as? JsonPrimitive)?.booleanOrNull != true) throw LxnsException("invalid_response")
         val rows = response["data"] as? JsonArray ?: throw LxnsException("invalid_response")
         val songs = (songList["songs"] as? JsonArray ?: throw LxnsException("invalid_response"))
-            .mapNotNull { it as? JsonObject }.associateBy { it.int("id") }
+            .filterIsInstance<JsonObject>().associateBy { it.int("id") }
         val scores = rows.mapNotNull { value ->
             val row = value as? JsonObject ?: return@mapNotNull null
             val index = row.int("level_index")?.takeIf { it in 0..5 } ?: return@mapNotNull null
@@ -24,7 +24,7 @@ object LxnsImportPolicy {
             val song = songs[id]
             var title = (song?.string("title") ?: row.string("song_name"))?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
             if (index == 5) {
-                val chart = (song?.get("difficulties") as? JsonArray)?.mapNotNull { it as? JsonObject }
+                val chart = (song?.get("difficulties") as? JsonArray)?.filterIsInstance<JsonObject>()
                     ?.singleOrNull { it.int("difficulty") == 5 }
                 chart?.string("kanji")?.takeIf { it.isNotBlank() }?.let { title = "[${it.removeSurrounding("【", "】")}]$title" }
             }
@@ -52,23 +52,28 @@ object LxnsImportPolicy {
         val ids = existing.mapTo(mutableSetOf()) { it.id }
         val additions = mutableListOf<ScoreRecord>()
         var matched = 0
-        for (item in payload.scores) {
-            val (song, sheet) = matcher.match(item.title, item.difficulty) ?: continue
+        for ((title, difficulty, score, clear, fullCombo, fullChain, playedAt) in payload.scores) {
+            val (song, sheet) = matcher.match(title, difficulty) ?: continue
             matched++
             val sheetKey = song.sheetKey(sheet)
             val history = histories.getOrPut(sheetKey) { mutableListOf() }
             val best = history.bestScoreSummary()
             // Undated snapshots only add improvements. Dated plays also preserve history.
-            if (item.playedAt == null && best != null && item.score <= best.score &&
-                !stronger(ClearType.fromWire(item.clear)?.ordinal, ClearType.fromWire(best.clear)?.ordinal) &&
-                !stronger(FullComboType.fromWire(item.fullCombo)?.ordinal, FullComboType.fromWire(best.fullCombo)?.ordinal) &&
-                !stronger(FullChainType.fromWire(item.fullChain)?.ordinal, FullChainType.fromWire(best.fullChain)?.ordinal)) continue
-            val hash = JsonArray(listOf("lxns", profileId, sheetKey, item.playedAt?.toString().orEmpty(),
-                item.score.toString(), item.clear.orEmpty(), item.fullCombo.orEmpty(), item.fullChain.orEmpty()).map(::JsonPrimitive))
+            if (playedAt == null && best != null && score <= best.score &&
+                !stronger(ClearType.fromWire(clear)?.ordinal, ClearType.fromWire(best.clear)?.ordinal) &&
+                !stronger(FullComboType.fromWire(fullCombo)?.ordinal, FullComboType.fromWire(best.fullCombo)?.ordinal) &&
+                !stronger(FullChainType.fromWire(fullChain)?.ordinal, FullChainType.fromWire(best.fullChain)?.ordinal)) continue
+            val hash = JsonArray(listOf("lxns", profileId, sheetKey, playedAt?.toString().orEmpty(),
+                score.toString(), clear.orEmpty(), fullCombo.orEmpty(), fullChain.orEmpty()).map(::JsonPrimitive))
                 .toString().encodeUtf8().sha256().hex()
             val id = "${hash.take(8)}-${hash.substring(8, 12)}-8${hash.substring(13, 16)}-8${hash.substring(17, 20)}-${hash.substring(20, 32)}"
-            val record = ScoreRecord(id, profileId, song.songId, sheetKey, item.score, ChunithmScoreRules.rank(item.score),
-                item.playedAt ?: importedAt, item.clear, item.fullCombo, item.fullChain)
+            val record = ScoreRecord(id, profileId, song.songId, sheetKey,
+                score, ChunithmScoreRules.rank(score),
+                playedAt ?: importedAt,
+                clear,
+                fullCombo,
+                fullChain
+            )
             if (!ids.add(id) || !fingerprints.add(fingerprint(record))) continue
             additions += record
             history += record

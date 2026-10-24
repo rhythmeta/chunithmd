@@ -34,7 +34,6 @@ data class PlayerRatingSummary(
     companion object {
         const val BEST_SLOT_COUNT = 30.0
         const val NEW_SLOT_COUNT = 20.0
-        const val TOTAL_SLOT_COUNT = 50.0
     }
 }
 

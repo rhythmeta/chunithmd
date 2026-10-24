@@ -140,6 +140,18 @@ internal class CatalogCoverTransition(
     fun bounds(pageSize: Size, progress: Float): Rect = catalogContainerBounds(sourceContainer, pageSize, progress)
     fun fallbackCoverBounds(pageSize: Size, progress: Float): Rect = catalogContainerBounds(sourceCover, pageSize, progress)
 
+    fun boundsCornerRadiusPx(density: Density, progress: Float): Float {
+        val sourceRadius = with(density) {
+            val card = genericSource?.takeIf { it.cardBounds != null }
+            when {
+                card != null -> card.cardCornerRadius.toPx()
+                listSource != null -> 14.dp.toPx()
+                else -> coverCornerRadiusPx(this)
+            }
+        }
+        return interpolate(sourceRadius, with(density) { deviceCornerRadius.toPx() }, progress)
+    }
+
     fun coverCornerRadiusPx(density: Density): Float = with(density) {
         val cover = genericSource
         if (cover != null) {
@@ -181,15 +193,8 @@ internal class CatalogCoverTransition(
                 translationY = catalogContainerDragOffset(gesture.touchY - gesture.initialTouchY, progress)
             }
             clip = progress < 1f
-            val sourceRadius = with(scope.density) {
-                val card = genericSource?.takeIf { it.cardBounds != null }
-                when {
-                    card != null -> card.cardCornerRadius.toPx()
-                    listSource != null -> 14.dp.toPx()
-                    else -> coverCornerRadiusPx(scope.density)
-                }
-            }
-            val radius = interpolate(sourceRadius, with(scope.density) { deviceCornerRadius.toPx() }, progress)
+            val sourceRadius = boundsCornerRadiusPx(scope.density, 0f)
+            val radius = boundsCornerRadiusPx(scope.density, progress)
             shape = CoverContainerShape(bounds(size, progress),
                 if (usesListMotion) radius else radius.coerceAtLeast(sourceRadius))
         }

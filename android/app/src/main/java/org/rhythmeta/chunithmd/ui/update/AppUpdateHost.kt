@@ -1,7 +1,6 @@
 package org.rhythmeta.chunithmd.ui.update
 
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -15,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.net.toUri
 import org.rhythmeta.chunithmd.BuildConfig
 import org.rhythmeta.chunithmd.core.update.ApkInstaller
 import org.rhythmeta.chunithmd.core.update.AppUpdatePhase
@@ -70,7 +70,8 @@ fun AppUpdateHost(viewModel: AppUpdateViewModel, blocked: Boolean) {
             else runCatching { permission.launch(installer.permissionIntent()) }.onFailure { viewModel.installationUnavailable() }
         },
         onViewChanges = { state.manifest?.let { manifest ->
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(AppUpdatePolicy.compareUrl(BuildConfig.GIT_SHA, manifest.sha))))
+            context.startActivity(Intent(Intent.ACTION_VIEW,
+                AppUpdatePolicy.compareUrl(BuildConfig.GIT_SHA, manifest.sha).toUri()))
         } },
     )
 }

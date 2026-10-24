@@ -9,12 +9,12 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.readAvailable
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -41,7 +41,6 @@ enum class CatalogSyncStage {
     Ready,
     Failed,
 }
-
 @Serializable
 data class CatalogSyncState(
     val stage: CatalogSyncStage = CatalogSyncStage.Idle,
@@ -78,7 +77,6 @@ private class DownloadSpeedTracker {
         }
     }
 }
-
 private fun formatCatalogBytes(bytes: Long): String {
     val units = arrayOf("B", "KB", "MB", "GB")
     var value = bytes.coerceAtLeast(0L).toDouble()
@@ -93,7 +91,6 @@ private fun formatCatalogBytes(bytes: Long): String {
     }
     return "$rounded ${units[unit]}"
 }
-
 @Serializable
 data class CatalogUpdateCheck(
     val manifest: StaticManifest,
@@ -287,7 +284,7 @@ class CatalogRepository(
                         val bytes = readResponseBytes(response, reporter::onTransfer)
                         require(bytes.isNotEmpty()) { tr("Jacket request for {0} returned an empty image.", imageName) }
                         val destination = jacketPath(imageName)!!
-                        val temporary = (destination.toString() + ".tmp").toPath()
+                        val temporary = ("$destination.tmp").toPath()
                         fileSystem.write(temporary) { write(bytes) }
                         fileSystem.atomicMove(temporary, destination)
                         reporter.onItemCompleted()
@@ -352,6 +349,7 @@ class CatalogRepository(
     private fun sha256(bytes: ByteArray): String = bytes.toByteString().sha256().hex()
 }
 
+/** Callback facade retained for the native Swift catalog store. */
 class CatalogBridge(cacheDirectory: String) {
     private val repository = CatalogRepository(cacheDirectory)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -370,10 +368,21 @@ class CatalogBridge(cacheDirectory: String) {
         repository.localJacketPath(imageName)
     }.getOrNull()
 
-    fun query(bundleJson: String, search: String, sort: String, ascending: Boolean,
-              categories: List<String>, versions: List<String>, difficulties: List<String>, types: List<String>,
-              playableOnly: Boolean, hideDeleted: Boolean = false, playableRegion: String = "jp",
-              favoriteSongIds: List<String> = emptyList(), favoritesOnly: Boolean = false): String = CatalogQuery.searchAndFilterJson(
+    fun query(
+        bundleJson: String,
+        search: String,
+        sort: String,
+        ascending: Boolean,
+        categories: List<String>,
+        versions: List<String>,
+        difficulties: List<String>,
+        types: List<String>,
+        playableOnly: Boolean,
+        hideDeleted: Boolean = false,
+        playableRegion: String = "jp",
+        favoriteSongIds: List<String> = emptyList(),
+        favoritesOnly: Boolean = false,
+    ): String = CatalogQuery.searchAndFilterJson(
         bundleJson, search, sort, ascending, categories, versions, difficulties, types, playableOnly,
         hideDeleted, playableRegion, favoriteSongIds, favoritesOnly,
     )

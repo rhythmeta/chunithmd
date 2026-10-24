@@ -28,8 +28,6 @@ object CatalogQuery {
         .distinct()
         .sorted()
     fun availableVersions(bundle: CatalogBundle): List<String> = bundle.catalog.versions.map { it.version }
-    fun availableDifficulties(bundle: CatalogBundle): List<String> =
-        bundle.catalog.songs.flatMap { song -> song.sheets.map { it.normalizedDifficulty() } }.distinct().sorted()
     fun availableTypes(bundle: CatalogBundle): List<String> =
         bundle.catalog.songs.flatMap { song -> song.sheets.map { it.normalizedType() } }.distinct().sorted()
 
@@ -71,7 +69,7 @@ object CatalogQuery {
         return when (sort) {
             CatalogSort.Default -> filtered.directed(ascending)
             CatalogSort.Title -> filtered.sortedWith(
-                compareBy<CatalogSong>({ normalize(it.title) }, { it.songId }),
+                compareBy({ normalize(it.title) }, { it.songId }),
             ).directed(ascending)
             CatalogSort.VersionDate -> sortByVersionDate(filtered, versionOrder, ascending)
             CatalogSort.Difficulty -> sortByDifficulty(filtered, ascending)

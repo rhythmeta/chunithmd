@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.*
 import org.rhythmeta.chunithmd.shared.account.RhythmetaSecretStore
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 
 class DivingFishException(val code: String) : Exception(code)
@@ -64,7 +65,7 @@ class DivingFishClient(
     suspend fun awaitAuthorization(device: DivingFishAuthorization, profileId: String) {
         var interval = device.intervalSeconds
         while (elapsedMillis() < device.expiresAt) {
-            delay(interval * 1000)
+            delay((interval * 1000).milliseconds)
             if (elapsedMillis() >= device.expiresAt) break
             try {
                 tokenMutex.withLock {

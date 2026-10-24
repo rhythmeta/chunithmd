@@ -174,7 +174,11 @@ internal fun ScannerCameraPreview(
                                         null
                                     }
                                     if (frame != null) main.execute {
-                                        if (disposed || !currentAnalyzing || (frame.width > frame.height) != frameLandscape) frame.recycle() else currentFrame(frame, previewRotation, frameLandscape)
+                                        if (disposed || !currentAnalyzing || (frame.width > frame.height) != frameLandscape) {
+                                            frame.recycle()
+                                        } else {
+                                            currentFrame(frame, previewRotation, frameLandscape)
+                                        }
                                     }
                                 }
                             }

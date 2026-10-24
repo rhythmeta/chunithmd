@@ -37,21 +37,21 @@ object DivingFishImportPolicy {
             .mapValues { it.value.toMutableList() }.toMutableMap()
         val additions = mutableListOf<ScoreRecord>()
         var matched = 0
-        for (item in payload.scores) {
-            val (song, sheet) = matcher.match(item.title, item.difficulty) ?: continue
+        for ((title, difficulty, score, fullCombo) in payload.scores) {
+            val (song, sheet) = matcher.match(title, difficulty) ?: continue
             matched++
             val sheetKey = song.sheetKey(sheet)
             val history = histories.getOrPut(sheetKey) { mutableListOf() }
             val best = history.bestScoreSummary()
-            val improvesCombo = comboStrength(item.fullCombo) > comboStrength(best?.fullCombo)
-            if (best != null && item.score <= best.score && !improvesCombo) continue
-            val fingerprint = JsonArray(listOf(profileId, sheetKey, item.score.toString(), item.fullCombo.orEmpty()).map(::JsonPrimitive))
+            val improvesCombo = comboStrength(fullCombo) > comboStrength(best?.fullCombo)
+            if (best != null && score <= best.score && !improvesCombo) continue
+            val fingerprint = JsonArray(listOf(profileId, sheetKey, score.toString(), fullCombo.orEmpty()).map(::JsonPrimitive))
                 .toString().encodeUtf8().sha256().hex()
             val record = ScoreRecord(
                 id = normalizeDivingFishRecordId("diving-fish:$fingerprint"), profileId = profileId, songId = song.songId, sheetKey = sheetKey,
-                score = item.score, rank = ChunithmScoreRules.rank(item.score), playedAt = importedAt,
+                score = score, rank = ChunithmScoreRules.rank(score), playedAt = importedAt,
                 // Neither clear lamps, full chain nor play timestamps are provided by this API.
-                clear = null, fullCombo = item.fullCombo,
+                clear = null, fullCombo = fullCombo,
             )
             if (history.none { it.id == record.id }) { additions += record; history += record }
         }

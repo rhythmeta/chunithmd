@@ -55,5 +55,6 @@ class RhythmetaBridge(secrets: RhythmetaSecretStore, files: SnapshotFiles, clien
     fun voteCommunity(id: String, vote: Int) { scope.launch { community?.vote(id, vote > 0) } }
     fun refreshSongAliases(id: String) { scope.launch { community?.refreshSong(id) } }
     fun submitAlias(id: String, text: String) { community?.setDraft(id, text); scope.launch { community?.submit(id) } }
+
     fun close() { listener=null;scope.cancel() }
 }

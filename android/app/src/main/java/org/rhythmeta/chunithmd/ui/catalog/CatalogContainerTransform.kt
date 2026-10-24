@@ -150,7 +150,11 @@ internal fun CatalogContainerTransform(
             })
         }
         if (state.listSource != null) {
-            CatalogListDecorationsOverlay(state, { catalogContainerProgress(navigation.relativeDepth) })
+            CatalogListDecorationsOverlay(
+                state = state,
+                progress = { catalogContainerProgress(navigation.relativeDepth) },
+                pageSize = { Size(navigation.layoutSize.width.toFloat(), navigation.layoutSize.height.toFloat()) },
+            )
             CatalogListTextOverlay(state, { catalogContainerProgress(navigation.relativeDepth) },
                 Modifier.fillMaxSize().clearAndSetSemantics {})
         }

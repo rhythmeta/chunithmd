@@ -379,7 +379,6 @@ internal object BestTableImageExporter {
     private const val SECTION_HEADER_HEIGHT = 50
     private const val SECTION_BOTTOM_PADDING = 16
     private const val FOOTER_HEIGHT = 70
-    private const val BestAccent = 0xFFFF9500.toInt()
     private const val OldAccent = 0xFF4D80FF.toInt()
     private const val NewAccent = 0xFFFF6B6B.toInt()
 }

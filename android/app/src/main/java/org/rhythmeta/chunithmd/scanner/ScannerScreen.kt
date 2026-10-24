@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
@@ -49,6 +48,8 @@ import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
+import androidx.core.net.toUri
+import kotlin.time.Duration.Companion.milliseconds
 
 /** maimaid's camera-first scanner, with CHUNITHM fields reviewed before saving. */
 @Composable
@@ -95,7 +96,7 @@ fun ScannerScreen(
         }
     }
     LaunchedEffect(enabled) { if (!enabled) model.resumeLive() }
-    LaunchedEffect(message) { if (message != null) { delay(2500); message = null } }
+    LaunchedEffect(message) { if (message != null) { delay(2500.milliseconds); message = null } }
     LaunchedEffect(state.saved) { if (state.saved) message = tr("已保存") }
     DisposableEffect(Unit) { onDispose { model.setActive(false); model.resumeLive() } }
     DisposableEffect(enabled) {
@@ -129,7 +130,8 @@ fun ScannerScreen(
                     Text(tr("允许访问相机"))
                 }
                 TextButton(text = tr("打开设置"), onClick = {
-                    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        "package:${context.packageName}".toUri()))
                 })
             }
         }

@@ -16,7 +16,7 @@ fun collectionCards(collection: SongCollection, bundle: CatalogBundle?, sort: Ca
         CollectionCard(entry, song, sheet?.let { if (regionLevel == null) it else it.copy(level = regionLevel.level ?: it.level, internalLevelValue = regionLevel.levelValue ?: it.internalLevelValue) })
     }
     val comparator = when (sort) {
-        CatalogSort.Default -> compareBy<CollectionCard> { order[it.entry.songId] ?: Int.MAX_VALUE }
+        CatalogSort.Default -> compareBy { order[it.entry.songId] ?: Int.MAX_VALUE }
         CatalogSort.Title -> compareBy { it.song?.let(CatalogSongFormatter::displayTitle)?.lowercase() ?: it.entry.songId }
         CatalogSort.VersionDate -> compareBy<CollectionCard> { versions[it.song?.version] ?: Int.MAX_VALUE }.thenBy { it.song?.releaseDate.orEmpty() }
         CatalogSort.Difficulty -> compareBy { it.sheet?.internalLevelValue ?: it.sheet?.levelValue ?: 0.0 }

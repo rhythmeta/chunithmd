@@ -55,7 +55,6 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 internal fun CatalogFilterDialog(
     show: Boolean,
     bundle: CatalogBundle,
@@ -249,7 +248,6 @@ private fun CatalogFilterToggleRow(
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 private fun CatalogFilterChipGroup(
     values: List<String>,
     selectedValues: Set<String>,

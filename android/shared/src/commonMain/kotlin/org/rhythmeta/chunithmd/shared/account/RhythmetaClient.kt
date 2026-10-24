@@ -18,12 +18,11 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 import okio.Buffer
 import okio.ByteString.Companion.toByteString
 import org.rhythmeta.chunithmd.shared.backup.*
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 
 class StoredSecret(val value: String?)
 interface RhythmetaSecretStore {
@@ -45,7 +44,7 @@ class RhythmetaClient(private val secrets:RhythmetaSecretStore, private val clie
     private val refreshMutex=Mutex()
     private val callback="chunithmd://auth/callback"
     private fun apply(value:RhythmetaSession?) { secrets.write("session",value?.let { json.encodeToString(it) });mutableSession.value=value }
-    suspend fun isHealthy(): Boolean = withTimeoutOrNull(5_000) {
+    suspend fun isHealthy(): Boolean = withTimeoutOrNull(5_000.milliseconds) {
         try {
             request("health", authenticated = false)
             true

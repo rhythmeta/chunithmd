@@ -40,7 +40,55 @@ data class BackupProfile(
     @ProtoNumber(15) val b35RecLimit: Int = 0,
     @ProtoNumber(16) val b15RecLimit: Int = 0,
     @ProtoNumber(17) val title: String = "",
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as BackupProfile
+
+        if (active != other.active) return false
+        if (createdAt != other.createdAt) return false
+        if (playerRating != other.playerRating) return false
+        if (lastImportDf != other.lastImportDf) return false
+        if (lastImportLxns != other.lastImportLxns) return false
+        if (b35Count != other.b35Count) return false
+        if (b15Count != other.b15Count) return false
+        if (b35RecLimit != other.b35RecLimit) return false
+        if (b15RecLimit != other.b15RecLimit) return false
+        if (id != other.id) return false
+        if (name != other.name) return false
+        if (server != other.server) return false
+        if (!avatar.contentEquals(other.avatar)) return false
+        if (avatarUrl != other.avatarUrl) return false
+        if (dfUsername != other.dfUsername) return false
+        if (plate != other.plate) return false
+        if (title != other.title) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = active.hashCode()
+        result = 31 * result + createdAt.hashCode()
+        result = 31 * result + playerRating
+        result = 31 * result + lastImportDf.hashCode()
+        result = 31 * result + lastImportLxns.hashCode()
+        result = 31 * result + b35Count
+        result = 31 * result + b15Count
+        result = 31 * result + b35RecLimit
+        result = 31 * result + b15RecLimit
+        result = 31 * result + id.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + server.hashCode()
+        result = 31 * result + avatar.contentHashCode()
+        result = 31 * result + avatarUrl.hashCode()
+        result = 31 * result + dfUsername.hashCode()
+        result = 31 * result + plate.hashCode()
+        result = 31 * result + title.hashCode()
+        return result
+    }
+}
 
 @Serializable
 data class BackupScore(
@@ -95,4 +143,34 @@ data class BackupSetting(
     @ProtoNumber(6) val boolValue: Boolean = false,
     @ProtoNumber(7) val stringValues: List<String> = emptyList(),
     @ProtoNumber(8) val bytesValue: ByteArray = byteArrayOf(),
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as BackupSetting
+
+        if (integerValue != other.integerValue) return false
+        if (doubleValue != other.doubleValue) return false
+        if (boolValue != other.boolValue) return false
+        if (key != other.key) return false
+        if (kind != other.kind) return false
+        if (stringValue != other.stringValue) return false
+        if (stringValues != other.stringValues) return false
+        if (!bytesValue.contentEquals(other.bytesValue)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = integerValue.hashCode()
+        result = 31 * result + doubleValue.hashCode()
+        result = 31 * result + boolValue.hashCode()
+        result = 31 * result + key.hashCode()
+        result = 31 * result + kind.hashCode()
+        result = 31 * result + stringValue.hashCode()
+        result = 31 * result + stringValues.hashCode()
+        result = 31 * result + bytesValue.contentHashCode()
+        return result
+    }
+}

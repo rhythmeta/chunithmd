@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.shared
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -166,12 +165,6 @@ fun CatalogBundle.latestPlayableVersion(server: ProfileServer): String? {
 fun CatalogSong.isDeletedInJp(): Boolean = !isPlayableInJp()
 
 fun CatalogSong.isWorldsEnd(): Boolean = sheets.any { it.type.equals("we", ignoreCase = true) }
-
-fun CatalogSong.highestJpLevel(): Double = sheets
-    .asSequence()
-    .filter { it.regions["jp"] == true }
-    .mapNotNull(CatalogSheet::levelValue)
-    .maxOrNull() ?: 0.0
 
 fun CatalogSong.highestJpStandardLevel(): Double? = sheets
     .asSequence()

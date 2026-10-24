@@ -1,7 +1,6 @@
 package org.rhythmeta.chunithmd.shared
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import org.rhythmeta.chunithmd.shared.community.mergeCommunityAliases
 
 @Serializable

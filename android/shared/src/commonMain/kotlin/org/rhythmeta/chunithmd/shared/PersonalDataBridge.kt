@@ -174,6 +174,7 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
         return PortableCollectionCodec.encode(CollectionExport(collection.name, state.collectionItems.filter { it.collectionId == id }
             .map { CollectionEntry(it.songId, it.chartType, it.difficulty) }))
     }
+
     @Throws(Exception::class)
     fun importCollection(text: String): String {
         val value = PortableCollectionCodec.decode(text)
@@ -264,7 +265,7 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
 
     @Throws(Exception::class)
     fun plate(bundle: CatalogBundle, version: String?, kind: String): PlateProgressResponse = read().let {
-        PlateProgressCalculator.calculate(bundle, records(it), server(it), version, PlateType.entries.firstOrNull { it.name == kind } ?: PlateType.Spirit)
+        PlateProgressCalculator.calculate(bundle, records(it), server(it), version, PlateType.entries.firstOrNull { it -> it.name == kind } ?: PlateType.Spirit)
     }
 
     @Throws(Exception::class)

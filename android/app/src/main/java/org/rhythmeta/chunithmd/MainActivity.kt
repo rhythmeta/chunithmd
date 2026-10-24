@@ -222,7 +222,6 @@ private sealed interface AppRoute : NavKey {
     @Serializable data class SongDetail(val songId: String) : AppRoute
     @Serializable data class CatalogSongDetail(val songId: String, val transitionId: String = "") : AppRoute
 }
-
 /** Keeps the decoded catalog across Activity recreation caused by rotation. */
 class CatalogStateViewModel : ViewModel() {
     var bundle: CatalogBundle? by mutableStateOf(null)
@@ -290,7 +289,6 @@ class CatalogStateViewModel : ViewModel() {
 //        super.onCleared()
     }
 }
-
 private val SettingsDetailTransition = object : NavTransition by NavTransitions.MiuixDefault {
     override val motion: NavMotion = NavMotion(
         commit = NavTransitions.MiuixDefault.motion.commit,
@@ -520,11 +518,10 @@ private fun CatalogApp(
     val bestTablePreferences by bestTablePreferencesRepository.preferences.collectAsState(initial = BestTablePreferences())
     val profileRating by key(activeProfile?.id) {
         produceState(0.0, bundle, profileScores, activeProfile?.server, bestTablePreferences) {
-            val catalog = bundle
             val profile = activeProfile
-            value = if (catalog == null || profile == null) 0.0 else withContext(Dispatchers.Default) {
+            value = if (bundle == null || profile == null) 0.0 else withContext(Dispatchers.Default) {
                 val entries = buildBestTableEntries(
-                    catalog,
+                    bundle,
                     profileScores.filter { it.profileId == profile.id },
                     profile.server,
                     bestTablePreferences.selectedVersion,
@@ -1626,18 +1623,4 @@ private fun RowScope.NavigationItem(
         label = label,
         modifier = Modifier.weight(1f),
     )
-}
-
-@Composable
-private fun BlankDestination(modifier: Modifier) {
-    Box(
-        modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface),
-        contentAlignment = Alignment.Center,
-    ) {
-        top.yukonga.miuix.kmp.basic.Text(
-            "Working in progress",
-            style = MiuixTheme.textStyles.body1,
-            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-        )
-    }
 }

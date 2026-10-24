@@ -501,7 +501,6 @@ private fun ScoreQueryFilterSheet(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ScoreFilterGroup(
     title: String,
@@ -563,7 +562,7 @@ private fun ScoreFilterChip(
 }
 
 @Composable
-fun ScoreQueryHomeCard(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, onClick: () -> Unit) {
+fun ScoreQueryHomeCard(modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(modifier.height(140.dp), cornerRadius = 16.dp, insideMargin = PaddingValues(16.dp), colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer), onClick = onClick) {
         Icon(Icons.AutoMirrored.Rounded.ViewList, contentDescription = null, modifier = Modifier.size(30.dp), tint = MiuixTheme.colorScheme.onSurfaceVariantActions)
         Spacer(Modifier.height(12.dp))

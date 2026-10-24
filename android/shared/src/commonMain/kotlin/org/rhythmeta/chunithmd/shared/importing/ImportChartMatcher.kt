@@ -13,9 +13,10 @@ internal class ImportChartMatcher(catalog: CatalogBundle) {
         val key = titleKey(worldEnd?.groupValues?.get(3) ?: title)
         val candidates = exact[key to difficulty] ?: folded[key.lowercase() to difficulty].orEmpty()
         val tag = worldEnd?.let { it.groupValues[1].ifEmpty { it.groupValues[2] } }
-        return candidates.filter { (_, chart) ->
-            tag == null || chart.difficulty.trim().removeSurrounding("【", "】").removeSurrounding("[", "]") == tag
-        }.singleOrNull()
+        return candidates.singleOrNull { (_, chart) ->
+            tag == null || chart.difficulty.trim().removeSurrounding("【", "】")
+                .removeSurrounding("[", "]") == tag
+        }
     }
 
     private fun difficulty(sheet: CatalogSheet): Int = if (sheet.type.equals("we", true)) 5

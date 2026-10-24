@@ -14,7 +14,6 @@ data class ScanFields(val title: String = "", val difficulty: String = "", val l
 data class ScanChartCandidate(val songId: String, val title: String, val type: String, val difficulty: String, val level: String, val similarity: Double) {
     val key: String get() = "$songId:$type:$difficulty"
 }
-
 @Serializable
 data class ScanReview(val fields: ScanFields, val parsedScore: Int?, val clear: String, val combo: String,
     val candidates: List<ScanChartCandidate>, val recommendedKey: String?)
@@ -29,7 +28,6 @@ object ScoreScanner {
         return ScanFields(text["title"].orEmpty(), text["difficulty"].orEmpty(), text["level"].orEmpty(),
             text["score"].orEmpty(), text["clear"].orEmpty(), text["combo"].orEmpty())
     }
-
     fun parseScore(raw: String): Int? {
         val text = fold(raw).replace('O', '0').replace('o', '0')
         val values = Regex("(?<![0-9])[0-9](?:[0-9,，. ]*[0-9])?(?![0-9])").findAll(text)
@@ -132,7 +130,6 @@ object ScoreScanner {
         return 1.0 - row[b.length].toDouble() / max(a.length, b.length)
     }
 }
-
 /** JSON boundary avoids exposing native OCR types to KMP/Swift UI. */
 object NativeScoreScanner {
     @Throws(Exception::class)

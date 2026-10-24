@@ -8,7 +8,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.rhythmeta.chunithmd.shared.account.CloudBackup
-import org.rhythmeta.chunithmd.shared.account.RhythmetaClient
 
 /** Platform adapters own durable writes; this shared coordinator owns replacement and rollback. */
 interface LocalSnapshotStore {

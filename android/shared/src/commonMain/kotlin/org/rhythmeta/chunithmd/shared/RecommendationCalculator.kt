@@ -158,7 +158,6 @@ object RecommendationCalculator {
     )
 
     private const val SCORE_BELOW_CUTOFF = 0
-    private const val SCORE_CUTOFF = 500_000
     private const val SCORE_S = 975_000
     private const val SCORE_SSS_PLUS = 1_009_000
     private const val MIN_DISPLAYED_GAIN = 0.005

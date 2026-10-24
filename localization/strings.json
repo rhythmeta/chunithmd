@@ -4894,5 +4894,17 @@
     "ja": "最新の CI ビルドを確認してダウンロード",
     "zh-Hans": "检查并下载最新 CI 构建",
     "zh-Hant": "檢查並下載最新 CI 建置"
+  },
+  "已是最新构建": {
+    "en": "This is the latest build",
+    "ja": "最新のビルドです",
+    "zh-Hans": "已是最新构建",
+    "zh-Hant": "已是最新建置"
+  },
+  "当前已安装最新可用的 CI 构建。": {
+    "en": "The latest available CI build is already installed.",
+    "ja": "利用可能な最新の CI ビルドがすでにインストールされています。",
+    "zh-Hans": "当前已安装最新可用的 CI 构建。",
+    "zh-Hant": "目前已安裝最新可用的 CI 建置。"
   }
 }

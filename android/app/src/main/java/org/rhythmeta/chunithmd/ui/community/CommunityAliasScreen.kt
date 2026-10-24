@@ -127,7 +127,7 @@ private fun CommunitySongHeader(
     onOpenSong: (String) -> Unit,
 ) {
     val coverNavigation = rememberSongCoverNavigation(song?.songId ?: fallbackTitle,
-        { song?.let { onOpenSong(it.songId) } }, 9.dp, cardColor = androidx.compose.ui.graphics.Color.Transparent, cardCornerRadius = 0.dp)
+        { song?.let { onOpenSong(it.songId) } }, 9.dp, cardColor = Color.Transparent, cardCornerRadius = 0.dp)
     SongCardTransitionContent(coverNavigation) { showCover ->
         Row(
             Modifier.fillMaxWidth().then(if (showCover) coverNavigation.cardModifier else Modifier)
@@ -147,7 +147,7 @@ private fun CommunitySongHeader(
                 }
             }
             Box(
-                Modifier.size(46.dp).then(if (showCover) coverNavigation.modifier else Modifier).squircleSurface(if (showCover) MiuixTheme.colorScheme.surfaceContainer else androidx.compose.ui.graphics.Color.Transparent, 9.dp, SquircleExtension),
+                Modifier.size(46.dp).then(if (showCover) coverNavigation.modifier else Modifier).squircleSurface(if (showCover) MiuixTheme.colorScheme.surfaceContainer else Color.Transparent, 9.dp, SquircleExtension),
                 contentAlignment = Alignment.Center,
             ) {
                 if (showCover) {

@@ -1,4 +1,4 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class)
 package org.rhythmeta.chunithmd.collection
 import kotlinx.cinterop.*
 import platform.zlib.*
