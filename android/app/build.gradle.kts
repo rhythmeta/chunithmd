@@ -60,7 +60,7 @@ android {
         minSdk = 29
         targetSdk = 37
         versionCode = chunithmdBuildNumber.get()
-        versionName = "0.4.1"
+        versionName = "0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "GIT_SHA", buildConfigString(chunithmdGitSha.get()))
