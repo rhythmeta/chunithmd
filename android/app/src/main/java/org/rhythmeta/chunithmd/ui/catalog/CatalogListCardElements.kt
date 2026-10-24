@@ -49,10 +49,10 @@ internal fun CatalogListCardBadges(data: CatalogListBadgesData, modifier: Modifi
     Column(modifier, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = data.version,
-            modifier = Modifier.squircleSurface(color = data.background, cornerRadius = 4.dp)
-                .padding(horizontal = 7.dp, vertical = 3.dp),
+            modifier = Modifier.squircleSurface(color = data.background, cornerRadius = 5.dp)
+                .padding(horizontal = 5.dp, vertical = 2.dp),
             color = data.foreground,
-            style = MiuixTheme.textStyles.footnote1.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+            style = MiuixTheme.textStyles.footnote1.copy(fontSize = 9.sp, fontWeight = FontWeight.Black),
             maxLines = 1,
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
