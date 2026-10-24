@@ -394,6 +394,25 @@ private fun BestCapacityCard(
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             CapacityTextField(tr("Best 数量"), bestText, onBestChange, onCommit)
             CapacityTextField(tr("New 数量"), newText, onNewChange, onCommit)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    tr("当前总计"),
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+                Spacer(Modifier.weight(1f))
+                Text(
+                    ((bestText.toIntOrNull() ?: 0) + (newText.toIntOrNull() ?: 0)).toString(),
+                    style = MiuixTheme.textStyles.headline1,
+                    fontWeight = FontWeight.Black,
+                    color = BestAccent,
+                )
+            }
         }
     }
 }

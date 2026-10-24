@@ -20,18 +20,31 @@ import org.rhythmeta.chunithmd.ui.components.playerRatingColors
 
 @Composable
 internal fun ProfileRatingBadge(rating: Double, modifier: Modifier = Modifier) {
-    val colors = playerRatingColors(rating)
+    val isRainbow = rating >= 16.0
+    val colors = if (isRainbow) {
+        listOf(
+            Color(0xFFFF3D57),
+            Color(0xFFFF9F1C),
+            Color(0xFFFFE45E),
+            Color(0xFF55D66B),
+            Color(0xFF35B9E9),
+            Color(0xFF5578F2),
+            Color(0xFFB85CDE),
+        )
+    } else {
+        playerRatingColors(rating)
+    }
     val text = String.format(Locale.ROOT, "%.2f", rating)
     val label = tr("玩家 Rating")
     Text(
         text = text,
         style = MiuixTheme.textStyles.footnote2,
         fontWeight = FontWeight.Bold,
-        color = Color.Black,
+        color = if (isRainbow) Color(0xFF25152D) else Color.Black,
         maxLines = 1,
         modifier = modifier
             .background(Brush.horizontalGradient(colors), CircleShape)
-            .border(1.dp, Color.White.copy(alpha = 0.9f), CircleShape)
+            .border(1.dp, if (isRainbow) Color.White.copy(alpha = 0.95f) else Color.White.copy(alpha = 0.9f), CircleShape)
             .padding(horizontal = 6.dp, vertical = 2.dp)
             .clearAndSetSemantics { contentDescription = "$label $text" },
     )
