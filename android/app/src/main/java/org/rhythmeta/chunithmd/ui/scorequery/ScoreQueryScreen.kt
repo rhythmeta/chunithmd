@@ -227,31 +227,24 @@ private fun ScoreQueryGrid(
         state.zoom
         state.geometry?.let { it.maxCellSize / it.cellSize } ?: 1f
     } }
-    Column(Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = contentTopPadding)
-                .background(MiuixTheme.colorScheme.background)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-        ) {
-            ScoreQueryStatsHeader(stats)
-        }
-        ZoomableCoverGrid(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .nestedScroll(searchScrollConnection)
-                .nestedScroll(topBarScrollConnection),
-            contentTopPadding = 2.dp,
-            contentBottomPadding = 32.dp,
-            items = entries,
-            state = state,
-            itemKey = ScoreQueryEntry::sheetKey,
-        ) { entry, columns, imageSize, filler ->
-            ScoreQueryGridCell(entry, jacketBaseUrl, localJacketPath, badgeScale, filler,
-                columns, imageSize, state.transforming) { onOpenSong(entry.songId) }
-        }
+    ZoomableCoverGrid(
+        modifier = Modifier.fillMaxSize()
+            .nestedScroll(searchScrollConnection)
+            .nestedScroll(topBarScrollConnection),
+        contentTopPadding = contentTopPadding,
+        contentBottomPadding = 32.dp,
+        items = entries,
+        state = state,
+        itemKey = ScoreQueryEntry::sheetKey,
+        header = {
+            Box(Modifier.fillMaxWidth().background(MiuixTheme.colorScheme.background)
+                .padding(horizontal = 12.dp, vertical = 8.dp)) {
+                ScoreQueryStatsHeader(stats)
+            }
+        },
+    ) { entry, columns, imageSize, filler ->
+        ScoreQueryGridCell(entry, jacketBaseUrl, localJacketPath, badgeScale, filler,
+            columns, imageSize, state.transforming) { onOpenSong(entry.songId) }
     }
 }
 
