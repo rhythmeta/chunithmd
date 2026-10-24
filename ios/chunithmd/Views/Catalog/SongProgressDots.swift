@@ -19,12 +19,16 @@ struct SongProgressDots: View {
             ForEach(sheets) { sheet in
                 let style = sheet.type.lowercased() == "we" ? AnyShapeStyle(WorldsEndStyle.ring) : difficultyStyle(sheet.difficulty)
                 let progress = personal.chartProgress[song.id + ":" + sheet.id] ?? 0
-                Circle().stroke(style.opacity(0.3), lineWidth: 1.2)
-                    .overlay {
-                        Circle().trim(from: 0, to: progress).stroke(style, style: StrokeStyle(lineWidth: 4, lineCap: .butt))
-                            .frame(width: 4, height: 4).rotationEffect(.degrees(-90))
+                ZStack {
+                    Circle().stroke(style.opacity(0.3), lineWidth: 1.2)
+                        .frame(width: 8, height: 8)
+                    if progress > 0 {
+                        Circle().trim(from: 0, to: min(max(progress, 0), 1))
+                            .stroke(style, style: StrokeStyle(lineWidth: 4, lineCap: .butt))
+                            .frame(width: 4, height: 4)
+                            .rotationEffect(.degrees(-90))
                     }
-                    .frame(width: 8, height: 8)
+                }
             }
         }.accessibilityHidden(true)
     }

@@ -20,7 +20,7 @@ struct CatalogView: View {
             else {
                 ScrollView {
                     LazyVStack(spacing: 10) {
-                        ForEach(songs) { song in SongRow(song: song, card: true) }
+                        ForEach(songs) { song in SongRow(song: song, card: true, showsProgress: true) }
                     }.padding(.horizontal, 16).padding(.vertical, 8)
                 }
             }
