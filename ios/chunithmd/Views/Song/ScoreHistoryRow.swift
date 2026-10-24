@@ -2,6 +2,14 @@ import Shared
 import SwiftUI
 
 struct ScoreHistoryRow: View {
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy/MM/dd"
+        return formatter
+    }()
+
     let record: ScoreRecord
     let isBest: Bool
     let alternate: Bool
@@ -12,7 +20,7 @@ struct ScoreHistoryRow: View {
         let date = Date(timeIntervalSince1970: Double(record.playedAt) / 1000)
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(date, format: .dateTime.year(.twoDigits).month(.defaultDigits).day(.defaultDigits))
+                Text(Self.dateFormatter.string(from: date))
                     .font(.caption.bold())
                 Text(date, style: .time).font(.caption).foregroundStyle(.secondary)
             }.frame(width: 70, alignment: .leading)
