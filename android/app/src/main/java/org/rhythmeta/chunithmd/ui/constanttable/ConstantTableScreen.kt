@@ -348,9 +348,12 @@ private fun ConstantTableJacket(
     localJacketPath: (String) -> String?,
     onClick: () -> Unit,
 ) {
-    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 9.dp, key = entry)
     val accent = difficultyColor(if (entry.type.equals("we", true)) "world's end" else entry.difficulty)
     val brush = constantTableBrush(entry)
+    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 9.dp, key = entry,
+        cardBorderColor = accent,
+        cardBorderBrush = brush,
+        cardBorderWidth = 1.5.dp)
     val imageModel = remember(entry.imageName, jacketBaseUrl) {
         localJacketPath(entry.imageName)?.let(::File)
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${entry.imageName.trimStart('/')}" }
@@ -375,13 +378,13 @@ private fun ConstantTableJacket(
                     entry.fullChain?.let { ConstantTableBadge(it, chainColor(it), compact = true) }
                 }
             }
-            Box(
-                Modifier.fillMaxSize().then(
-                    if (brush != null) Modifier.border(1.5.dp, brush, RoundedCornerShape(9.dp))
-                    else Modifier.squircleBorder(1.5.dp, accent, 9.dp, extension = SquircleExtension),
-                ),
-            )
         }
+        Box(
+            Modifier.fillMaxSize().then(
+                if (brush != null) Modifier.border(1.5.dp, brush, RoundedCornerShape(9.dp))
+                else Modifier.squircleBorder(1.5.dp, accent, 9.dp, extension = SquircleExtension),
+            ),
+        )
     }
 }
 

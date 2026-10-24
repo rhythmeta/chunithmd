@@ -162,10 +162,12 @@ internal fun CatalogContainerTransform(
         }
         Canvas(Modifier.fillMaxSize().clearAndSetSemantics {}) {
             val progress = catalogContainerProgress(navigation.relativeDepth)
-            state.genericSource?.cardBorderColor?.let { color ->
+            state.genericSource?.let { source ->
+                val color = source.cardBorderColor ?: return@let
                 val borderProgress = ((0.5f - progress) / 0.5f).coerceIn(0f, 1f)
                 if (borderProgress > 0f) {
-                    val width = 0.5.dp.toPx() + 1.5.dp.toPx() * borderProgress
+                    val targetWidth = state.genericSource?.cardBorderWidth?.toPx()?.takeIf { it > 0f } ?: 0f
+                    val width = targetWidth * borderProgress
                     val bounds = state.bounds(size, progress)
                     val radius = state.boundsCornerRadiusPx(this, progress)
                     val path = Path().apply {
@@ -177,7 +179,9 @@ internal fun CatalogContainerTransform(
                         )
                     }
                     translate(bounds.left + width / 2f, bounds.top + width / 2f) {
-                        drawPath(path, color, style = Stroke(width))
+                        source.cardBorderBrush?.let { brush ->
+                            drawPath(path, brush = brush, style = Stroke(width))
+                        } ?: drawPath(path, color = color, style = Stroke(width))
                     }
                 }
             }

@@ -10,6 +10,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
@@ -32,6 +33,8 @@ internal class SongCoverSource(
     var cardBounds by mutableStateOf<Rect?>(null)
     var cardColor by mutableStateOf<Color?>(null)
     var cardBorderColor by mutableStateOf<Color?>(null)
+    var cardBorderBrush by mutableStateOf<Brush?>(null)
+    var cardBorderWidth by mutableStateOf(0.dp)
     var cardCornerRadius by mutableStateOf(0.dp)
     var bodyBounds by mutableStateOf<Rect?>(null)
     var bodySize by mutableStateOf(IntSize.Zero)
@@ -86,6 +89,8 @@ internal fun rememberSongCoverNavigation(
     imageAlpha: Float = 1f,
     cardColor: Color? = null,
     cardBorderColor: Color? = null,
+    cardBorderBrush: Brush? = null,
+    cardBorderWidth: Dp = 0.dp,
     cardCornerRadius: Dp = 14.dp,
 ): SongCoverNavigation {
     val host = LocalSongNavigationHost.current.takeIf { enabled }
@@ -95,6 +100,8 @@ internal fun rememberSongCoverNavigation(
     SideEffect {
         source.cardColor = cardColor
         source.cardBorderColor = cardBorderColor
+        source.cardBorderBrush = cardBorderBrush
+        source.cardBorderWidth = cardBorderWidth
         source.cardCornerRadius = cardCornerRadius
     }
     return remember(source, host, onClick) { SongCoverNavigation(source, host, onClick) }

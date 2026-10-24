@@ -242,9 +242,9 @@ private fun ScoreQueryGrid(
                 ScoreQueryStatsHeader(stats)
             }
         },
-    ) { entry, _, imageSize, filler ->
+    ) { entry, columns, imageSize, filler ->
         ScoreQueryGridCell(entry, jacketBaseUrl, localJacketPath, badgeScale, filler,
-            imageSize, state.transforming) { onOpenSong(entry.songId) }
+            columns, imageSize, state.transforming) { onOpenSong(entry.songId) }
     }
 }
 
@@ -255,14 +255,19 @@ private fun ScoreQueryGridCell(
     localJacketPath: (String) -> String?,
     badgeScale: () -> Float,
     filler: Boolean,
+    columns: Int,
     imageSize: Int,
     animateCoverChanges: Boolean,
     onClick: () -> Unit,
 ) {
-    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 8.dp, key = entry, enabled = !filler,
-        cardColor = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     val accent = difficultyColor(if (entry.type.equals("we", true)) "world's end" else entry.difficulty)
     val accentBrush = scoreDifficultyBrush(entry)
+    val borderWidth = if (columns == 3) 2.dp else 1.dp
+    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 8.dp, key = entry, enabled = !filler,
+        cardColor = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+        cardBorderColor = accent,
+        cardBorderBrush = accentBrush,
+        cardBorderWidth = borderWidth)
     val model = remember(entry.imageName, jacketBaseUrl, localJacketPath) {
         localJacketPath(entry.imageName)?.let(::File)
             ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { it + "/" + entry.imageName.trimStart('/') }
@@ -279,17 +284,6 @@ private fun ScoreQueryGridCell(
             Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)),
             onPainterChanged = coverNavigation::onPainter, fallbackPainter = coverNavigation.source.painter)
         SongCoverDecorations(coverNavigation) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (accentBrush != null) {
-                            Modifier.border(2.dp, accentBrush, RoundedCornerShape(8.dp))
-                        } else {
-                            Modifier.squircleBorder(2.dp, accent, 8.dp, extension = SquircleExtension)
-                        },
-                    ),
-            )
             Column(Modifier.align(Alignment.BottomEnd).padding(4.dp).graphicsLayer {
                 scaleX = badgeScale()
                 scaleY = scaleX
@@ -300,6 +294,12 @@ private fun ScoreQueryGridCell(
                 displayFullChain(entry.fullChain)?.let { ScoreBadge(it, chainColor(it), small = true) }
             }
         }
+        Box(
+            Modifier.fillMaxSize().then(
+                if (accentBrush != null) Modifier.border(borderWidth, accentBrush, RoundedCornerShape(8.dp))
+                else Modifier.squircleBorder(borderWidth, accent, 8.dp, extension = SquircleExtension),
+            ),
+        )
     }
 }
 

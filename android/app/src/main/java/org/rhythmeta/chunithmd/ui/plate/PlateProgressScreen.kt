@@ -278,7 +278,8 @@ private fun PlateJacket(
         saturation = if (chart.achieved) 1f else 0.08f,
         imageAlpha = if (chart.achieved) 1f else 0.55f,
         cardColor = MiuixTheme.colorScheme.surfaceVariant,
-        cardBorderColor = if (chart.achieved) accent else null)
+        cardBorderColor = if (chart.achieved) accent else null,
+        cardBorderWidth = if (chart.achieved) 2.dp else 0.dp)
     val title = CatalogSongFormatter.displayTitle(chart.song)
     val status = if (chart.achieved) tr("已完成") else tr("未完成")
     val imageModel = remember(chart.song.imageName, jacketBaseUrl, localJacketPath) {
