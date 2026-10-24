@@ -50,7 +50,7 @@ internal fun CatalogListCardBadges(data: CatalogListBadgesData, modifier: Modifi
         Text(
             text = data.version,
             modifier = Modifier.squircleSurface(color = data.background, cornerRadius = 5.dp)
-                .padding(horizontal = 5.dp, vertical = 2.dp),
+                .padding(horizontal = 6.dp, vertical = 2.dp),
             color = data.foreground,
             style = MiuixTheme.textStyles.footnote1.copy(fontSize = 9.sp, fontWeight = FontWeight.Black),
             maxLines = 1,
