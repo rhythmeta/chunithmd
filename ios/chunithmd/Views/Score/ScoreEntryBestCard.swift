@@ -13,9 +13,15 @@ struct ScoreEntryBestCard: View {
                 Text(tr("当前最佳")).font(.footnote).foregroundStyle(.secondary)
                 Text(Int(best.score).formatted() + " · " + best.rank).font(.headline.bold()).monospacedDigit()
                 ScoreStatusBadges(clear: best.clear, combo: best.fullCombo, chain: best.fullChain, tint: tint)
-                if let date { Text(date, style: .date).font(.footnote).foregroundStyle(.secondary) }
             }
-            Spacer(minLength: 0)
+
+            Spacer()
+
+            if let date {
+                Text(date, style: .date)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
