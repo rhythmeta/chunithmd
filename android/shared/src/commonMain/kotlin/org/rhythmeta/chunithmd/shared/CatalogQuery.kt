@@ -212,7 +212,8 @@ object CatalogQuery {
         return CatalogJson.codec.encodeToString(results)
     }
 
-    private fun normalize(value: String): String = value.trim().lowercase().replace(Regex("\\s+"), " ")
+    private fun normalize(value: String): String =
+        SearchTextNormalizer.normalize(value).trim().replace(Regex("\\s+"), " ")
 }
 
 fun isWorldsEndCategory(value: String): Boolean = when (value.trim().lowercase()) {

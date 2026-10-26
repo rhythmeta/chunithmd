@@ -165,4 +165,5 @@ private fun normalizeStatus(value: String?): String = value.orEmpty()
     .replace("_", "")
     .replace("-", "")
 
-private fun normalizeScoreQuerySearch(value: String): String = value.trim().lowercase().replace(Regex("\\s+"), " ")
+private fun normalizeScoreQuerySearch(value: String): String =
+    SearchTextNormalizer.normalize(value).trim().replace(Regex("\\s+"), " ")

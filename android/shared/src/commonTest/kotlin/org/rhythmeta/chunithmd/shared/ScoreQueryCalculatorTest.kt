@@ -46,4 +46,34 @@ class ScoreQueryCalculatorTest {
         )
         assertEquals(listOf(entry), result)
     }
+
+    @Test
+    fun scoreQuerySearchMatchesTraditionalAndVariantTitles() {
+        val entry = ScoreQueryEntry(
+            sheetKey = "song:std:master",
+            songId = "song",
+            title = "華天月兎",
+            artist = "Artist",
+            aliases = emptyList(),
+            imageName = "song.png",
+            difficulty = "master",
+            type = "std",
+            level = 13.0,
+            score = 1_009_000,
+            rank = "SSS+",
+            rating = 15.15,
+            clear = "clear",
+            fullCombo = "aj",
+            fullChain = "fdx",
+        )
+
+        val result = filterAndSortScoreQueryEntries(
+            entries = listOf(entry),
+            searchText = "华天月兔",
+            settings = ScoreQueryFilterSettings(),
+            sortMode = ScoreQuerySortMode.Rating,
+            ascending = false,
+        )
+        assertEquals(listOf(entry), result)
+    }
 }

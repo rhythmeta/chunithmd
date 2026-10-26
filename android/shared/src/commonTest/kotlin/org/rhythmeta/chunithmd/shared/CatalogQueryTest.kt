@@ -29,6 +29,16 @@ class CatalogQueryTest {
     }
 
     @Test
+    fun searchesTraditionalAndVariantTitlesWithSimplifiedText() {
+        val catalog = bundle.copy(
+            catalog = bundle.catalog.copy(songs = listOf(song("v", "華天月兎", "AIR", 12.0, "jp"))),
+        )
+
+        assertEquals("v", CatalogQuery.filterAndSort(catalog, search = "华天月兔").single().songId)
+        assertEquals("v", CatalogQuery.filterAndSort(catalog, search = "華天月兎").single().songId)
+    }
+
+    @Test
     fun latestPlayableVersionUsesServerAvailability() {
         val catalog = bundle.copy(
             catalog = bundle.catalog.copy(
