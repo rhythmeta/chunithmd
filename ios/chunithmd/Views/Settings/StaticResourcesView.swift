@@ -26,14 +26,6 @@ struct StaticResourcesView: View {
                              ? store.syncMessage
                              : store.imageSyncMessage ?? tr("正在下载封面"))
                             .font(.footnote).foregroundStyle(.secondary)
-                        if store.isSyncing, let progress = store.syncProgress, progress.stage == "Downloading" {
-                            Text(downloadProgressText(progress))
-                                .font(.footnote).foregroundStyle(.secondary)
-                        }
-                        if store.isSyncingImages, let progress = store.imageSyncProgress {
-                            Text(downloadProgressText(progress))
-                                .font(.footnote).foregroundStyle(.secondary)
-                        }
                     }
                     .padding(.vertical, 4)
                     .accessibilityIdentifier("static-resources-progress")

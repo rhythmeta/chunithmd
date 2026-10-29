@@ -44,19 +44,13 @@ struct StaticResourceStatusView: View {
         return .green
     }
 
-    private var versionText: String? {
+    private var buildTimeText: String? {
         guard !store.isSyncing, store.errorMessage == nil,
               let manifest = store.checkedManifest ?? store.manifest else { return nil }
         let date = (try? Date(manifest.createdAt, strategy: .iso8601))
             ?? (try? Date(manifest.createdAt, strategy: Date.ISO8601FormatStyle(includingFractionalSeconds: true)))
         let time = date?.formatted(date: .numeric, time: .shortened) ?? tr("未知时间")
-        return tr("版本：{0} · 构建：{1}", manifest.version, time)
-    }
-
-    private var sizeText: String? {
-        guard !store.isSyncing, store.errorMessage == nil,
-              let totalBytes = store.downloadTotalBytes else { return nil }
-        return tr("总计大小：{0}", formatByteCount(totalBytes))
+        return tr("构建时间：{0}", time)
     }
 
     var body: some View {
@@ -68,12 +62,8 @@ struct StaticResourceStatusView: View {
             Text(title).font(.title3.bold())
             Text(detail).font(.subheadline).foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
-            if let versionText {
-                Text(versionText).font(.caption).foregroundStyle(.secondary)
-                    .textSelection(.enabled)
-            }
-            if let sizeText {
-                Text(sizeText).font(.caption).foregroundStyle(.secondary)
+            if let buildTimeText {
+                Text(buildTimeText).font(.caption).foregroundStyle(.secondary)
                     .textSelection(.enabled)
             }
         }

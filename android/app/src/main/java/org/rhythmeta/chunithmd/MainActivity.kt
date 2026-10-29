@@ -1231,7 +1231,6 @@ private fun CatalogApp(
                         sync = sync,
                         error = error,
                         imageSync = catalogState.imageSync,
-                        totalBytes = catalogState.downloadTotalBytes ?: manifest?.sizes?.totalBytes?.takeIf { it > 0L },
                         onCheck = {
                             if (sync.stage !in setOf(
                                     CatalogSyncStage.Checking,

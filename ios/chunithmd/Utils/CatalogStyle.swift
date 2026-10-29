@@ -2,19 +2,6 @@ import SwiftUI
 
 let difficultyNames = ["basic", "advanced", "expert", "master", "ultima", "world's end"]
 
-func downloadProgressText(_ progress: CatalogSyncProgressViewData) -> String {
-    let bytes = progress.totalBytes.map {
-        "\(formatByteCount(progress.downloadedBytes)) / \(formatByteCount($0))"
-    } ?? formatByteCount(progress.downloadedBytes)
-    let speed = progress.bytesPerSecond > 0
-        ? " · \(formatByteCount(progress.bytesPerSecond))/s"
-        : ""
-    let items = progress.totalItems > 0
-        ? " · \(progress.completedItems)/\(progress.totalItems)"
-        : ""
-    return "\(bytes)\(speed)\(items)"
-}
-
 func formatByteCount(_ bytes: Int64) -> String {
     let units = ["B", "KB", "MB", "GB"]
     var value = Double(max(bytes, 0))

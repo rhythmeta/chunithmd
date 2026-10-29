@@ -9,7 +9,6 @@ struct CatalogLoadingView: View {
             Text(catalog.errorMessage ?? catalog.syncMessage)
             if let progress = catalog.syncProgress {
                 ProgressView(value: progress.progress ?? 0)
-                Text(downloadProgressText(progress)).font(.caption)
             } else if catalog.isSyncing { ProgressView() }
         } actions: {
             if !catalog.isSyncing {

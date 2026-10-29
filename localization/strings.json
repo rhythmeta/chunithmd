@@ -4937,11 +4937,11 @@
     "zh-Hans": "共需下载约 {0}（含曲库与封面）。",
     "zh-Hant": "共需下載約 {0}（含曲庫與封面）。"
   },
-  "总计大小：{0}": {
-    "en": "Total size: {0}",
-    "ja": "合計サイズ：{0}",
-    "zh-Hans": "总计大小：{0}",
-    "zh-Hant": "總計大小：{0}"
+  "构建时间：{0}": {
+    "en": "Built: {0}",
+    "ja": "ビルド日時：{0}",
+    "zh-Hans": "构建时间：{0}",
+    "zh-Hant": "建置時間：{0}"
   },
   "曲库已可用，封面仍在后台下载。": {
     "en": "The catalog is ready. Jackets keep downloading in the background.",

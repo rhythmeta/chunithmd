@@ -1,6 +1,5 @@
 package org.rhythmeta.chunithmd.ui.settings
 
-import android.text.format.Formatter
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +27,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
@@ -52,14 +50,12 @@ fun StaticResourcesScreen(
     sync: CatalogSyncState,
     error: String?,
     imageSync: CatalogSyncState?,
-    totalBytes: Long?,
     topAppBarScrollBehavior: ScrollBehavior,
     onCheck: () -> Unit,
     onDownload: () -> Unit,
 ) {
     LaunchedEffect(Unit) { onCheck() }
 
-    val context = LocalContext.current
     val isSyncing = sync.stage in setOf(
         CatalogSyncStage.Checking,
         CatalogSyncStage.Downloading,
@@ -168,14 +164,7 @@ fun StaticResourcesScreen(
                             )
                             manifest?.let {
                                 Text(
-                                    text = tr("版本：{0} · 构建：{1}", it.version, it.createdAt.ifBlank { tr("未知时间") }),
-                                    style = MiuixTheme.textStyles.footnote2,
-                                    color = statusContentColor.copy(alpha = 0.68f),
-                                )
-                            }
-                            if (totalBytes != null && totalBytes > 0L) {
-                                Text(
-                                    text = tr("总计大小：{0}", Formatter.formatShortFileSize(context, totalBytes)),
+                                    text = tr("构建时间：{0}", it.createdAt.ifBlank { tr("未知时间") }),
                                     style = MiuixTheme.textStyles.footnote2,
                                     color = statusContentColor.copy(alpha = 0.68f),
                                 )
