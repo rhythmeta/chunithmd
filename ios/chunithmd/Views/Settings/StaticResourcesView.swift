@@ -13,17 +13,24 @@ struct StaticResourcesView: View {
                 StaticResourceStatusView(store: store)
             }
             Section(tr("更新操作")) {
-                if store.isSyncing {
+                if store.isSyncing || store.isSyncingImages {
                     VStack(alignment: .leading, spacing: 10) {
-                        if let progress = store.syncProgress?.progress {
+                        let progress = store.isSyncing ? store.syncProgress?.progress : store.imageSyncProgress?.progress
+                        if let progress {
                             ProgressView(value: progress)
                         } else {
                             ProgressView()
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        Text(store.syncMessage)
+                        Text(store.isSyncing
+                             ? store.syncMessage
+                             : store.imageSyncMessage ?? tr("正在下载封面"))
                             .font(.footnote).foregroundStyle(.secondary)
-                        if let progress = store.syncProgress, progress.stage == "Downloading" {
+                        if store.isSyncing, let progress = store.syncProgress, progress.stage == "Downloading" {
+                            Text(downloadProgressText(progress))
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                        if store.isSyncingImages, let progress = store.imageSyncProgress {
                             Text(downloadProgressText(progress))
                                 .font(.footnote).foregroundStyle(.secondary)
                         }

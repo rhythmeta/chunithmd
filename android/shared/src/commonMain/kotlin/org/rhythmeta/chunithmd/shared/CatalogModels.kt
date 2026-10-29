@@ -13,6 +13,21 @@ data class StaticManifest(
     val bundle: String,
     val createdAt: String,
     val assets: StaticAssets,
+    /** Absent on manifests produced before the build started measuring download sizes. */
+    val sizes: StaticManifestSizes? = null,
+)
+
+/**
+ * Byte sizes published by the static-asset build.
+ *
+ * The numbers are measured from the bytes stored in the published tree, so they describe a whole
+ * first-run download: the catalog bundle plus every jacket image.
+ */
+@Serializable
+data class StaticManifestSizes(
+    val bundleBytes: Long = 0,
+    val imageBytes: Long = 0,
+    val totalBytes: Long = 0,
 )
 
 @Serializable

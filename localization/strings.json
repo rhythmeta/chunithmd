@@ -4912,5 +4912,53 @@
     "ja": "利用可能な最新の CI ビルドがすでにインストールされています。",
     "zh-Hans": "当前已安装最新可用的 CI 构建。",
     "zh-Hant": "目前已安裝最新可用的 CI 建置。"
+  },
+  "封面下载": {
+    "en": "Jacket downloads",
+    "ja": "ジャケットのダウンロード",
+    "zh-Hans": "封面下载",
+    "zh-Hant": "封面下載"
+  },
+  "在后台下载歌曲封面，完成后自动停止。": {
+    "en": "Downloads song jackets in the background and stops when finished.",
+    "ja": "バックグラウンドでジャケットをダウンロードし、完了すると停止します。",
+    "zh-Hans": "在后台下载歌曲封面，完成后自动停止。",
+    "zh-Hant": "在背景下載歌曲封面，完成後自動停止。"
+  },
+  "正在准备下载…": {
+    "en": "Preparing the download…",
+    "ja": "ダウンロードを準備しています…",
+    "zh-Hans": "正在准备下载…",
+    "zh-Hant": "正在準備下載…"
+  },
+  "共需下载约 {0}（含曲库与封面）。": {
+    "en": "About {0} in total, including the catalog and jackets.",
+    "ja": "楽曲データとジャケットを含め、合計約 {0} です。",
+    "zh-Hans": "共需下载约 {0}（含曲库与封面）。",
+    "zh-Hant": "共需下載約 {0}（含曲庫與封面）。"
+  },
+  "总计大小：{0}": {
+    "en": "Total size: {0}",
+    "ja": "合計サイズ：{0}",
+    "zh-Hans": "总计大小：{0}",
+    "zh-Hant": "總計大小：{0}"
+  },
+  "曲库已可用，封面仍在后台下载。": {
+    "en": "The catalog is ready. Jackets keep downloading in the background.",
+    "ja": "楽曲データは利用できます。ジャケットはバックグラウンドでダウンロード中です。",
+    "zh-Hans": "曲库已可用，封面仍在后台下载。",
+    "zh-Hant": "曲庫已可用，封面仍在背景下載。"
+  },
+  "封面下载未完成，将在下次启动时继续。": {
+    "en": "The jacket download did not finish. It resumes next time you open the app.",
+    "ja": "ジャケットのダウンロードが完了しませんでした。次回の起動時に再開します。",
+    "zh-Hans": "封面下载未完成，将在下次启动时继续。",
+    "zh-Hant": "封面下載未完成，將在下次啟動時繼續。"
+  },
+  "封面下载失败": {
+    "en": "Jacket download failed",
+    "ja": "ジャケットのダウンロードに失敗しました",
+    "zh-Hans": "封面下载失败",
+    "zh-Hant": "封面下載失敗"
   }
 }

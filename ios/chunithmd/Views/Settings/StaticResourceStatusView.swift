@@ -53,6 +53,12 @@ struct StaticResourceStatusView: View {
         return tr("版本：{0} · 构建：{1}", manifest.version, time)
     }
 
+    private var sizeText: String? {
+        guard !store.isSyncing, store.errorMessage == nil,
+              let totalBytes = store.downloadTotalBytes else { return nil }
+        return tr("总计大小：{0}", formatByteCount(totalBytes))
+    }
+
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: icon)
@@ -64,6 +70,10 @@ struct StaticResourceStatusView: View {
                 .frame(maxWidth: .infinity)
             if let versionText {
                 Text(versionText).font(.caption).foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+            }
+            if let sizeText {
+                Text(sizeText).font(.caption).foregroundStyle(.secondary)
                     .textSelection(.enabled)
             }
         }

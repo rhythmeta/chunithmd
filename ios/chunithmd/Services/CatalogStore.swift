@@ -7,9 +7,19 @@ struct StaticManifestViewData: Decodable {
     let sha256: String
     let createdAt: String
     let assets: Assets
+    /// Absent on manifests produced before the build started measuring download sizes.
+    let sizes: Sizes?
 
     struct Assets: Decodable {
         let jacketBaseUrl: String
+    }
+
+    /// Measured from the bytes stored in the published tree, so it covers the catalog bundle plus
+    /// every jacket a first run has to download.
+    struct Sizes: Decodable {
+        let bundleBytes: Int64
+        let imageBytes: Int64
+        let totalBytes: Int64
     }
 }
 
@@ -79,6 +89,17 @@ final class CatalogStore {
     private(set) var syncStage = "Idle"
     var updateAvailable = false
     private(set) var syncProgress: CatalogSyncProgressViewData?
+    /// Jacket downloads run after the catalog is installed, so they never gate the app.
+    private(set) var isSyncingImages = false
+    private(set) var imageSyncProgress: CatalogSyncProgressViewData?
+    private(set) var imageSyncMessage: String?
+
+    /// Whole first-run download size from the manifest, once a manifest carrying `sizes` is seen.
+    var downloadTotalBytes: Int64? {
+        let sizes = checkedManifest?.sizes ?? manifest?.sizes
+        guard let total = sizes?.totalBytes, total > 0 else { return nil }
+        return total
+    }
 
     init() {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -98,8 +119,25 @@ final class CatalogStore {
         if let json = bridge.loadSnapshotJson() {
             install(json)
             Task { await checkForUpdate() }
+            syncImagesIfNeeded()
         } else if automaticallyDownload {
             refresh()
+        } else {
+            // Onboarding states the whole download size before the user taps, so resolve the
+            // manifest here without starting the download itself.
+            Task { await prefetchDownloadSize() }
+        }
+    }
+
+    /// Reads the manifest for its sizes only, leaving the sync state that onboarding renders alone.
+    func prefetchDownloadSize() async {
+        guard checkedManifest == nil else { return }
+        do {
+            let json = try await bridge.checkForUpdateJson()
+            let result = try JSONDecoder().decode(UpdateCheckViewData.self, from: Data(json.utf8))
+            if checkedManifest == nil { checkedManifest = result.manifest }
+        } catch {
+            // The size line is a nicety; a failed prefetch must not surface as a sync error.
         }
     }
 
@@ -168,7 +206,35 @@ final class CatalogStore {
                     self.syncStage = "Idle"
                     self.updateAvailable = false
                     self.syncMessage = tr("资源已更新")
+                    // Jackets keep downloading after the app is usable; a failure here never
+                    // invalidates the catalog that was just installed.
+                    self.syncImagesIfNeeded()
                 }
+            }
+        })
+    }
+
+    /// Warms the jacket cache, including a pass that a previous launch left unfinished.
+    func syncImagesIfNeeded() {
+        guard !isSyncingImages, bridge.isImageSyncPending() else { return }
+        isSyncingImages = true
+        imageSyncProgress = nil
+        imageSyncMessage = tr("正在下载封面")
+        bridge.downloadMissingImages(onProgress: { @Sendable [weak self] progressJson in
+            Task { @MainActor [weak self] in
+                guard let self, let progress = try? JSONDecoder().decode(
+                    CatalogSyncProgressViewData.self, from: Data(progressJson.utf8)
+                ) else { return }
+                self.imageSyncProgress = progress
+                self.imageSyncMessage = progress.message ?? self.imageSyncMessage
+            }
+        }, completion: { @Sendable [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.isSyncingImages = false
+                self.imageSyncProgress = nil
+                // A failed pass keeps its pending marker, so the next launch retries on its own.
+                self.imageSyncMessage = nil
             }
         })
     }

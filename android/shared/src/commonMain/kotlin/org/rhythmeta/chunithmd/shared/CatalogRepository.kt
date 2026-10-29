@@ -9,6 +9,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.readAvailable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -54,43 +55,6 @@ data class CatalogSyncState(
     val updateAvailable: Boolean = false,
 )
 
-private class DownloadSpeedTracker {
-    private data class Sample(val timestampMillis: Long, val downloadedBytes: Long)
-
-    private val samples = ArrayDeque<Sample>()
-    private val startedAt = kotlin.time.TimeSource.Monotonic.markNow()
-    private var downloadedBytes = 0L
-
-    fun addBytes(byteCount: Long): Long {
-        val now = startedAt.elapsedNow().inWholeMilliseconds
-        downloadedBytes += byteCount.coerceAtLeast(0L)
-        samples.addLast(Sample(now, downloadedBytes))
-        while (samples.size > 2 && samples[1].timestampMillis <= samples.last().timestampMillis - 2_000L) {
-            samples.removeFirst()
-        }
-        val oldest = samples.first()
-        val elapsedMillis = samples.last().timestampMillis - oldest.timestampMillis
-        return if (elapsedMillis > 0L) {
-            ((downloadedBytes - oldest.downloadedBytes) * 1_000L / elapsedMillis).coerceAtLeast(0L)
-        } else {
-            0L
-        }
-    }
-}
-private fun formatCatalogBytes(bytes: Long): String {
-    val units = arrayOf("B", "KB", "MB", "GB")
-    var value = bytes.coerceAtLeast(0L).toDouble()
-    var unit = 0
-    while (value >= 1024.0 && unit < units.lastIndex) {
-        value /= 1024.0
-        unit += 1
-    }
-    val rounded = if (unit == 0) value.toLong().toString() else {
-        val tenths = (value * 10).toLong()
-        "${tenths / 10}.${tenths % 10}"
-    }
-    return "$rounded ${units[unit]}"
-}
 @Serializable
 data class CatalogUpdateCheck(
     val manifest: StaticManifest,
@@ -107,6 +71,14 @@ class CatalogRepository(
 ) {
     private val snapshotPath: Path = cacheDirectory.toPath() / "catalog-snapshot.json"
     private val jacketDirectory: Path = cacheDirectory.toPath() / "jackets"
+
+    /**
+     * Marks that some jackets may still be missing on disk. The catalog itself is usable without
+     * them, so the marker only decides whether the image pass should run again — including after the
+     * process was killed mid-download.
+     */
+    private val imageSyncPendingPath: Path = cacheDirectory.toPath() / "jackets-sync-pending"
+    private val imageSyncMutex = Mutex()
 
     fun loadLocal(): CachedSnapshot? {
         if (!fileSystem.exists(snapshotPath)) return null
@@ -125,15 +97,39 @@ class CatalogRepository(
         return path.toString().takeIf { fileSystem.exists(path) }
     }
 
+    /** True while jacket images may still be missing, so a sync should be (re)started. */
+    fun isImageSyncPending(): Boolean = fileSystem.exists(imageSyncPendingPath)
+
+    private fun setImageSyncPending(pending: Boolean) {
+        if (pending) {
+            fileSystem.createDirectories(imageSyncPendingPath.parent!!)
+            fileSystem.write(imageSyncPendingPath) { writeUtf8("1") }
+        } else {
+            fileSystem.delete(imageSyncPendingPath, mustExist = false)
+        }
+    }
+
     suspend fun checkForUpdate(): CatalogUpdateCheck {
-        val response = client.get(manifestUrl)
-        check(response.status.isSuccess()) { tr("Manifest request failed: HTTP {0}.", response.status.value) }
-        val manifest = CatalogJson.decodeManifest(response.bodyAsText())
-        validateManifest(manifest)
+        val manifest = fetchManifest()
         val cached = runCatching { loadLocal()?.manifest }.getOrNull()
         return CatalogUpdateCheck(manifest, cached?.sha256 != manifest.sha256)
     }
 
+    private suspend fun fetchManifest(): StaticManifest {
+        val response = client.get(manifestUrl)
+        check(response.status.isSuccess()) { tr("Manifest request failed: HTTP {0}.", response.status.value) }
+        val manifest = CatalogJson.decodeManifest(response.bodyAsText())
+        validateManifest(manifest)
+        return manifest
+    }
+
+    /**
+     * Downloads and applies the catalog bundle only.
+     *
+     * Jacket images are deliberately left out: every cover falls back to a network fetch, so the
+     * images are a cache warm-up rather than a correctness requirement and must never block the app
+     * from opening. [downloadMissingJackets] picks them up afterwards.
+     */
     suspend fun downloadAndApply(onState: (CatalogSyncState) -> Unit = {}): CachedSnapshot {
         onState(CatalogSyncState(CatalogSyncStage.Checking))
         val check = checkForUpdate()
@@ -144,8 +140,7 @@ class CatalogRepository(
             totalItems = 1,
             message = tr("正在下载静态数据"),
             progressByBytes = true,
-            overallStart = 0f,
-            overallEnd = 0.35f,
+            expectedTotalBytes = check.manifest.sizes?.bundleBytes?.takeIf { it > 0L },
             onState = onState,
         )
         bundleReporter.start()
@@ -157,89 +152,56 @@ class CatalogRepository(
         val bundleJson = bytes.decodeToString()
         val bundle = CatalogJson.decodeBundle(bundleJson)
         requireSupportedBundle(bundle)
-        val imageNames = jacketNames(bundle)
-        downloadJackets(check.manifest.assets.jacketBaseUrl, imageNames, onState)
+        jacketNames(bundle)
         onState(CatalogSyncState(CatalogSyncStage.Applying))
         val snapshot = CachedSnapshot(check.manifest, bundleJson)
         fileSystem.createDirectories(snapshotPath.parent!!)
         val temporary = ("$snapshotPath.tmp").toPath()
         fileSystem.write(temporary) { writeUtf8(CatalogJson.encodeSnapshot(snapshot)) }
         fileSystem.atomicMove(temporary, snapshotPath)
+        // The catalog is committed at this point. Record the image work before anything else can
+        // fail, so a broken image download never forces the whole catalog to be fetched again.
+        setImageSyncPending(true)
         onState(CatalogSyncState(CatalogSyncStage.Ready))
         return snapshot
     }
 
-    private class DownloadProgressReporter(
-        private val stage: CatalogSyncStage,
-        private val totalItems: Int,
-        private val message: String,
-        private val progressByBytes: Boolean = false,
-        private val overallStart: Float = 0f,
-        private val overallEnd: Float = 1f,
-        private val onState: (CatalogSyncState) -> Unit,
-    ) {
-        private val mutex = Mutex()
-        private val speedTracker = DownloadSpeedTracker()
-        private var completedItems = 0
-        private var downloadedBytes = 0L
-        private var totalBytes = 0L
-        private var bytesPerSecond = 0L
-
-        suspend fun start() = publish()
-
-        suspend fun onTransfer(byteCount: Long, expectedBytes: Long?) = mutex.withLock {
-            if (expectedBytes != null) totalBytes += expectedBytes.coerceAtLeast(0L)
-            downloadedBytes += byteCount.coerceAtLeast(0L)
-            bytesPerSecond = speedTracker.addBytes(byteCount)
-            publishLocked()
+    /**
+     * Downloads every jacket that is still missing from the local cache.
+     *
+     * Per-image failures are tolerated: a run that reaches the end counts as a success even when
+     * some files could not be fetched, and every missing file keeps working through the manifest
+     * URL. Only a run that dies early leaves [isImageSyncPending] set, so the next launch retries.
+     */
+    suspend fun downloadMissingJackets(onState: (CatalogSyncState) -> Unit = {}): Boolean = imageSyncMutex.withLock {
+        val snapshot = runCatching { loadLocal() }.getOrNull() ?: return@withLock false
+        val manifest = try {
+            fetchManifest()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // A cold process may not be able to reach the manifest; the cached one still describes
+            // the jacket tree that the catalog refers to.
+            snapshot.manifest
         }
 
-        suspend fun onItemCompleted() = mutex.withLock {
-            completedItems += 1
-            publishLocked()
+        var reachedEnd = false
+        try {
+            val imageNames = jacketNames(CatalogJson.decodeBundle(snapshot.bundleJson))
+            downloadJackets(manifest, imageNames, onState)
+            reachedEnd = true
+            true
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            false
+        } finally {
+            if (reachedEnd) setImageSyncPending(false)
         }
-
-        suspend fun complete() = mutex.withLock {
-            completedItems = totalItems
-            publishLocked(progress = overallEnd)
-        }
-
-        private suspend fun publish() = mutex.withLock { publishLocked() }
-
-        private fun publishLocked(progress: Float? = calculatedProgress()) {
-            onState(
-                CatalogSyncState(
-                    stage = stage,
-                    message = progressMessage(),
-                    progress = progress,
-                    completedItems = completedItems,
-                    totalItems = totalItems,
-                    downloadedBytes = downloadedBytes,
-                    totalBytes = totalBytes.takeIf { it > 0L },
-                    bytesPerSecond = bytesPerSecond,
-                ),
-            )
-        }
-
-        private fun progressMessage(): String {
-            val speed = if (bytesPerSecond > 0L) "${formatCatalogBytes(bytesPerSecond)}/s" else tr("计算速度中")
-            val bytes = totalBytes.takeIf { it > 0L }?.let { "${formatCatalogBytes(downloadedBytes)} / ${formatCatalogBytes(it)}" }
-                ?: formatCatalogBytes(downloadedBytes)
-            return "$message ($completedItems/$totalItems) · $bytes · $speed"
-        }
-
-        private fun calculatedProgress(): Float? = when {
-            progressByBytes && totalBytes > 0L -> overallProgress(downloadedBytes.toFloat() / totalBytes)
-            totalItems > 0 -> overallProgress(completedItems.toFloat() / totalItems)
-            else -> null
-        }
-
-        private fun overallProgress(stageProgress: Float): Float =
-            (overallStart + (overallEnd - overallStart) * stageProgress.coerceIn(0f, 1f)).coerceIn(0f, 1f)
     }
 
     private suspend fun downloadJackets(
-        jacketBaseUrl: String,
+        manifest: StaticManifest,
         imageNames: List<String>,
         onState: (CatalogSyncState) -> Unit,
     ) {
@@ -254,7 +216,7 @@ class CatalogRepository(
             )
             return
         }
-        val baseUrl = jacketBaseUrl.trimEnd('/')
+        val baseUrl = manifest.assets.jacketBaseUrl.trimEnd('/')
         require(baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
             tr("Manifest has an invalid jacket base URL.")
         }
@@ -263,8 +225,10 @@ class CatalogRepository(
             stage = CatalogSyncStage.Downloading,
             totalItems = missingNames.size,
             message = tr("正在下载封面"),
-            overallStart = 0.35f,
-            overallEnd = 0.95f,
+            // Start from what is already on disk so a resumed run, or a settings-page update,
+            // reports "how much of the catalog I have" instead of "how much moved this run".
+            baselineBytes = (manifest.sizes?.bundleBytes ?: 0L) + installedJacketBytes(imageNames),
+            expectedTotalBytes = manifest.sizes?.totalBytes?.takeIf { it > 0L },
             onState = onState,
         )
         reporter.start()
@@ -293,6 +257,17 @@ class CatalogRepository(
             }.awaitAll()
         }
         reporter.complete()
+    }
+
+    /** On-disk size of the jackets that are already cached, used as the resume baseline. */
+    private fun installedJacketBytes(imageNames: Collection<String>): Long {
+        if (imageNames.isEmpty()) return 0L
+        val expected = imageNames.toHashSet()
+        return runCatching {
+            fileSystem.listOrNull(jacketDirectory).orEmpty()
+                .filter { it.name in expected }
+                .sumOf { fileSystem.metadataOrNull(it)?.size ?: 0L }
+        }.getOrDefault(0L)
     }
 
     private suspend fun readResponseBytes(
@@ -391,6 +366,7 @@ class CatalogBridge(cacheDirectory: String) {
         refreshWithProgress({}, completion)
     }
 
+    /** Downloads the catalog bundle only; jacket images continue through [downloadMissingImages]. */
     fun refreshWithProgress(
         onProgress: (String) -> Unit,
         completion: (String?, String?) -> Unit,
@@ -403,6 +379,28 @@ class CatalogBridge(cacheDirectory: String) {
             }
                 .onSuccess { completion(CatalogJson.encodeBundle(CatalogJson.decodeBundle(it.bundleJson)), null) }
                 .onFailure { completion(null, it.message ?: tr("Catalog update failed.")) }
+        }
+    }
+
+    /** True while jacket images may still be missing, so the host should warm the cache again. */
+    fun isImageSyncPending(): Boolean = runCatching { repository.isImageSyncPending() }.getOrDefault(false)
+
+    /**
+     * Warms the jacket cache without touching the catalog. [completion] receives `null` when the run
+     * reached the end (even if some images could not be fetched), otherwise a message to show.
+     */
+    fun downloadMissingImages(onProgress: (String) -> Unit, completion: (String?) -> Unit) {
+        scope.launch {
+            try {
+                val reachedEnd = repository.downloadMissingJackets { state ->
+                    onProgress(CatalogJson.codec.encodeToString(state))
+                }
+                completion(if (reachedEnd) null else tr("封面下载未完成，将在下次启动时继续。"))
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                completion(error.message ?: tr("封面下载失败"))
+            }
         }
     }
 

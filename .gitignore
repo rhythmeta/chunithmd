@@ -62,3 +62,5 @@ DerivedData/
 *.xcresult/
 __pycache__/
 *.py[cod]
+
+.workbuddy-ai

@@ -11,6 +11,17 @@ import org.rhythmeta.chunithmd.diagnostics.CrashLogStore
 class ChunithmdApplication : Application() {
     internal val crashLogStore by lazy { CrashLogStore(this) }
     internal val otogameClient by lazy { org.rhythmeta.chunithmd.shared.importing.OtogameClient() }
+
+    /**
+     * One catalog repository for the whole process: the activity and the jacket download service
+     * must agree on the same cache directory and the same pending marker.
+     */
+    internal val catalogRepository by lazy {
+        org.rhythmeta.chunithmd.shared.CatalogRepository(filesDir.absolutePath)
+    }
+    internal val catalogAssetSyncer by lazy {
+        org.rhythmeta.chunithmd.sync.CatalogAssetSyncer(catalogRepository)
+    }
     private val updateScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
     internal val appUpdateRepository by lazy {
         val context = applicationContext

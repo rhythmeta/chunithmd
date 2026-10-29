@@ -1,5 +1,6 @@
 package org.rhythmeta.chunithmd.ui.settings
 
+import android.text.format.Formatter
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
@@ -49,19 +51,22 @@ fun StaticResourcesScreen(
     manifest: StaticManifest?,
     sync: CatalogSyncState,
     error: String?,
+    imageSync: CatalogSyncState?,
+    totalBytes: Long?,
     topAppBarScrollBehavior: ScrollBehavior,
     onCheck: () -> Unit,
     onDownload: () -> Unit,
 ) {
     LaunchedEffect(Unit) { onCheck() }
 
+    val context = LocalContext.current
     val isSyncing = sync.stage in setOf(
         CatalogSyncStage.Checking,
         CatalogSyncStage.Downloading,
         CatalogSyncStage.Validating,
         CatalogSyncStage.Applying,
     )
-    val isDownloading = sync.stage == CatalogSyncStage.Downloading
+    val isDownloadingImages = imageSync != null
     val hasError = error != null || sync.stage == CatalogSyncStage.Failed
     val updateAvailable = sync.updateAvailable
     val upToDate = manifest != null && !isSyncing && !hasError && !updateAvailable
@@ -101,6 +106,7 @@ fun StaticResourcesScreen(
         sync.stage == CatalogSyncStage.Validating -> tr("正在校验下载内容。")
         sync.stage == CatalogSyncStage.Applying -> tr("正在保存本地静态数据。")
         updateAvailable -> tr("点击下方按钮下载并应用完整更新。")
+        upToDate && isDownloadingImages -> tr("曲库已可用，封面仍在后台下载。")
         upToDate -> tr("当前本地数据与服务端最新版本一致。")
         else -> tr("进入页面后会自动检查静态数据更新。")
     }
@@ -167,6 +173,13 @@ fun StaticResourcesScreen(
                                     color = statusContentColor.copy(alpha = 0.68f),
                                 )
                             }
+                            if (totalBytes != null && totalBytes > 0L) {
+                                Text(
+                                    text = tr("总计大小：{0}", Formatter.formatShortFileSize(context, totalBytes)),
+                                    style = MiuixTheme.textStyles.footnote2,
+                                    color = statusContentColor.copy(alpha = 0.68f),
+                                )
+                            }
                         }
                     }
                 }
@@ -178,13 +191,14 @@ fun StaticResourcesScreen(
                 )
             }
             item {
-                if (isSyncing) {
+                if (isSyncing || isDownloadingImages) {
+                    val active = if (isSyncing) sync else imageSync
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        val downloadProgress = sync.progress
-                        if (isDownloading && downloadProgress != null) {
+                        val downloadProgress = active?.progress
+                        if (downloadProgress != null) {
                             LinearProgressIndicator(
                                 progress = downloadProgress.coerceIn(0f, 1f),
                                 modifier = Modifier.fillMaxWidth(),
@@ -193,7 +207,7 @@ fun StaticResourcesScreen(
                             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                         }
                         Text(
-                            text = sync.message ?: tr("正在检查更新…"),
+                            text = active?.message ?: tr("正在检查更新…"),
                             style = MiuixTheme.textStyles.footnote1,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         )

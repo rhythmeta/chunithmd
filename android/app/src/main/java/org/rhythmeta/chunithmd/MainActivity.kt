@@ -229,9 +229,16 @@ class CatalogStateViewModel : ViewModel() {
     var manifest: org.rhythmeta.chunithmd.shared.StaticManifest? by mutableStateOf(null)
     var sync: CatalogSyncState by mutableStateOf(CatalogSyncState())
     var error: String? by mutableStateOf(null)
+    /** Whole first-run download size published by the static manifest, once it has been seen. */
+    var downloadTotalBytes: Long? by mutableStateOf(null)
+        private set
+    /** Jacket download progress; null whenever no image pass is running. */
+    var imageSync: CatalogSyncState? by mutableStateOf(null)
+        private set
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var localLoadJob: Job? = null
+    private var imageSyncObserver: Job? = null
     var localLoaded by mutableStateOf(false)
         private set
     var isRefreshing by mutableStateOf(false)
@@ -247,6 +254,7 @@ class CatalogStateViewModel : ViewModel() {
                 if (local != null) {
                     manifest = local.first
                     bundle = local.second
+                    downloadTotalBytes = local.first.sizes?.totalBytes?.takeIf { it > 0L }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -258,7 +266,26 @@ class CatalogStateViewModel : ViewModel() {
         }
     }
 
-    fun refresh(repository: CatalogRepository) {
+    /** Resolves the whole-download size before the user taps, so onboarding can state it. */
+    fun prefetchDownloadSize(repository: CatalogRepository) {
+        if (downloadTotalBytes != null) return
+        scope.launch {
+            val sizes = runCatching { withContext(Dispatchers.IO) { repository.checkForUpdate().manifest.sizes } }
+                .getOrNull()
+            downloadTotalBytes = sizes?.totalBytes?.takeIf { it > 0L }
+        }
+    }
+
+    /** Adopts the sizes of a manifest fetched elsewhere, e.g. by the settings screen's check. */
+    fun adoptManifestSizes(manifest: org.rhythmeta.chunithmd.shared.StaticManifest) {
+        manifest.sizes?.totalBytes?.takeIf { it > 0L }?.let { downloadTotalBytes = it }
+    }
+
+    /**
+     * Downloads and applies the catalog bundle. The app becomes usable as soon as this returns;
+     * jackets keep downloading in [org.rhythmeta.chunithmd.sync.CatalogAssetSyncService].
+     */
+    fun refresh(context: android.content.Context, repository: CatalogRepository) {
         if (isRefreshing) return
         isRefreshing = true
         error = null
@@ -273,7 +300,9 @@ class CatalogStateViewModel : ViewModel() {
                 }
                 manifest = downloaded.first
                 bundle = downloaded.second
+                downloadTotalBytes = downloaded.first.sizes?.totalBytes?.takeIf { it > 0L }
                 sync = CatalogSyncState(CatalogSyncStage.Ready)
+                startImageSync(context)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -283,6 +312,25 @@ class CatalogStateViewModel : ViewModel() {
                 isRefreshing = false
             }
         }
+    }
+
+    /**
+     * Resumes the jacket pass when a previous run was interrupted, and mirrors its progress for the
+     * static-data screen. The download itself lives in a foreground service so it survives the user
+     * leaving the app.
+     */
+    fun startImageSync(context: android.content.Context) {
+        val application = context.applicationContext as ChunithmdApplication
+        val syncer = application.catalogAssetSyncer
+        if (imageSyncObserver == null) {
+            imageSyncObserver = scope.launch {
+                syncer.progress.collect { imageSync = it }
+            }
+        }
+        if (!syncer.isPending()) return
+        // A background start is rejected by the platform on Android 12+; the pending marker keeps the
+        // run recoverable on the next foreground launch instead of crashing.
+        runCatching { org.rhythmeta.chunithmd.sync.CatalogAssetSyncService.start(context) }
     }
 
     override fun onCleared() {
@@ -392,7 +440,7 @@ class MainActivity : ComponentActivity() {
             ),
         )
         window.isNavigationBarContrastEnforced = false
-        val repository = CatalogRepository(filesDir.absolutePath)
+        val repository = (application as ChunithmdApplication).catalogRepository
         val profileRepository = ProfileRepository(applicationContext)
         val scoreRepository = ScoreRepository(applicationContext, profileRepository)
         val favoriteSongRepository = FavoriteSongRepository(applicationContext)
@@ -704,7 +752,7 @@ private fun CatalogApp(
         }
     }
 
-    fun refresh() { catalogState.refresh(repository) }
+    fun refresh() { catalogState.refresh(communityContext, repository) }
 
     val playableRegion = activeProfile?.server?.wireValue ?: "jp"
     val songs = remember(bundle, debouncedSearch, sort, ascending, filters, playableRegion, favoriteSongIds) {
@@ -1182,6 +1230,8 @@ private fun CatalogApp(
                         manifest = manifest,
                         sync = sync,
                         error = error,
+                        imageSync = catalogState.imageSync,
+                        totalBytes = catalogState.downloadTotalBytes ?: manifest?.sizes?.totalBytes?.takeIf { it > 0L },
                         onCheck = {
                             if (sync.stage !in setOf(
                                     CatalogSyncStage.Checking,
@@ -1196,6 +1246,7 @@ private fun CatalogApp(
                                         withContext(Dispatchers.IO) { repository.checkForUpdate() }
                                     }
                                         .onSuccess { check ->
+                                            catalogState.adoptManifestSizes(check.manifest)
                                             sync = CatalogSyncState(
                                                 CatalogSyncStage.Idle,
                                                 if (check.updateAvailable) tr("发现可用更新") else tr("已是最新静态数据"),

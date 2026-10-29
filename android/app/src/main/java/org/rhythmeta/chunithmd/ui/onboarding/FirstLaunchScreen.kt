@@ -1,5 +1,11 @@
 package org.rhythmeta.chunithmd.ui.onboarding
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.text.format.Formatter
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,10 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import org.rhythmeta.chunithmd.R
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
 import org.rhythmeta.chunithmd.shared.localization.tr
@@ -29,7 +37,32 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-fun FirstLaunchScreen(sync: CatalogSyncState, downloading: Boolean, error: String?, onDownload: () -> Unit) {
+fun FirstLaunchScreen(
+    sync: CatalogSyncState,
+    downloading: Boolean,
+    error: String?,
+    totalBytes: Long?,
+    onDownload: () -> Unit,
+) {
+    val context = LocalContext.current
+    // The download continues in a foreground service once the app opens, so its progress is shown as
+    // an ongoing notification. The permission is requested here, where the download starts; the
+    // download itself runs either way.
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { onDownload() }
+    val requestDownload = {
+        val needsNotificationPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        if (needsNotificationPermission) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            onDownload()
+        }
+    }
     Column(
         Modifier.fillMaxSize().background(MiuixTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing),
@@ -69,7 +102,16 @@ fun FirstLaunchScreen(sync: CatalogSyncState, downloading: Boolean, error: Strin
                 Text(if (error != null) tr("资源下载失败，请检查网络后重试。") else tr("先下载曲库和封面，识别模型可在扫描时按需下载。"),
                     style = MiuixTheme.textStyles.footnote1, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
-            Button(onClick = onDownload, enabled = !downloading,
+            if (totalBytes != null && totalBytes > 0L) {
+                // The bar above tracks "getting the catalog ready"; this states how much the whole
+                // first-run download is, including the jackets that keep downloading afterwards.
+                Text(
+                    text = tr("共需下载约 {0}（含曲库与封面）。", Formatter.formatShortFileSize(context, totalBytes)),
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+            Button(onClick = requestDownload, enabled = !downloading,
                 colors = ButtonDefaults.buttonColorsPrimary(), modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                 Text(tr(if (downloading) "正在下载资源…" else if (error != null) "重试下载" else "下载资源并继续"),
                     fontWeight = FontWeight.Bold, color = MiuixTheme.colorScheme.onPrimary)

@@ -110,6 +110,17 @@ export type MappingReport = {
 	cnChartMissingCount: number;
 };
 
+/**
+ * Everything a first-run client has to download, measured from the bytes actually stored in the
+ * published tree. Clients fetch jackets straight from the Worker, so these totals describe the
+ * whole first-run download instead of whatever a single response happens to advertise.
+ */
+export type StaticBundleSizes = {
+	bundleBytes: number;
+	imageBytes: number;
+	totalBytes: number;
+};
+
 export type BuildManifest = {
 	schemaVersion: 1;
 	product: "chunithmd";
@@ -117,6 +128,8 @@ export type BuildManifest = {
 	sha256: string;
 	bundle: string;
 	createdAt: string;
+	/** Omitted when the jacket tree could not be measured, so clients never show an understated total. */
+	sizes?: StaticBundleSizes;
 	sources: Record<string, {
 		url: string;
 		contentSha256: string;
