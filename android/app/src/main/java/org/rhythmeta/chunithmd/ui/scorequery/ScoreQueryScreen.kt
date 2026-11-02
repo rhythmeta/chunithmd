@@ -68,6 +68,7 @@ import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.rhythmeta.chunithmd.shared.CatalogBundle
+import org.rhythmeta.chunithmd.shared.ClearType
 import org.rhythmeta.chunithmd.shared.ProfileServer
 import org.rhythmeta.chunithmd.shared.ScoreQueryEntry
 import org.rhythmeta.chunithmd.shared.ScoreQueryFilterSettings
@@ -89,6 +90,7 @@ import org.rhythmeta.chunithmd.ui.catalog.ultimaStripedBrush
 import org.rhythmeta.chunithmd.ui.catalog.WORLDS_END_GRADIENT_COLORS
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.clearStatusColor
 import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import org.rhythmeta.chunithmd.ui.components.squircleShape
 import top.yukonga.miuix.kmp.basic.Card
@@ -293,7 +295,7 @@ private fun ScoreQueryGridCell(
             }, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 ScoreBadge(entry.rank, rankColor(entry.rank))
                 displayFullCombo(entry.fullCombo)?.let { ScoreBadge(it, comboColor(it)) }
-                displayFullChain(entry.fullChain)?.let { ScoreBadge(it, chainColor(it), small = true) }
+                displayFullChain(entry.fullChain)?.let { ScoreBadge(it, chainColor(it)) }
             }
         }
         Box(
@@ -306,10 +308,10 @@ private fun ScoreQueryGridCell(
 }
 
 @Composable
-private fun ScoreBadge(text: String, color: Color, small: Boolean = false) {
+private fun ScoreBadge(text: String, color: Color) {
     Text(
         text = tr(text),
-        fontSize = if (small) 6.sp else 8.sp,
+        fontSize = 8.sp,
         fontWeight = FontWeight.Black,
         color = Color.White,
         maxLines = 1,
@@ -436,8 +438,9 @@ private fun ScoreQueryListRow(
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ClearType.displayName(entry.clear)?.let { ScoreTintBadge(it, clearStatusColor(entry.clear)) }
                     displayFullCombo(entry.fullCombo)?.let { ScoreTintBadge(it, comboColor(it)) }
-                    displayFullChain(entry.fullChain)?.let { ScoreTintBadge(it, chainColor(it), compact = true) }
+                    displayFullChain(entry.fullChain)?.let { ScoreTintBadge(it, chainColor(it)) }
                 }
             }
             Column(Modifier.padding(end = 12.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -449,10 +452,10 @@ private fun ScoreQueryListRow(
 }
 
 @Composable
-private fun ScoreTintBadge(text: String, color: Color, compact: Boolean = false, brush: Brush? = null) {
+private fun ScoreTintBadge(text: String, color: Color, brush: Brush? = null) {
     Text(
         text = tr(text),
-        style = MiuixTheme.textStyles.footnote2.copy(fontSize = if (compact) 8.sp else 9.sp, fontWeight = FontWeight.Bold),
+        style = MiuixTheme.textStyles.footnote2.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
         color = color,
         maxLines = 1,
         modifier = Modifier
