@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
@@ -568,7 +569,7 @@ private fun ScoreFilterChip(
                     Modifier.squircleSurface(if (selected) color else background, 50.dp, extension = SquircleExtension)
                 },
             )
-            .border(1.dp, borderColor, RoundedCornerShape(50.dp))
+            .border(1.dp, borderColor, CircleShape)
             .toggleable(selected, role = Role.Checkbox, onValueChange = { onClick() })
             .padding(horizontal = 13.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
