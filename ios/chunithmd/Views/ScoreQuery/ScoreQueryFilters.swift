@@ -6,8 +6,15 @@ struct ScoreQueryFilters: Equatable {
     var ranks: Set<String> = []
     var fullCombos: Set<String> = []
     var fullChains: Set<String> = []
+    var clears: Set<String> = []
 
     var shared: ScoreQueryFilterSettings {
-        ScoreQueryFilterSettings(difficulties: difficulties, ranks: ranks, fullCombos: fullCombos, fullChains: fullChains)
+        ScoreQueryFilterSettings(
+            difficulties: difficulties,
+            ranks: ranks,
+            fullCombos: fullCombos,
+            fullChains: fullChains,
+            clears: clears
+        )
     }
 }

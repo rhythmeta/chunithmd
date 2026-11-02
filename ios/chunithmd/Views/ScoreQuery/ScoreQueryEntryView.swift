@@ -19,14 +19,19 @@ struct ScoreQueryEntryView: View {
         .buttonStyle(.plain).disabled(song == nil)
         .modifier(SongTransitionSource(id: identity))
         .accessibilityIdentifier((grid ? "score-query-tile-" : "score-query-row-") + entry.sheetKey)
-        .accessibilityLabel("\(entry.title), \(entry.difficulty.uppercased()), \(entry.score.formatted()), \(entry.rank), \(combo ?? ""), \(chain ?? ""), \(entry.rating.formatted(.number.precision(.fractionLength(2))))")
+        .accessibilityLabel("\(entry.title), \(entry.difficulty.uppercased()), \(entry.score.formatted()), \(entry.rank), \(clear ?? ""), \(combo ?? ""), \(chain ?? ""), \(entry.rating.formatted(.number.precision(.fractionLength(2))))")
     }
 
     private var tint: AnyShapeStyle { difficultyStyle(entry.difficulty, type: entry.type) }
+    private var clear: String? { ClearType.companion.displayName(value: entry.clear).map { tr($0) } }
     private var combo: String? { ScoreQueryCalculatorKt.displayFullCombo(value: entry.fullCombo).map { tr($0) } }
     private var chain: String? { ScoreQueryCalculatorKt.displayFullChain(value: entry.fullChain).map { tr($0) } }
+    private var clearColor: Color { scoreQueryClearColor(entry.clear) }
     private var comboColor: Color { scoreQueryComboColor(entry.fullCombo) }
     private var chainColor: Color { scoreQueryChainColor(entry.fullChain) }
+
+    /// Status badges share the score line's font size so every row lines up.
+    private static let statusBadgeFont = Font.system(size: 11, weight: .bold)
 
     private var gridCell: some View {
         JacketImage(url: catalog.jacketURL(for: entry.imageName))
@@ -49,12 +54,14 @@ struct ScoreQueryEntryView: View {
                 .frame(width: 42, height: 42).clipShape(.rect(cornerRadius: 8))
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.title).font(.system(size: 14, weight: .semibold)).lineLimit(1).foregroundStyle(.primary)
-                HStack(spacing: 4) {
-                    Text(entry.score.formatted()).font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                    if let combo { Text(combo).font(.system(size: 9, weight: .bold)).foregroundStyle(comboColor) }
-                    if let chain { Text(chain).font(.system(size: 9, weight: .bold)).foregroundStyle(chainColor) }
-                }.lineLimit(1)
+                Text(entry.score.formatted()).font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                if clear != nil || combo != nil || chain != nil {
+                    ViewThatFits(in: .horizontal) {
+                        statusBadges
+                        ScrollView(.horizontal) { statusBadges }.scrollIndicators(.hidden)
+                    }
+                }
             }.frame(maxWidth: .infinity, alignment: .leading)
             VStack(alignment: .trailing, spacing: 2) {
                 Text(entry.rank).font(.system(size: 13, weight: .black, design: .rounded))
@@ -65,6 +72,14 @@ struct ScoreQueryEntryView: View {
         }
         .padding(.vertical, 8).padding(.horizontal, 10)
         .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 10))
+    }
+
+    private var statusBadges: some View {
+        HStack(spacing: 4) {
+            if let clear { ScoreTintBadge(text: clear, tint: AnyShapeStyle(clearColor), font: Self.statusBadgeFont) }
+            if let combo { ScoreTintBadge(text: combo, tint: AnyShapeStyle(comboColor), font: Self.statusBadgeFont) }
+            if let chain { ScoreTintBadge(text: chain, tint: AnyShapeStyle(chainColor), font: Self.statusBadgeFont) }
+        }
     }
 
     private func badge(_ text: String, color: Color) -> some View {

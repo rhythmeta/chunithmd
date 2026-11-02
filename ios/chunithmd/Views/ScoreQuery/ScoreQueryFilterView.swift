@@ -16,6 +16,10 @@ struct ScoreQueryFilterView: View {
                     FilterChoices(options: ChunithmScoreRules.shared.rankThresholds.reversed().map(\.rank),
                                   selection: $filters.ranks, tint: { AnyShapeStyle(scoreRankColor($0)) })
                 }.listRowBackground(cardBackground)
+                Section(tr("CLEAR")) {
+                    FilterChoices(options: ClearType.entries.map(\.displayName), selection: $filters.clears,
+                                  displayValue: { tr($0) }, tint: { AnyShapeStyle(scoreQueryClearColor($0)) })
+                }.listRowBackground(cardBackground)
                 Section(tr("Full Combo")) {
                     FilterChoices(options: FullComboType.entries.map(\.displayName), selection: $filters.fullCombos,
                                   displayValue: { tr($0) }, tint: { AnyShapeStyle(scoreQueryComboColor($0)) })
