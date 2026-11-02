@@ -18,6 +18,11 @@ import org.rhythmeta.chunithmd.ui.components.squircleShape
  *
  * The parameters follow the iOS app (`ios/chunithmd/Views/Song/SongDetailHero.swift`), toned down
  * to the Android surface and palette.
+ *
+ * The vertical offset is deliberately close to the blur radius: a drop shadow reaches
+ * `radius - offsetY` above its shape, and anything above 8dp ends up under the blurred top bar
+ * (the hero starts 8dp below it), where the bar's material cuts it off. At 18dp only 6dp of the
+ * faint tail is left above the jacket, which stays clear of the bar.
  */
 internal object CatalogJacketCover {
     val Size = 220.dp
@@ -25,7 +30,7 @@ internal object CatalogJacketCover {
     val Shape: Shape = squircleShape(CornerRadius)
 
     private val ShadowRadius = 24.dp
-    private val ShadowOffsetY = 6.dp
+    private val ShadowOffsetY = 18.dp
 
     val Shadow: Shadow = Shadow(
         radius = ShadowRadius,
@@ -33,5 +38,4 @@ internal object CatalogJacketCover {
         alpha = 0.15f,
         offset = DpOffset(0.dp, ShadowOffsetY),
     )
-
 }
