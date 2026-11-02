@@ -1,16 +1,22 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.isSpecified
@@ -19,11 +25,13 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
@@ -88,6 +96,12 @@ internal fun CatalogContainerTransform(
                 }
             }
         }
+        val coverSharpness = animateFloatAsState(
+            targetValue = if (state.detailCoverPainter != null) 1f else 0f,
+            animationSpec = tween(CoverSharpnessFadeMillis),
+            label = "coverSharpness",
+        )
+        CatalogCoverShadowLayer(state = state, progress = { catalogContainerProgress(navigation.relativeDepth) })
         Canvas(Modifier.fillMaxSize().clearAndSetSemantics {}) {
             val progress = catalogContainerProgress(navigation.relativeDepth)
             val target = state.detailBounds
@@ -96,18 +110,33 @@ internal fun CatalogContainerTransform(
                 if (progress < 1f) 1f else 0f
             } else catalogCoverAlpha(progress)
             val painter = state.coverPainter
-            if (coverAlpha > 0f && painter != null) {
+            if (coverAlpha > 0f && (painter != null || state.detailCoverPainter != null)) {
                 val bounds = if (target != null) state.sharedCoverBounds(target, progress)
                     else state.fallbackCoverBounds(size, progress)
-                val intrinsic = painter.intrinsicSize
-                val imageSize = if (intrinsic.isSpecified && intrinsic.width.isFinite() && intrinsic.height.isFinite() &&
-                    intrinsic.width > 0f && intrinsic.height > 0f) intrinsic else Size(1f, 1f)
-                val scale = max(bounds.width / imageSize.width, bounds.height / imageSize.height)
-                val drawSize = Size(imageSize.width * scale, imageSize.height * scale)
                 val visible = if (shared) state.sharedCoverBounds(state.detailClip ?: target, progress) else bounds
                 val sourceRadius = state.coverCornerRadiusPx(this)
-                val radius = if (shared) interpolate(sourceRadius, 26.dp.toPx(), progress) else sourceRadius
-                val path = Path().apply { addRoundRect(RoundRect(bounds, CornerRadius(radius))) }
+                val radius = if (shared) interpolate(sourceRadius, CatalogJacketCover.CornerRadius.toPx(), progress) else sourceRadius
+                // Match the resting jacket's silhouette (MIUIX squircle, not a circular round rect) so
+                // the corners do not change shape on the hand-off frame.
+                val path = Path().apply {
+                    addSquircleRect(
+                        width = bounds.width,
+                        height = bounds.height,
+                        cornerRadius = radius,
+                        extension = 1.2f,
+                    )
+                }
+                path.translate(Offset(bounds.left, bounds.top))
+                val source = state.genericSource
+                val detailPainter = state.detailCoverPainter
+                // The jacket the detail page decodes for itself is much sharper than the list cell's
+                // painter, so swap to it (over a short fade) instead of keeping the flight blurry
+                // until the hand-off reveals the real jacket.
+                val sharpness = if (detailPainter == null) 0f else coverSharpness.value
+                val imageAlpha = interpolate(source?.imageAlpha ?: 1f, 1f, progress)
+                val filter = source?.takeIf { it.saturation != 1f }?.let {
+                    ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(interpolate(it.saturation, 1f, progress)) })
+                }
                 // Keep one opaque jacket moving between the two real positions; the in-page
                 // jacket takes over at the exact settled endpoint.
                 clipRect(visible.left, visible.top, visible.right, visible.bottom) {
@@ -117,13 +146,21 @@ internal fun CatalogContainerTransform(
                                 drawRect(surface, topLeft = bounds.topLeft, size = bounds.size, alpha = coverAlpha)
                             }
                         }
-                        translate(bounds.center.x - drawSize.width / 2f, bounds.center.y - drawSize.height / 2f) {
-                            val source = state.genericSource
-                            val imageAlpha = interpolate(source?.imageAlpha ?: 1f, 1f, progress)
-                            val filter = source?.takeIf { it.saturation != 1f }?.let {
-                                ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(interpolate(it.saturation, 1f, progress)) })
-                            }
-                            with(painter) { draw(drawSize, alpha = coverAlpha * imageAlpha, colorFilter = filter) }
+                        if (painter != null && sharpness < 1f) {
+                            drawCoverPainter(
+                                painter = painter,
+                                bounds = bounds,
+                                alpha = coverAlpha * imageAlpha * (1f - sharpness),
+                                colorFilter = filter,
+                            )
+                        }
+                        if (detailPainter != null && sharpness > 0f) {
+                            drawCoverPainter(
+                                painter = detailPainter,
+                                bounds = bounds,
+                                alpha = coverAlpha * sharpness,
+                                colorFilter = null,
+                            )
                         }
                     }
                 }
@@ -188,3 +225,63 @@ internal fun CatalogContainerTransform(
         }
     }
 }
+
+/**
+ * Shadow of the cover that flies between the catalog and the song detail page. The resting jacket
+ * paints [CatalogJacketCover.Shape] with [CatalogJacketCover.Shadow], so this layer draws exactly
+ * the same shadow at the interpolated cover bounds: the shadow travels with the cover instead of
+ * popping into existence on the frame the real jacket takes over. It stays hidden whenever the
+ * cover is not the shared element or the real jacket has taken over.
+ */
+@Composable
+private fun CatalogCoverShadowLayer(
+    state: CatalogCoverTransition,
+    progress: () -> Float,
+) {
+    Box(
+        modifier = Modifier
+            .requiredSize(CatalogJacketCover.Size)
+            .clearAndSetSemantics {}
+            .graphicsLayer {
+                val fraction = progress()
+                val target = state.detailBounds
+                if (target == null || fraction >= 1f) {
+                    alpha = 0f
+                    return@graphicsLayer
+                }
+                val bounds = state.sharedCoverBounds(target, fraction)
+                alpha = catalogCoverShadowAlpha(fraction)
+                outsets = CatalogJacketCover.ShadowOutsets
+                transformOrigin = TransformOrigin(0f, 0f)
+                scaleX = bounds.width / size.width.coerceAtLeast(1f)
+                scaleY = bounds.height / size.height.coerceAtLeast(1f)
+                translationX = bounds.left
+                translationY = bounds.top
+            }
+            .dropShadow(shape = CatalogJacketCover.Shape, shadow = CatalogJacketCover.Shadow),
+    )
+}
+
+/** Draws [painter] center-cropped into [bounds], matching `ContentScale.Crop`. */
+private fun DrawScope.drawCoverPainter(
+    painter: Painter,
+    bounds: Rect,
+    alpha: Float,
+    colorFilter: ColorFilter?,
+) {
+    val intrinsic = painter.intrinsicSize
+    val imageSize = if (intrinsic.isSpecified && intrinsic.width.isFinite() && intrinsic.height.isFinite() &&
+        intrinsic.width > 0f && intrinsic.height > 0f
+    ) {
+        intrinsic
+    } else {
+        Size(1f, 1f)
+    }
+    val drawScale = max(bounds.width / imageSize.width, bounds.height / imageSize.height)
+    val drawSize = Size(imageSize.width * drawScale, imageSize.height * drawScale)
+    translate(bounds.center.x - drawSize.width / 2f, bounds.center.y - drawSize.height / 2f) {
+        with(painter) { draw(drawSize, alpha = alpha, colorFilter = colorFilter) }
+    }
+}
+
+private const val CoverSharpnessFadeMillis = 120

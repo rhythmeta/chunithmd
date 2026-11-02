@@ -91,6 +91,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
@@ -495,15 +496,20 @@ private fun SongDetailHeader(
         Box {
             Box(
                 modifier = Modifier
-                    .size(220.dp)
+                    .size(CatalogJacketCover.Size)
                     .onGloballyPositioned { coverTransition?.updateDetailCover(it, viewportTop) }
                     .graphicsLayer { alpha = if (coverTransition?.hidesDetailCover == true) 0f else 1f }
-                    .clip(RoundedCornerShape(26.dp))
+                    .dropShadow(shape = CatalogJacketCover.Shape, shadow = CatalogJacketCover.Shadow)
+                    .clip(RoundedCornerShape(CatalogJacketCover.CornerRadius))
                     .combinedClickable(
                         onClick = {},
                         onLongClick = { jacketMenuExpanded = true },
                     )
-                    .squircleSurface(color = surfaceColor, cornerRadius = 26.dp, extension = SquircleExtension),
+                    .squircleSurface(
+                        color = surfaceColor,
+                        cornerRadius = CatalogJacketCover.CornerRadius,
+                        extension = SquircleExtension,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 if (coverModel == null) {
@@ -517,6 +523,7 @@ private fun SongDetailHeader(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                         onSuccess = { result ->
+                            coverTransition?.updateDetailCoverPainter(result.painter)
                             runCatching {
                                 result.result.drawable.toBitmap(config = Bitmap.Config.ARGB_8888)
                             }.getOrNull()?.let { bitmap ->
@@ -544,6 +551,7 @@ private fun SongDetailHeader(
             text = CatalogSongFormatter.displayTitle(song),
             style = MiuixTheme.textStyles.title1,
             color = MiuixTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.fillMaxWidth().onGloballyPositioned(titleBounds::updateTitle)

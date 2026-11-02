@@ -68,6 +68,15 @@ internal class CatalogCoverTransition(
         private set
     var detailClip by mutableStateOf<Rect?>(null)
         private set
+
+    /**
+     * The jacket image the detail page decodes for itself. It is far sharper than the list cell's
+     * painter, so the flying cover draws it as soon as it is available and only falls back to
+     * [coverPainter] until then — otherwise the cover stays blurry for the whole flight and snaps
+     * into focus on the last frame.
+     */
+    var detailCoverPainter by mutableStateOf<Painter?>(null)
+        private set
     val hidesDetailCover: Boolean get() = detailBounds != null && navigation?.let {
         catalogContainerProgress(it.relativeDepth) < 1f
     } == true
@@ -81,6 +90,10 @@ internal class CatalogCoverTransition(
         detailCover = coordinates
         detailViewportTop = viewportTop
         updateDetailBounds()
+    }
+
+    fun updateDetailCoverPainter(painter: Painter?) {
+        detailCoverPainter = painter
     }
 
     private fun updateDetailBounds() {
@@ -135,6 +148,7 @@ internal class CatalogCoverTransition(
         detailCover = null
         detailBounds = null
         detailClip = null
+        detailCoverPainter = null
     }
 
     fun bounds(pageSize: Size, progress: Float): Rect = catalogContainerBounds(sourceContainer, pageSize, progress)
@@ -220,6 +234,21 @@ internal fun catalogContainerBounds(source: Rect, pageSize: Size, progress: Floa
 
 // The cover finishes fading before detail content appears; reversing progress reverses the phases.
 internal fun catalogCoverAlpha(progress: Float): Float = 1f - ((progress - 0.10f) / 0.18f).coerceIn(0f, 1f)
+
+/**
+ * Opacity of the shadow under the cover that flies between the list and the detail page.
+ *
+ * The source cover casts no shadow and the jacket is fully shadowed once it is at rest, so the
+ * shadow deepens together with the growing cover instead of appearing at full strength: the curve
+ * is a smoothstep that settles at 1 shortly before the hand-off to the jacket's own shadow, which
+ * keeps both ends of the ramp free of a visible step.
+ */
+internal fun catalogCoverShadowAlpha(progress: Float): Float {
+    val fraction = (progress.coerceIn(0f, 1f) / CatalogCoverShadowSettle).coerceIn(0f, 1f)
+    return fraction * fraction * (3f - 2f * fraction)
+}
+
+private const val CatalogCoverShadowSettle = 0.85f
 internal fun catalogDetailAlpha(progress: Float): Float = ((progress - 0.28f) / 0.28f).coerceIn(0f, 1f)
 
 internal fun catalogContainerDragOffset(deltaY: Float, progress: Float): Float {
