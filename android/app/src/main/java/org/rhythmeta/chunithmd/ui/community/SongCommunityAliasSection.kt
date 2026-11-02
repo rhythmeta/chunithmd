@@ -129,7 +129,7 @@ fun SongCommunityAliasSection(
                     enabled = state.canSubmit(songId),
                     modifier = Modifier.height(52.dp),
                     minWidth = 50.dp,
-                    cornerRadius = 8.dp,
+                    cornerRadius = 12.dp,
                     insideMargin = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
                     colors = ButtonDefaults.buttonColors(
                         color = accentColor.copy(alpha = 0.14f),
