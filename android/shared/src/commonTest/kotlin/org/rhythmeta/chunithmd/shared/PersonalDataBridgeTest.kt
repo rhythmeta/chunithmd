@@ -174,8 +174,8 @@ class PersonalDataBridgeTest {
             record("00000000-0000-4000-8000-000000000004", 1_010_000, 4, owner = "00000000-0000-4000-8000-000000000006"),
             record("00000000-0000-4000-8000-000000000005", 1_010_000, 5, chart = "song:std:expert"),
         ))))
-        assertEquals(0.9f, bridge.chartProgress()["song:std:master"])
-        assertEquals(1f, bridge.chartProgress()["song:std:expert"])
+        assertEquals(ChartProgress(ring = 1f, dot = 0.9f), bridge.chartProgress()["song:std:master"])
+        assertEquals(ChartProgress(ring = 1f, dot = 1f), bridge.chartProgress()["song:std:expert"])
         val records = bridge.playHistory()
         assertFalse(records.any { it.id == "00000000-0000-4000-8000-000000000004" })
         val byTime = bridge.chartHistory(records, "song", "std:master", ScoreHistorySort.Time)

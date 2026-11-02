@@ -18,12 +18,21 @@ struct SongProgressDots: View {
         HStack(spacing: 3) {
             ForEach(sheets) { sheet in
                 let style = sheet.type.lowercased() == "we" ? AnyShapeStyle(WorldsEndStyle.ring) : difficultyStyle(sheet.difficulty)
-                let progress = personal.chartProgress[song.id + ":" + sheet.id] ?? 0
+                let progress = personal.chartProgress[song.id + ":" + sheet.id]
+                // The hollow ring fills from 975,000 to 1,000,000, then the inner dot fills to 1,010,000.
+                let ring = Double(progress?.ring ?? 0)
+                let dot = Double(progress?.dot ?? 0)
                 ZStack {
                     Circle().stroke(style.opacity(0.3), lineWidth: 1.2)
                         .frame(width: 8, height: 8)
-                    if progress > 0 {
-                        Circle().trim(from: 0, to: min(max(progress, 0), 1))
+                    if ring > 0 {
+                        Circle().trim(from: 0, to: min(max(ring, 0), 1))
+                            .stroke(style, style: StrokeStyle(lineWidth: 1.2, lineCap: .butt))
+                            .frame(width: 8, height: 8)
+                            .rotationEffect(.degrees(-90))
+                    }
+                    if dot > 0 {
+                        Circle().trim(from: 0, to: min(max(dot, 0), 1))
                             .stroke(style, style: StrokeStyle(lineWidth: 4, lineCap: .butt))
                             .frame(width: 4, height: 4)
                             .rotationEffect(.degrees(-90))

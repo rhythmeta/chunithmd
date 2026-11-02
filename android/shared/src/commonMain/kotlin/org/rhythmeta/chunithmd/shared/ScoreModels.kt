@@ -140,8 +140,31 @@ private fun progressDifficultyOrder(value: String): Int = listOf(
     "basic", "advanced", "expert", "master", "ultima", "world's end",
 ).indexOfFirst { it.equals(value, true) }
 
+/** Score where the hollow progress ring starts filling; 975,000 is the S rank boundary. */
+private const val RING_START_SCORE = 975_000
+
+/** Score where the hollow progress ring is complete and the inner progress dot starts filling. */
+private const val RING_END_SCORE = 1_000_000
+
+/** Both stages of the catalog progress dot, each in `0f..1f`. */
+data class ChartProgress(val ring: Float, val dot: Float)
+
+/** Fraction of the hollow progress ring filled by [score], from 975,000 to 1,000,000. */
+fun scoreRingProgress(score: Int?): Float = score
+    ?.minus(RING_START_SCORE)
+    ?.coerceIn(0, RING_END_SCORE - RING_START_SCORE)
+    ?.div((RING_END_SCORE - RING_START_SCORE).toFloat())
+    ?: 0f
+
+/** Inner progress dot fraction filled by [score], from 1,000,000 to 1,010,000. */
 fun scoreProgress(score: Int?): Float = score
-    ?.minus(1_000_000)
+    ?.minus(RING_END_SCORE)
     ?.coerceIn(0, 10_000)
     ?.div(10_000f)
     ?: 0f
+
+/** Both progress dot stages for a chart's best score. */
+fun chartProgress(score: Int?): ChartProgress = ChartProgress(
+    ring = scoreRingProgress(score),
+    dot = scoreProgress(score),
+)

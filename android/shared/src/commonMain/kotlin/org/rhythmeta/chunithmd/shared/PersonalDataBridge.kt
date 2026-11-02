@@ -285,8 +285,8 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
     fun randomSongs(songs: List<CatalogSong>, count: Int): List<CatalogSong> = RandomSongQuery.draw(songs, count)
 
     @Throws(Exception::class)
-    fun chartProgress(): Map<String, Float> = records(read()).groupBy { it.sheetKey }
-        .mapValues { (_, records) -> scoreProgress(records.bestScore()?.score) }
+    fun chartProgress(): Map<String, ChartProgress> = records(read()).groupBy { it.sheetKey }
+        .mapValues { (_, sheetRecords) -> chartProgress(sheetRecords.bestScore()?.score) }
 
     private fun uuid(): String {
         val bytes = secureRandomBytes(16)

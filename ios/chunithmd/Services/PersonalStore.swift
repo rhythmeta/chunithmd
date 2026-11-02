@@ -7,7 +7,7 @@ final class PersonalStore {
     let bridge = PersonalDataBridge(files: RhythmetaSnapshotFiles())
     private(set) var snapshot = PersonalSnapshot()
     private(set) var playRecords: [ScoreRecord] = []
-    private(set) var chartProgress: [String: Double] = [:]
+    private(set) var chartProgress: [String: ChartProgress] = [:]
     private(set) var best: [BestTableEntry] = []
     private(set) var rating = 0.0
     private(set) var revision = 0
@@ -17,7 +17,7 @@ final class PersonalStore {
         do {
             snapshot = try JSONDecoder().decode(PersonalSnapshot.self, from: Data(try bridge.snapshotJson().utf8))
             playRecords = try bridge.playHistory()
-            chartProgress = try bridge.chartProgress().mapValues { Double($0.floatValue) }
+            chartProgress = try bridge.chartProgress()
             if let bundle = catalog.bundle {
                 best = try bridge.bestEntries(bundle: bundle)
                 rating = try bridge.rating(bundle: bundle).rating

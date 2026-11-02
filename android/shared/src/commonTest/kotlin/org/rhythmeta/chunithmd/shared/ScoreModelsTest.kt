@@ -45,5 +45,12 @@ class ScoreModelsTest {
         assertEquals(0f, scoreProgress(999_999))
         assertEquals(0.5f, scoreProgress(1_005_000))
         assertEquals(1f, scoreProgress(1_010_000))
+        assertEquals(0f, scoreRingProgress(974_999))
+        assertEquals(0.5f, scoreRingProgress(987_500))
+        assertEquals(1f, scoreRingProgress(1_000_000))
+        assertEquals(1f, scoreRingProgress(1_010_000))
+        assertEquals(ChartProgress(ring = 0f, dot = 0f), chartProgress(null))
+        assertEquals(ChartProgress(ring = 0.5f, dot = 0f), chartProgress(987_500))
+        assertEquals(ChartProgress(ring = 1f, dot = 0.9f), chartProgress(1_009_000))
     }
 }
