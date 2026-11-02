@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.rhythmeta.chunithmd.BuildConfig
 import org.rhythmeta.chunithmd.shared.account.RhythmetaClient
@@ -56,14 +57,16 @@ fun SettingsHome(
     onOtogame: () -> Unit,
     showScannerBoundingBoxes: Boolean,
     onShowScannerBoundingBoxesChange: (Boolean) -> Unit,
+    contentTopPadding: Dp = 0.dp,
 ) {
     var backendAvailable by remember(accountClient) { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(accountClient) {
         backendAvailable = accountClient.isHealthy()
     }
+    // The top inset lives in the list padding so rows scroll behind the blurred top bar.
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 0.dp, bottom = 112.dp),
+        contentPadding = PaddingValues(top = contentTopPadding, bottom = 112.dp),
     ) {
         item {
             SettingsSection(title = tr("用户")) {
@@ -123,6 +126,7 @@ fun SettingsHome(
                 )
                 SwitchPreference(
                     title = tr("显示识别框"),
+                    summary = tr("在扫描结果中显示文字识别区域"),
                     checked = showScannerBoundingBoxes,
                     onCheckedChange = onShowScannerBoundingBoxesChange,
                     startAction = { SettingsPreferenceIcon(Icons.Rounded.CropFree) },

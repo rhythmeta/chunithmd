@@ -935,6 +935,12 @@
     "zh-Hans": "在支持的设备上模糊顶部栏和页面",
     "zh-Hant": "在支援的裝置上模糊頂端列與頁面"
   },
+  "在扫描结果中显示文字识别区域": {
+    "en": "Show detected text regions in scanner results",
+    "ja": "スキャン結果に文字認識範囲を表示",
+    "zh-Hans": "在扫描结果中显示文字识别区域",
+    "zh-Hant": "在掃描結果中顯示文字辨識區域"
+  },
   "在曲绘上显示 Rank、FC/AJ/AJC 和金 FC/铂 FC": {
     "en": "Show Rank, FC/AJ/AJC, and Gold FC/Platinum FC on jackets",
     "ja": "ジャケットにランク、FC/AJ/AJC、金 FC/プラチナ FC を表示",
