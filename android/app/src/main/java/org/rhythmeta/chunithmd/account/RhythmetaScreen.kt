@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.Instant
@@ -70,7 +71,12 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
 
 @Composable
-fun RhythmetaScreen(client: RhythmetaClient, coordinator: BackupCoordinator, modifier: Modifier = Modifier) {
+fun RhythmetaScreen(
+    client: RhythmetaClient,
+    coordinator: BackupCoordinator,
+    modifier: Modifier = Modifier,
+    contentTopPadding: Dp = 0.dp,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val session by client.session.collectAsStateWithLifecycle()
@@ -94,7 +100,7 @@ fun RhythmetaScreen(client: RhythmetaClient, coordinator: BackupCoordinator, mod
         else snapshots = emptyList()
     }
     Box(modifier.fillMaxSize()) {
-        LazyColumn(contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 96.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(contentPadding = PaddingValues(16.dp, contentTopPadding + 12.dp, 16.dp, 96.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item { AccountSummaryCard(session?.user) }
             if (session?.user == null) {
                 item { CloudSection("Rhythmeta") {

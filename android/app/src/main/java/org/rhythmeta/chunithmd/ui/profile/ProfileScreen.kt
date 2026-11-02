@@ -46,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -84,6 +85,7 @@ fun ProfileScreen(
     currentVersionByServer: Map<ProfileServer, String?> = emptyMap(),
     createRequested: Boolean,
     onCreateRequestHandled: () -> Unit,
+    contentTopPadding: Dp = 0.dp,
 ) {
     val profiles by repository.profiles.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
@@ -99,7 +101,7 @@ fun ProfileScreen(
     }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 112.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = contentTopPadding + 12.dp, bottom = 112.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (profiles.isEmpty()) {

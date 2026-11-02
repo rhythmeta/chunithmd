@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.rhythmeta.chunithmd.shared.UserProfile
@@ -23,11 +24,12 @@ fun OtogameImportScreen(
     catalogReady: Boolean,
     onLogin: () -> Unit,
     modifier: Modifier = Modifier,
+    contentTopPadding: Dp = 0.dp,
 ) {
     val state by controller.state.collectAsStateWithLifecycle()
     DisposableEffect(controller) { onDispose { controller.cancel() } }
     val ready = state.eligible && state.profileId == profile?.id && catalogReady
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 96.dp),
+    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp, contentTopPadding + 12.dp, 16.dp, 96.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Card(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(20.dp), cornerRadius = 20.dp,

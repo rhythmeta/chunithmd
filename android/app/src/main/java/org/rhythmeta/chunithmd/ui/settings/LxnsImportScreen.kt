@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.AcUnit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.rhythmeta.chunithmd.ChunithmdApplication
@@ -20,7 +21,13 @@ import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-fun LxnsImportScreen(profiles: ProfileRepository, scores: ScoreRepository, catalog: CatalogBundle?, modifier: Modifier = Modifier) {
+fun LxnsImportScreen(
+    profiles: ProfileRepository,
+    scores: ScoreRepository,
+    catalog: CatalogBundle?,
+    modifier: Modifier = Modifier,
+    contentTopPadding: Dp = 0.dp,
+) {
     val context = LocalContext.current
     val client = (context.applicationContext as ChunithmdApplication).lxnsClient
     val scope = rememberCoroutineScope()
@@ -37,7 +44,7 @@ fun LxnsImportScreen(profiles: ProfileRepository, scores: ScoreRepository, catal
     DisposableEffect(controller) { onDispose { controller.cancel() } }
     val ready = profile != null && profile?.id == state.profileId && catalog?.catalog?.songs?.isNotEmpty() == true
 
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 96.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp, contentTopPadding + 12.dp, 16.dp, 96.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Card(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(20.dp), cornerRadius = 20.dp,
                 colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer)) {

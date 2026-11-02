@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
@@ -53,6 +54,7 @@ fun StaticResourcesScreen(
     topAppBarScrollBehavior: ScrollBehavior,
     onCheck: () -> Unit,
     onDownload: () -> Unit,
+    contentTopPadding: Dp = 0.dp,
 ) {
     LaunchedEffect(Unit) { onCheck() }
 
@@ -125,7 +127,7 @@ fun StaticResourcesScreen(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 96.dp),
+            contentPadding = PaddingValues(16.dp, contentTopPadding + 12.dp, 16.dp, 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {

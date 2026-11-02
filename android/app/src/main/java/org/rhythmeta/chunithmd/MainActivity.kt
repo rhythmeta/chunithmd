@@ -1094,7 +1094,7 @@ private fun CatalogApp(
                 )
                 }
                 else -> SettingsHome(
-                    Modifier.padding(padding).fillMaxSize()
+                    Modifier.fillMaxSize()
                         .background(MiuixTheme.colorScheme.surface)
                         .nestedScroll(topBarScrollConnection),
                     { pushRoute(AppRoute.Theme) },
@@ -1109,6 +1109,7 @@ private fun CatalogApp(
                     onCheckUpdates = { appUpdateViewModel.check() },
                     showScannerBoundingBoxes = themeSettings.showScannerBoundingBoxes,
                     onShowScannerBoundingBoxesChange = { scope.launch { themeRepository.setShowScannerBoundingBoxes(it) } },
+                    contentTopPadding = padding.calculateTopPadding(),
                 )
             }
         }
@@ -1225,7 +1226,8 @@ private fun CatalogApp(
             AppFrame(5, resourcesTopBarScrollBehavior) { padding, topBarScrollConnection ->
                 Box(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface)) {
                     StaticResourcesScreen(
-                        modifier = Modifier.padding(padding).nestedScroll(topBarScrollConnection),
+                        modifier = Modifier.nestedScroll(topBarScrollConnection),
+                        contentTopPadding = padding.calculateTopPadding(),
                         topAppBarScrollBehavior = resourcesTopBarScrollBehavior,
                         manifest = manifest,
                         sync = sync,
@@ -1287,7 +1289,8 @@ private fun CatalogApp(
         ) {
             AppFrame(17, resourcesTopBarScrollBehavior) { padding, connection ->
                 org.rhythmeta.chunithmd.ui.settings.DivingFishImportScreen(
-                    profileRepository, scoreRepository, bundle, Modifier.padding(padding).nestedScroll(connection),
+                    profileRepository, scoreRepository, bundle, Modifier.nestedScroll(connection),
+                    contentTopPadding = padding.calculateTopPadding(),
                 )
             }
         }
@@ -1297,7 +1300,8 @@ private fun CatalogApp(
         ) {
             AppFrame(18, resourcesTopBarScrollBehavior) { padding, connection ->
                 org.rhythmeta.chunithmd.ui.settings.LxnsImportScreen(
-                    profileRepository, scoreRepository, bundle, Modifier.padding(padding).nestedScroll(connection),
+                    profileRepository, scoreRepository, bundle, Modifier.nestedScroll(connection),
+                    contentTopPadding = padding.calculateTopPadding(),
                 )
             }
         }
@@ -1306,7 +1310,10 @@ private fun CatalogApp(
             swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
         ) {
             AppFrame(15, resourcesTopBarScrollBehavior) { padding, connection ->
-                org.rhythmeta.chunithmd.account.RhythmetaScreen(accountClient, backupCoordinator, Modifier.padding(padding).nestedScroll(connection))
+                org.rhythmeta.chunithmd.account.RhythmetaScreen(
+                    accountClient, backupCoordinator, Modifier.nestedScroll(connection),
+                    contentTopPadding = padding.calculateTopPadding(),
+                )
             }
         }
         entry<AppRoute.Otogame>(
@@ -1317,7 +1324,8 @@ private fun CatalogApp(
                 org.rhythmeta.chunithmd.ui.settings.OtogameImportScreen(
                     otogameController, activeProfile, bundle?.catalog?.songs?.isNotEmpty() == true,
                     onLogin = { otogameController.disconnect(); pushRoute(AppRoute.OtogameLogin) },
-                    modifier = Modifier.padding(padding).nestedScroll(connection),
+                    modifier = Modifier.nestedScroll(connection),
+                    contentTopPadding = padding.calculateTopPadding(),
                 )
             }
         }
@@ -1337,7 +1345,8 @@ private fun CatalogApp(
         ) {
             AppFrame(6, resourcesTopBarScrollBehavior) { padding, topBarScrollConnection ->
                 ProfileScreen(
-                    modifier = Modifier.padding(padding).nestedScroll(topBarScrollConnection),
+                    modifier = Modifier.nestedScroll(topBarScrollConnection),
+                    contentTopPadding = padding.calculateTopPadding(),
                     repository = profileRepository,
                     avatarStore = profileAvatarStore,
                     currentVersionByServer = profileVersions,

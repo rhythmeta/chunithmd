@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +30,7 @@ fun DivingFishImportScreen(
     scores: ScoreRepository,
     catalog: CatalogBundle?,
     modifier: Modifier = Modifier,
+    contentTopPadding: Dp = 0.dp,
 ) {
     val context = LocalContext.current
     val client = (context.applicationContext as ChunithmdApplication).divingFishClient
@@ -47,7 +49,7 @@ fun DivingFishImportScreen(
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp, 12.dp, 16.dp, 96.dp),
+        contentPadding = PaddingValues(16.dp, contentTopPadding + 12.dp, 16.dp, 96.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
