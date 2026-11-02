@@ -40,6 +40,9 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import org.rhythmeta.chunithmd.ui.theme.AppThemeSettings
 import org.rhythmeta.chunithmd.ui.theme.ColorMode
+import org.rhythmeta.chunithmd.ui.theme.ThemePaletteStyles
+import org.rhythmeta.chunithmd.ui.theme.hasFixedColorSpec
+import org.rhythmeta.chunithmd.ui.theme.supportedSpecs
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Slider
@@ -120,18 +123,25 @@ fun ThemeSettingsScreen(
                             onSelectedIndexChange = { onKeyColorChange(keyColors[it]) },
                             startAction = { ThemeIcon(Icons.Rounded.Colorize) },
                         )
+                        val paletteStyles = ThemePaletteStyles
                         OverlayDropdownPreference(
                             title = tr("色板样式"),
-                            items = PaletteStyle.entries.map { tr(it.name) },
-                            selectedIndex = PaletteStyle.entries.indexOf(settings.paletteStyle).coerceAtLeast(0),
-                            onSelectedIndexChange = { onPaletteStyleChange(PaletteStyle.entries[it]) },
+                            items = paletteStyles.map { tr(it.name) },
+                            selectedIndex = paletteStyles
+                                .indexOfFirst { it.name == settings.paletteStyle.name }
+                                .coerceAtLeast(0),
+                            onSelectedIndexChange = { onPaletteStyleChange(paletteStyles[it]) },
                             startAction = { ThemeIcon(Icons.Rounded.Style) },
                         )
+                        // CMF is defined by the 2026 spec only, so the spec row below it is pinned
+                        // instead of offering choices the style cannot render.
+                        val colorSpecOptions = settings.paletteStyle.supportedSpecs
                         OverlayDropdownPreference(
                             title = tr("色彩规范"),
-                            items = ColorSpec.SpecVersion.entries.map { it.name },
-                            selectedIndex = ColorSpec.SpecVersion.entries.indexOf(settings.colorSpec).coerceAtLeast(0),
-                            onSelectedIndexChange = { onColorSpecChange(ColorSpec.SpecVersion.entries[it]) },
+                            items = colorSpecOptions.map { it.name },
+                            selectedIndex = colorSpecOptions.indexOf(settings.colorSpec).coerceAtLeast(0),
+                            enabled = !settings.paletteStyle.hasFixedColorSpec,
+                            onSelectedIndexChange = { onColorSpecChange(colorSpecOptions[it]) },
                             startAction = { ThemeIcon(Icons.Rounded.DesignServices) },
                         )
                     }

@@ -16,7 +16,9 @@ internal val Context.themePreferencesDataStore by preferencesDataStore(name = "t
 
 class ThemePreferencesRepository(private val context: Context) {
     val settings: Flow<AppThemeSettings> = context.themePreferencesDataStore.data.map { values ->
-        val style = values[PaletteStyleKey]?.let { runCatching { PaletteStyle.valueOf(it) }.getOrNull() }
+        // PaletteStyle is no longer an enum, so the stored text is read back through its stable
+        // round-trip format and unknown values fall back to the default style.
+        val style = values[PaletteStyleKey]?.let { PaletteStyle.parseOrNull(it) }
             ?: DefaultAppThemeSettings.paletteStyle
         val spec = values[ColorSpecKey]?.let { runCatching { ColorSpec.SpecVersion.valueOf(it) }.getOrNull() }
             ?: DefaultAppThemeSettings.colorSpec
@@ -55,7 +57,7 @@ class ThemePreferencesRepository(private val context: Context) {
             val next = transform(current)
             values[ColorModeKey] = next.colorMode.value
             values[KeyColorKey] = next.keyColor
-            values[PaletteStyleKey] = next.paletteStyle.name
+            values[PaletteStyleKey] = next.paletteStyle.toString()
             values[ColorSpecKey] = next.colorSpec.effectiveFor(next.paletteStyle).name
             values[BlurKey] = next.enableBlur
             values[FloatingBarKey] = next.enableFloatingBottomBar
