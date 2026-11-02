@@ -48,6 +48,37 @@ class ScoreQueryCalculatorTest {
     }
 
     @Test
+    fun scoreQueryFilterMatchesClearLabels() {
+        fun entry(clear: String) = ScoreQueryEntry(
+            sheetKey = "song:$clear",
+            songId = "song",
+            title = "Song",
+            artist = "Artist",
+            aliases = emptyList(),
+            imageName = "song.png",
+            difficulty = "master",
+            type = "std",
+            level = 13.0,
+            score = 1_009_000,
+            rank = "SSS+",
+            rating = 15.15,
+            clear = clear,
+            fullCombo = null,
+            fullChain = null,
+        )
+        val hard = entry("hard")
+        val failed = entry("failed")
+        val result = filterAndSortScoreQueryEntries(
+            entries = listOf(hard, failed),
+            searchText = "",
+            settings = ScoreQueryFilterSettings(clears = setOf("HARD")),
+            sortMode = ScoreQuerySortMode.Rating,
+            ascending = false,
+        )
+        assertEquals(listOf(hard), result)
+    }
+
+    @Test
     fun scoreQuerySearchMatchesTraditionalAndVariantTitles() {
         val entry = ScoreQueryEntry(
             sheetKey = "song:std:master",

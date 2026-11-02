@@ -200,16 +200,6 @@ internal fun CatalogFilterDialog(
                     )
                 }
             }
-            if (includeDifficultyAndType) item {
-                CatalogFilterSection(tr("谱面类型")) {
-                    CatalogFilterChipGroup(
-                        values = CatalogQuery.availableTypes(bundle),
-                        selectedValues = settings.types,
-                        colorForValue = { MiuixTheme.colorScheme.primary },
-                        onToggle = { value -> onSettingsChange(settings.copy(types = settings.types.toggled(value))) },
-                    )
-                }
-            }
         }
     }
 }

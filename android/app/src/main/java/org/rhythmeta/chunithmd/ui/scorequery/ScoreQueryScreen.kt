@@ -512,6 +512,14 @@ private fun ScoreQueryFilterSheet(
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 20.dp, top = topInset + 12.dp, end = 20.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
             item { ScoreFilterGroup(tr("难度"), DifficultyOptions, settings.difficulties, ::difficultyChipColor, uppercaseOptions = true) { onSettingsChange(settings.copy(difficulties = settings.difficulties.toggle(it))) } }
             item { ScoreFilterGroup(tr("段位"), RankOptions, settings.ranks, ::rankColor) { onSettingsChange(settings.copy(ranks = settings.ranks.toggle(it))) } }
+            item {
+                ScoreFilterGroup(
+                    title = tr("CLEAR"),
+                    options = ClearOptions,
+                    selected = settings.clears,
+                    colorFor = { label -> clearStatusColor(ClearType.entries.firstOrNull { it.displayName == label }?.wireValue) },
+                ) { onSettingsChange(settings.copy(clears = settings.clears.toggle(it))) }
+            }
             item { ScoreFilterGroup(tr("Full Combo"), ComboOptions, settings.fullCombos, ::comboColor) { onSettingsChange(settings.copy(fullCombos = settings.fullCombos.toggle(it))) } }
             item { ScoreFilterGroup(tr("Full Chain"), ChainOptions, settings.fullChains, ::chainColor) { onSettingsChange(settings.copy(fullChains = settings.fullChains.toggle(it))) } }
         }
@@ -595,6 +603,7 @@ private val DifficultyOptions = listOf("basic", "advanced", "expert", "master", 
 private val RankOptions = listOf("SSS+", "SSS", "SS+", "SS", "S+", "S", "AAA", "AA", "A", "BBB", "BB", "B", "C", "D")
 private val ComboOptions = listOf("FC", "AJ", "AJC")
 private val ChainOptions = listOf("铂 FC", "金 FC")
+private val ClearOptions = ClearType.entries.map(ClearType::displayName)
 
 @Composable private fun difficultyChipColor(value: String): Color = difficultyColor(value)
 @Composable private fun rankColor(value: String): Color = when (value) {

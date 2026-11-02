@@ -9,9 +9,11 @@ data class ScoreQueryFilterSettings(
     val ranks: Set<String> = emptySet(),
     val fullCombos: Set<String> = emptySet(),
     val fullChains: Set<String> = emptySet(),
+    val clears: Set<String> = emptySet(),
 ) {
     val isEmpty: Boolean
-        get() = difficulties.isEmpty() && ranks.isEmpty() && fullCombos.isEmpty() && fullChains.isEmpty()
+        get() = difficulties.isEmpty() && ranks.isEmpty() && fullCombos.isEmpty() &&
+            fullChains.isEmpty() && clears.isEmpty()
 }
 
 data class ScoreQueryEntry(
@@ -109,7 +111,8 @@ fun filterAndSortScoreQueryEntries(
             (settings.difficulties.isEmpty() || entry.difficulty.lowercase() in settings.difficulties) &&
             (settings.ranks.isEmpty() || entry.rank in settings.ranks) &&
             (settings.fullCombos.isEmpty() || displayFullCombo(entry.fullCombo) in settings.fullCombos) &&
-            (settings.fullChains.isEmpty() || displayFullChain(entry.fullChain) in settings.fullChains)
+            (settings.fullChains.isEmpty() || displayFullChain(entry.fullChain) in settings.fullChains) &&
+            (settings.clears.isEmpty() || ClearType.displayName(entry.clear) in settings.clears)
     }
     val primary = when (sortMode) {
         ScoreQuerySortMode.Rating -> compareBy<ScoreQueryEntry> { it.rating }
