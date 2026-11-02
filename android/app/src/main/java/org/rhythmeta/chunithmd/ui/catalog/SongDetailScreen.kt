@@ -91,7 +91,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
@@ -157,6 +156,7 @@ import org.rhythmeta.chunithmd.shared.sortForHistory
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.dashedSquircleBorder
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
+import org.rhythmeta.chunithmd.ui.components.softDropShadow
 import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import org.rhythmeta.chunithmd.ui.components.clearStatusColor
 import org.rhythmeta.chunithmd.ui.components.comboStatusColor
@@ -499,7 +499,10 @@ private fun SongDetailHeader(
                     .size(CatalogJacketCover.Size)
                     .onGloballyPositioned { coverTransition?.updateDetailCover(it, viewportTop) }
                     .graphicsLayer { alpha = if (coverTransition?.hidesDetailCover == true) 0f else 1f }
-                    .dropShadow(shape = CatalogJacketCover.Shape, shadow = CatalogJacketCover.Shadow)
+                    .softDropShadow(
+                        shape = CatalogJacketCover.Shape,
+                        shadow = CatalogJacketCover.Shadow,
+                    )
                     .clip(RoundedCornerShape(CatalogJacketCover.CornerRadius))
                     .combinedClickable(
                         onClick = {},

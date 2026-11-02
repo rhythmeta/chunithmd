@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +34,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import org.rhythmeta.chunithmd.ui.components.softDropShadow
 import top.yukonga.miuix.kmp.nav.core.LocalNavTransitionScope
 import top.yukonga.miuix.kmp.squircle.addSquircleRect
 import kotlin.math.max
@@ -245,20 +245,23 @@ private fun CatalogCoverShadowLayer(
             .graphicsLayer {
                 val fraction = progress()
                 val target = state.detailBounds
-                if (target == null || fraction >= 1f) {
-                    alpha = 0f
-                    return@graphicsLayer
-                }
+                if (target == null || fraction >= 1f) return@graphicsLayer
                 val bounds = state.sharedCoverBounds(target, fraction)
-                alpha = catalogCoverShadowAlpha(fraction)
-                outsets = CatalogJacketCover.ShadowOutsets
                 transformOrigin = TransformOrigin(0f, 0f)
                 scaleX = bounds.width / size.width.coerceAtLeast(1f)
                 scaleY = bounds.height / size.height.coerceAtLeast(1f)
                 translationX = bounds.left
                 translationY = bounds.top
             }
-            .dropShadow(shape = CatalogJacketCover.Shape, shadow = CatalogJacketCover.Shadow),
+            .softDropShadow(
+                shape = CatalogJacketCover.Shape,
+                shadow = CatalogJacketCover.Shadow,
+                alpha = {
+                    val fraction = progress()
+                    if (state.detailBounds == null || fraction >= 1f) 0f
+                    else catalogCoverShadowAlpha(fraction)
+                },
+            ),
     )
 }
 

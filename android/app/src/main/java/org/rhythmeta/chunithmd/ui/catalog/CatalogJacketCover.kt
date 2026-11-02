@@ -1,7 +1,6 @@
 package org.rhythmeta.chunithmd.ui.catalog
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.LayerOutsets
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.unit.DpOffset
@@ -17,8 +16,8 @@ import org.rhythmeta.chunithmd.ui.components.squircleShape
  * the same [Shadow] at the interpolated cover bounds, which makes the hand-off to the real jacket
  * pixel-exact instead of popping in on the transition's last frame.
  *
- * The shadow mirrors the iOS app (`ios/chunithmd/Views/Song/SongDetailHero.swift`):
- * `.shadow(color: .black.opacity(0.3), radius: 24, y: 12)`.
+ * The parameters follow the iOS app (`ios/chunithmd/Views/Song/SongDetailHero.swift`), toned down
+ * to the Android surface and palette.
  */
 internal object CatalogJacketCover {
     val Size = 220.dp
@@ -35,16 +34,4 @@ internal object CatalogJacketCover {
         offset = DpOffset(0.dp, ShadowOffsetY),
     )
 
-    /**
-     * Room the drawn shadow needs outside the jacket bounds. A layer holding the shadow is
-     * rasterized offscreen whenever its alpha is not fully opaque, and that rasterization clips
-     * everything outside the layer bounds — without these outsets the blur is cut into a hard-edged
-     * panel for every frame of the fade.
-     */
-    val ShadowOutsets: LayerOutsets = LayerOutsets(
-        left = ShadowRadius,
-        top = ShadowRadius,
-        right = ShadowRadius,
-        bottom = ShadowRadius + ShadowOffsetY,
-    )
 }
