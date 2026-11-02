@@ -94,11 +94,13 @@ import org.rhythmeta.chunithmd.ui.components.squircleShape
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.DropdownImpl
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.VerticalDivider
 import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -350,20 +352,32 @@ private fun ScoreQueryList(
 private fun ScoreQueryStatsHeader(stats: ScoreQueryStats) {
     Card(Modifier.fillMaxWidth(), cornerRadius = 16.dp, insideMargin = PaddingValues(horizontal = 14.dp, vertical = 12.dp), colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 ScoreStat(stats.chartCount.toString(), tr("谱面"))
+                ScoreStatDivider()
                 ScoreStat(stats.songCount.toString(), tr("歌曲"))
+                ScoreStatDivider()
                 ScoreStat(stats.sssPlusCount.toString(), "SSS+")
+                ScoreStatDivider()
                 ScoreStat(stats.sssCount.toString(), "SSS")
             }
-            Row(Modifier.fillMaxWidth()) {
+            HorizontalDivider()
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 ScoreStat(stats.fcCount.toString(), "FC")
+                ScoreStatDivider()
                 ScoreStat(stats.ajCount.toString(), "AJ")
+                ScoreStatDivider()
                 ScoreStat(stats.ajcCount.toString(), "AJC")
+                ScoreStatDivider()
                 ScoreStat((stats.platinumFullChainCount + stats.goldFullChainCount).toString(), "FULL CHAIN")
             }
         }
     }
+}
+
+@Composable
+private fun ScoreStatDivider() {
+    VerticalDivider(Modifier.height(30.dp))
 }
 
 @Composable
