@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -104,14 +103,23 @@ fun RhythmetaScreen(client: RhythmetaClient, coordinator: BackupCoordinator, mod
                     CloudActionRow(Icons.Rounded.Key, tr("忘记密码"), !busy) { openWebAuth(context, client, "forgot", ::message) }
                 } }
             } else {
-                item { CloudSection(tr("数据同步")) {
-                    CloudActionRow(Icons.Rounded.CloudUpload, tr("备份到云端"), !busy) {
-                        run { coordinator.backup("${Build.MANUFACTURER} ${Build.MODEL}"); snapshots = client.listBackups(); message(tr("云端备份完成")) }
+                item {
+                    Column {
+                        CloudSection(tr("数据同步")) {
+                            CloudActionRow(Icons.Rounded.CloudUpload, tr("备份到云端"), !busy) {
+                                run { coordinator.backup("${Build.MANUFACTURER} ${Build.MODEL}"); snapshots = client.listBackups(); message(tr("云端备份完成")) }
+                            }
+                            CloudActionRow(Icons.Rounded.Sync, tr("刷新备份列表"), !busy) { run { snapshots = client.listBackups() } }
+                            if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        }
+                        Text(
+                            text = tr("手动创建备份，保留最近三份。持有下载链接的人可读取备份，请勿分享。"),
+                            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 8.dp),
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        )
                     }
-                    CloudActionRow(Icons.Rounded.Sync, tr("刷新备份列表"), !busy) { run { snapshots = client.listBackups() } }
-                    Text(tr("手动创建备份，保留最近三份。持有下载链接的人可读取备份，请勿分享。"), modifier = Modifier.padding(16.dp), style = MiuixTheme.textStyles.footnote1)
-                    if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                } }
+                }
                 if (snapshots.isEmpty()) item { Text(tr("暂无云备份。"), modifier = Modifier.padding(16.dp)) }
                 snapshots.forEach { snapshot -> item(key = snapshot.id) {
                     CloudSection(formatBackupDate(snapshot.committedAt)) {
@@ -144,44 +152,48 @@ fun RhythmetaScreen(client: RhythmetaClient, coordinator: BackupCoordinator, mod
 
 @Composable
 private fun AccountSummaryCard(user: RhythmetaUser?) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        cornerRadius = 20.dp,
-        insideMargin = PaddingValues(20.dp),
-        colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = if (user == null) Icons.Rounded.AccountCircle else Icons.Rounded.Person,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
-            )
-            Spacer(Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = user?.handle ?: tr("登录云端"),
-                    style = MiuixTheme.textStyles.title3,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            cornerRadius = 20.dp,
+            insideMargin = PaddingValues(20.dp),
+            colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = if (user == null) Icons.Rounded.AccountCircle else Icons.Rounded.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
                 )
-                Text(
-                    text = user?.email ?: tr("通过邮箱登录以启用安全的云端同步"),
-                    style = MiuixTheme.textStyles.body2,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                )
+                Spacer(Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = user?.handle ?: tr("登录云端"),
+                        style = MiuixTheme.textStyles.title3,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = user?.email ?: tr("通过邮箱登录以启用安全的云端同步"),
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
             }
         }
-        Spacer(Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Icon(
                 Icons.Rounded.Lock,
                 contentDescription = null,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(14.dp),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(6.dp))
             Text(
                 text = tr("账户信息用于启用云端同步，令牌会加密存储在本机。"),
                 style = MiuixTheme.textStyles.footnote1,
