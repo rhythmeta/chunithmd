@@ -4,6 +4,7 @@ import Shared
 struct BestTableView: View {
     @Environment(CatalogStore.self) private var catalog
     @Environment(PersonalStore.self) private var personal
+    @Environment(\.colorScheme) private var colorScheme
     @State private var response: BestTableResponse?
     @State private var selectedVersion: String?
     @State private var choosingVersion = false
@@ -50,9 +51,16 @@ struct BestTableView: View {
         .navigationTitle(tr("Best 表"))
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
-            Button(tr("分享 Best Table"), systemImage: "square.and.arrow.up") { sharing = true }
-                .disabled(response == nil || (response?.bestEntries.isEmpty == true && response?.newEntries.isEmpty == true))
-                .accessibilityIdentifier("best-share")
+            // The image is rendered first and handed straight to the system share sheet.
+            if sharing {
+                ProgressView().controlSize(.small).tint(.primary)
+            } else {
+                Button(tr("分享 Best Table"), systemImage: "square.and.arrow.up") { share() }
+                    // Follows the theme like every other toolbar button: white on dark, black on light.
+                    .tint(.primary)
+                    .disabled(response == nil || (response?.bestEntries.isEmpty == true && response?.newEntries.isEmpty == true))
+                    .accessibilityIdentifier("best-share")
+            }
         }
         .task(id: personal.revision) { reload() }
         .onChange(of: selectedVersion) { reload() }
@@ -61,15 +69,32 @@ struct BestTableView: View {
                 BestTableVersionPicker(versions: response.versions, serverVersion: response.serverVersion, selection: $selectedVersion)
             }
         }
-        .sheet(isPresented: $sharing) {
-            if let response {
-                let rows = response.bestEntries + response.newEntries
-                ChartPosterShareView(title: "Best \(response.totalCapacity)",
-                    subtitle: "\(personal.snapshot.activeProfile?.name ?? "") · Rating \(response.summary.rating.formatted(.number.precision(.fractionLength(2))))", entries: rows.map {
-                        PosterEntry(id: $0.chartId, title: $0.title, imageName: $0.imageName, difficulty: $0.difficulty,
-                            detail: "\($0.isNew ? "NEW" : "BEST") · \(Int($0.score).formatted())\nR \($0.rating.formatted(.number.precision(.fractionLength(2))))")
-                    })
+    }
+
+    /// Renders the Best table and opens the system share sheet directly, without an in-app preview.
+    private func share() {
+        guard let response, !sharing else { return }
+        sharing = true
+        Task {
+            do {
+                let file = try await BestTableImageExporter.render(
+                    catalog: catalog,
+                    userName: personal.snapshot.activeProfile?.name ?? "",
+                    rating: response.summary.rating,
+                    bestEntries: response.bestEntries,
+                    newEntries: response.newEntries,
+                    bestAverage: response.summary.best30Average,
+                    newAverage: response.summary.new20Average,
+                    bestCount: Int(response.preferences.bestCount),
+                    newCount: Int(response.preferences.newCount),
+                    version: response.effectiveVersion.map { CatalogVersionFormatter.shared.badge(version: $0) } ?? tr("自动"),
+                    colorScheme: colorScheme
+                )
+                if !ActivityShare.present(items: [file]) { personal.error = tr("无法打开分享面板") }
+            } catch {
+                personal.error = tr("无法生成图片")
             }
+            sharing = false
         }
     }
 

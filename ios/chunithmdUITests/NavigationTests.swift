@@ -380,11 +380,9 @@ final class NavigationTests: XCTestCase {
         app.buttons["constant-table-level"].tap()
         app.buttons["15~16"].tap()
         app.buttons["constant-table-export"].tap()
-        let preview = app.images["chart-poster-preview"].firstMatch
-        XCTAssertTrue(preview.waitForExistence(timeout: 120))
-        XCTAssertTrue(app.buttons["poster-share"].exists)
+        // Exporting renders every chart into one image and opens the system share sheet directly.
+        XCTAssertTrue(app.otherElements["ActivityListView"].waitForExistence(timeout: 180), "导出应直接打开系统分享面板")
         capture(app, name: "constant-table-export")
-        app.buttons["完成"].tap()
         app.terminate()
         app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
         app.launch()
@@ -964,8 +962,7 @@ final class NavigationTests: XCTestCase {
         let share = app.buttons["constant-table-export"]
         XCTAssertTrue(share.waitForExistence(timeout: 10))
         share.tap()
-        XCTAssertTrue(app.images["chart-poster-preview"].firstMatch.waitForExistence(timeout: 120))
-        XCTAssertTrue(app.buttons["poster-share"].exists)
+        XCTAssertTrue(app.otherElements["ActivityListView"].waitForExistence(timeout: 180), "导出应直接打开系统分享面板")
     }
 
     func testBestTableSettingsRowsAndShare() {
@@ -1007,9 +1004,8 @@ final class NavigationTests: XCTestCase {
         app.buttons["song-detail-back"].tap()
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         app.buttons["best-share"].tap()
-        XCTAssertTrue(app.images["chart-poster-preview"].firstMatch.waitForExistence(timeout: 120))
-        XCTAssertTrue(app.buttons["poster-share"].exists)
-        app.buttons["完成"].tap()
+        // Sharing renders the image and opens the system share sheet directly; there is no preview page.
+        XCTAssertTrue(app.otherElements["ActivityListView"].waitForExistence(timeout: 120), "分享应直接打开系统分享面板")
     }
 
 }

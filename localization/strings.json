@@ -3629,6 +3629,12 @@
     "en": "Unable to generate image",
     "ja": "画像を生成できません"
   },
+  "无法打开分享面板": {
+    "zh-Hans": "无法打开分享面板",
+    "zh-Hant": "無法開啟分享面板",
+    "en": "Unable to open the share sheet",
+    "ja": "共有パネルを開けません"
+  },
   "旧曲": {
     "zh-Hans": "旧曲",
     "zh-Hant": "舊曲",

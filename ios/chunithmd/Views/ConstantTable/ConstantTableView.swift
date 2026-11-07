@@ -4,6 +4,7 @@ import SwiftUI
 struct ConstantTableView: View {
     @Environment(CatalogStore.self) private var catalog
     @Environment(PersonalStore.self) private var personal
+    @Environment(\.colorScheme) private var colorScheme
     @State private var sharing = false
     @State private var showingFilters = false
     @State private var response: ConstantTableResponse?
@@ -35,12 +36,20 @@ struct ConstantTableView: View {
                     .font(.footnote).padding(16)
                     .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
                     .accessibilityIdentifier("constant-table-summary")
-                    Button { sharing = true } label: {
-                        Label(tr("导出定数表图片"), systemImage: "photo.on.rectangle.angled")
-                            .frame(maxWidth: .infinity)
+                    Button { share() } label: {
+                        ZStack {
+                            Label(tr("导出定数表图片"), systemImage: "photo.on.rectangle.angled")
+                                .opacity(sharing ? 0 : 1)
+                            if sharing { ProgressView().tint(.white) }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent).controlSize(.large)
-                    .disabled(sections.isEmpty).accessibilityIdentifier("constant-table-export")
+                    // Keep full contrast while rendering; re-entry is guarded inside share().
+                    .disabled(sections.isEmpty)
+                    .allowsHitTesting(!sharing)
+                    .accessibilityValue(sharing ? tr("正在生成图片") : "")
+                    .accessibilityIdentifier("constant-table-export")
                     LazyVStack(alignment: .leading, spacing: 16) {
                         ForEach(Array(sections.enumerated()), id: \.element.constantLabel) { index, section in
                             ConstantTableSectionView(section: section, index: index, includesScores: includesScores, songs: songs)
@@ -58,13 +67,6 @@ struct ConstantTableView: View {
             }
         }
         .sheet(isPresented: $showingFilters) { ConstantTableFilterView(settings: $filters) }
-        .sheet(isPresented: $sharing) {
-            ChartPosterShareView(title: tr("Lv. {0} 定数表", ConstantTableCalculatorKt.constantTableBaseLevelLabel(baseLevel: level)),
-                subtitle: tr("{0} 个定数 · {1} 张谱面", sections.count, entries.count),
-                entries: entries.map { PosterEntry(id: $0.sheetKey, title: $0.title, imageName: $0.imageName, difficulty: $0.difficulty, detail: "") },
-                constantSections: sections, includesScores: includesScores,
-                profileName: includesScores ? personal.snapshot.activeProfile?.name : nil)
-        }
         .task(id: personal.revision) { reload() }
         .onChange(of: filters) { rebuildSections() }
         .onChange(of: level) { rebuildSections() }
@@ -103,6 +105,33 @@ struct ConstantTableView: View {
             .accessibilityIdentifier("constant-table-scores")
         }
         .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
+    }
+
+    /// Renders the whole table into one tall image and opens the system share sheet directly.
+    private func share() {
+        guard !sharing, !sections.isEmpty else { return }
+        let title = tr("Lv. {0} 定数表", ConstantTableCalculatorKt.constantTableBaseLevelLabel(baseLevel: level))
+        let subtitle = tr("{0} 个定数 · {1} 张谱面", sections.count, entries.count)
+        let rendered = sections
+        let profileName = includesScores ? personal.snapshot.activeProfile?.name : nil
+        sharing = true
+        Task {
+            do {
+                let file = try await ConstantTableImageExporter.render(
+                    catalog: catalog,
+                    title: title,
+                    subtitle: subtitle,
+                    sections: rendered,
+                    includesScores: includesScores,
+                    profileName: profileName,
+                    colorScheme: colorScheme
+                )
+                if !ActivityShare.present(items: [file]) { personal.error = tr("无法打开分享面板") }
+            } catch {
+                personal.error = tr("无法生成图片")
+            }
+            sharing = false
+        }
     }
 
     private func reload() {
