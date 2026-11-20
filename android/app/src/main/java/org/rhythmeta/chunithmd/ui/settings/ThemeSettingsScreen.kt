@@ -58,6 +58,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
 import androidx.compose.material.icons.rounded.AspectRatio
+import androidx.compose.material.icons.rounded.BlurLinear
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.CallToAction
 import androidx.compose.material.icons.rounded.Colorize
@@ -83,6 +84,7 @@ fun ThemeSettingsScreen(
     onPaletteStyleChange: (PaletteStyle) -> Unit,
     onColorSpecChange: (ColorSpec.SpecVersion) -> Unit,
     onEnableBlurChange: (Boolean) -> Unit,
+    onEnableTopBarProgressiveBlurChange: (Boolean) -> Unit,
     onEnableFloatingBottomBarChange: (Boolean) -> Unit,
     onEnableFloatingBottomBarBlurChange: (Boolean) -> Unit,
     onEnablePredictiveBackChange: (Boolean) -> Unit,
@@ -152,6 +154,15 @@ fun ThemeSettingsScreen(
             Card(Modifier.fillMaxWidth()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     SwitchPreference(checked = settings.enableBlur, onCheckedChange = onEnableBlurChange, title = tr("模糊"), summary = tr("在支持的设备上模糊顶部栏和页面"), startAction = { ThemeIcon(Icons.Rounded.BlurOn) })
+                    AnimatedVisibility(settings.enableBlur) {
+                        SwitchPreference(
+                            checked = settings.enableTopBarProgressiveBlur,
+                            onCheckedChange = onEnableTopBarProgressiveBlurChange,
+                            title = tr("顶栏渐进式模糊"),
+                            summary = tr("顶栏的模糊强度由上而下逐渐减弱"),
+                            startAction = { ThemeIcon(Icons.Rounded.BlurLinear) },
+                        )
+                    }
                 }
                 SwitchPreference(checked = settings.enableFloatingBottomBar, onCheckedChange = onEnableFloatingBottomBarChange, title = tr("浮动底栏"), summary = tr("使用浮动导航底栏"), startAction = { ThemeIcon(Icons.Rounded.CallToAction) })
                 AnimatedVisibility(settings.enableFloatingBottomBar && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

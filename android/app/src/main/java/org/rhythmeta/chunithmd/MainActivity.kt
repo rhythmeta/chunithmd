@@ -26,6 +26,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -167,6 +168,7 @@ import org.rhythmeta.chunithmd.ui.theme.AppThemeSettings
 import org.rhythmeta.chunithmd.ui.theme.ChunithmdTheme
 import org.rhythmeta.chunithmd.ui.theme.DefaultAppThemeSettings
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableBlur
+import org.rhythmeta.chunithmd.ui.theme.LocalEnableTopBarProgressiveBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBar
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBarBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
@@ -865,6 +867,7 @@ private fun CatalogApp(
             largeTitle = page != 20,
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
+            progressiveBlurEnabled = LocalEnableTopBarProgressiveBlur.current,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
                 if (page in 4..20) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
@@ -1004,69 +1007,83 @@ private fun CatalogApp(
             }
             AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
             when (page) {
-                0 -> Column(
-                    Modifier.padding(padding)
+                0 -> LazyColumn(
+                    modifier = Modifier
                         .fillMaxSize()
-                        .nestedScroll(topBarScrollConnection)
-                        .verticalScroll(rememberScrollState())
-                        .padding(bottom = navigationBarBottomSpace),
+                        .nestedScroll(topBarScrollConnection),
+                    contentPadding = PaddingValues(
+                        top = padding.calculateTopPadding(),
+                        bottom = navigationBarBottomSpace,
+                    ),
                 ) {
-                    CurrentProfileCard(activeProfile, profileRating) { activeProfile?.let { quickEditProfile = it } }
-                    BestTableHomeCard(
-                        bestCount = bestTablePreferences.bestCount,
-                        newCount = bestTablePreferences.newCount,
-                        onClick = { pushRoute(AppRoute.BestTable) },
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 16.dp),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-                    ) {
-                        RandomSongHomeCard(
-                            modifier = Modifier.weight(1f),
-                            onClick = { pushRoute(AppRoute.RandomSong) },
-                        )
-                        RecommendationHomeCard(
-                            modifier = Modifier.weight(1f),
-                            onClick = { pushRoute(AppRoute.Recommendations) },
+                    item {
+                        CurrentProfileCard(activeProfile, profileRating) { activeProfile?.let { quickEditProfile = it } }
+                    }
+                    item {
+                        BestTableHomeCard(
+                            bestCount = bestTablePreferences.bestCount,
+                            newCount = bestTablePreferences.newCount,
+                            onClick = { pushRoute(AppRoute.BestTable) },
                         )
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-                    ) {
-                        ScoreQueryHomeCard(
-                            modifier = Modifier.weight(1f),
-                            onClick = { pushRoute(AppRoute.ScoreQuery) },
-                        )
-                        ConstantTableHomeCard(
-                            modifier = Modifier.weight(1f).height(140.dp),
-                            onClick = { pushRoute(AppRoute.ConstantTable) },
-                        )
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                        ) {
+                            RandomSongHomeCard(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pushRoute(AppRoute.RandomSong) },
+                            )
+                            RecommendationHomeCard(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pushRoute(AppRoute.Recommendations) },
+                            )
+                        }
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-                    ) {
-                        PlateProgressHomeCard(
-                            modifier = Modifier.weight(1f),
-                            onClick = { pushRoute(AppRoute.PlateProgress) },
-                        )
-                        CommunityAliasHomeCard(
-                            modifier = Modifier.weight(1f),
-                            onClick = { pushRoute(AppRoute.CommunityAliases) },
-                        )
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                        ) {
+                            ScoreQueryHomeCard(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pushRoute(AppRoute.ScoreQuery) },
+                            )
+                            ConstantTableHomeCard(
+                                modifier = Modifier.weight(1f).height(140.dp),
+                                onClick = { pushRoute(AppRoute.ConstantTable) },
+                            )
+                        }
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-                    ) {
-                        CollectionsHomeCard(
-                            modifier = Modifier.weight(1f),
-                            onClick = { pushRoute(AppRoute.Collections) },
-                        )
-                        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                        ) {
+                            PlateProgressHomeCard(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pushRoute(AppRoute.PlateProgress) },
+                            )
+                            CommunityAliasHomeCard(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pushRoute(AppRoute.CommunityAliases) },
+                            )
+                        }
+                    }
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                        ) {
+                            CollectionsHomeCard(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pushRoute(AppRoute.Collections) },
+                            )
+                            androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
                 2 -> CompositionLocalProvider(LocalCatalogCoverTransition provides catalogCoverTransition) {
@@ -1132,6 +1149,7 @@ private fun CatalogApp(
                 smallTitleVisible = song == null || showTopTitle,
                 pageBackground = songDetailBackground ?: pageBackground,
                 blurEnabled = enableBlur,
+                progressiveBlurEnabled = LocalEnableTopBarProgressiveBlur.current,
                 largeTitle = false,
                 topBarScrollBehavior = MiuixScrollBehavior(),
                 navigationIcon = {
@@ -1210,6 +1228,9 @@ private fun CatalogApp(
                         onPaletteStyleChange = { scope.launch { themeRepository.setPaletteStyle(it) } },
                         onColorSpecChange = { scope.launch { themeRepository.setColorSpec(it) } },
                         onEnableBlurChange = { scope.launch { themeRepository.setBlur(it) } },
+                        onEnableTopBarProgressiveBlurChange = {
+                            scope.launch { themeRepository.setTopBarProgressiveBlur(it) }
+                        },
                         onEnableFloatingBottomBarChange = { scope.launch { themeRepository.setFloatingBar(it) } },
                         onEnableFloatingBottomBarBlurChange = { scope.launch { themeRepository.setFloatingBarBlur(it) } },
                         onEnablePredictiveBackChange = { scope.launch { themeRepository.setPredictiveBack(it) } },

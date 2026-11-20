@@ -39,6 +39,7 @@ import org.rhythmeta.chunithmd.ui.catalog.settledZoom
 
 private data object CoverGridHeaderKey
 
+
 /** Shared pinch/placement behavior. Callers retain their own item identity and presentation. */
 @Composable
 internal fun <T> ZoomableCoverGrid(

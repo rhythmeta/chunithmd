@@ -23,6 +23,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.ThemeController
 
 val LocalEnableBlur = staticCompositionLocalOf { true }
+val LocalEnableTopBarProgressiveBlur = staticCompositionLocalOf { true }
 val LocalEnableFloatingBottomBar = staticCompositionLocalOf { true }
 val LocalEnableFloatingBottomBarBlur = staticCompositionLocalOf { true }
 val LocalEnablePredictiveBack = staticCompositionLocalOf { true }
@@ -146,6 +147,11 @@ fun ChunithmdTheme(
         MiuixTheme(controller = resolvedController) {
             CompositionLocalProvider(
                 LocalEnableBlur provides (settings.enableBlur && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU),
+                LocalEnableTopBarProgressiveBlur provides (
+                    settings.enableTopBarProgressiveBlur &&
+                        settings.enableBlur &&
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                    ),
                 LocalEnableFloatingBottomBar provides settings.enableFloatingBottomBar,
                 LocalEnableFloatingBottomBarBlur provides (
                     settings.enableFloatingBottomBarBlur && settings.enableFloatingBottomBar &&

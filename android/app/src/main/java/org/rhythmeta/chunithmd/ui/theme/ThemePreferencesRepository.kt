@@ -28,6 +28,8 @@ class ThemePreferencesRepository(private val context: Context) {
             paletteStyle = style,
             colorSpec = spec.effectiveFor(style),
             enableBlur = values[BlurKey] ?: true,
+            enableTopBarProgressiveBlur = values[TopBarProgressiveBlurKey]
+                ?: DefaultAppThemeSettings.enableTopBarProgressiveBlur,
             enableFloatingBottomBar = values[FloatingBarKey] ?: true,
             enableFloatingBottomBarBlur = values[FloatingBarBlurKey] ?: true,
             enablePredictiveBack = values[PredictiveBackKey] ?: true,
@@ -41,6 +43,11 @@ class ThemePreferencesRepository(private val context: Context) {
     suspend fun setPaletteStyle(value: PaletteStyle) = update { it.copy(paletteStyle = value) }
     suspend fun setColorSpec(value: ColorSpec.SpecVersion) = update { it.copy(colorSpec = value) }
     suspend fun setBlur(value: Boolean) = update { it.copy(enableBlur = value) }
+
+    /** The stored value survives the master blur switch so re-enabling blur restores the choice. */
+    suspend fun setTopBarProgressiveBlur(value: Boolean) = update {
+        it.copy(enableTopBarProgressiveBlur = value)
+    }
     suspend fun setFloatingBar(value: Boolean) = update {
         it.copy(enableFloatingBottomBar = value, enableFloatingBottomBarBlur = it.enableFloatingBottomBarBlur && value)
     }
@@ -60,6 +67,7 @@ class ThemePreferencesRepository(private val context: Context) {
             values[PaletteStyleKey] = next.paletteStyle.toString()
             values[ColorSpecKey] = next.colorSpec.effectiveFor(next.paletteStyle).name
             values[BlurKey] = next.enableBlur
+            values[TopBarProgressiveBlurKey] = next.enableTopBarProgressiveBlur
             values[FloatingBarKey] = next.enableFloatingBottomBar
             values[FloatingBarBlurKey] = next.enableFloatingBottomBarBlur
             values[PredictiveBackKey] = next.enablePredictiveBack
@@ -73,6 +81,7 @@ class ThemePreferencesRepository(private val context: Context) {
         val PaletteStyleKey = stringPreferencesKey("palette_style")
         val ColorSpecKey = stringPreferencesKey("color_spec")
         val BlurKey = booleanPreferencesKey("enable_blur")
+        val TopBarProgressiveBlurKey = booleanPreferencesKey("enable_top_bar_progressive_blur")
         val FloatingBarKey = booleanPreferencesKey("enable_floating_bottom_bar")
         val FloatingBarBlurKey = booleanPreferencesKey("enable_floating_bottom_bar_blur")
         val PredictiveBackKey = booleanPreferencesKey("enable_predictive_back")

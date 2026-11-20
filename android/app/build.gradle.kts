@@ -52,7 +52,10 @@ android {
     namespace = "org.rhythmeta.chunithmd"
     buildFeatures { buildConfig = true }
     compileSdk {
-        version = release(37)
+        version = release(37) {
+            // Compose 1.13 (pulled in by MIUIX 0.9.5) requires the 37.1+ platform AAR metadata.
+            minorApiLevel = 2
+        }
     }
 
     defaultConfig {
