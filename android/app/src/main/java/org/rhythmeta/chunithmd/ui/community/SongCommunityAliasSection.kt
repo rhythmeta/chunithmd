@@ -13,6 +13,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -132,8 +133,16 @@ fun SongCommunityAliasSection(
                     cornerRadius = 12.dp,
                     insideMargin = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
                     colors = ButtonDefaults.buttonColors(
-                        color = accentColor.copy(alpha = 0.14f),
-                        contentColor = accentColor,
+                        // Follow the jacket palette in both states: the disabled button used to fall
+                        // back to the theme's grey, which hid the cover accent until a draft existed.
+                        color = accentColor,
+                        disabledColor = accentColor.copy(alpha = 0.35f),
+                        contentColor = if (accentColor.luminance() > 0.5f) Color.Black else Color.White,
+                        disabledContentColor = if (accentColor.luminance() > 0.5f) {
+                            Color.Black.copy(alpha = 0.6f)
+                        } else {
+                            Color.White.copy(alpha = 0.6f)
+                        },
                     ),
                 ) {
                     if (songState.submitting) {

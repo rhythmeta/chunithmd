@@ -547,6 +547,8 @@ private fun CatalogApp(
     var bestTableShareRequested by remember { mutableStateOf(false) }
     var bestTableSettingsRequested by remember { mutableStateOf(false) }
     var bestTableSelectedPage by rememberSaveable { mutableIntStateOf(0) }
+    var communityAliasSelectedPage by rememberSaveable { mutableIntStateOf(0) }
+    var communityAliasSwitcherVisible by rememberSaveable { mutableStateOf(true) }
     var bestTableSwitcherVisible by rememberSaveable { mutableStateOf(true) }
     var randomSongFilterRequested by remember { mutableStateOf(false) }
     var randomSongFilterActive by remember { mutableStateOf(false) }
@@ -653,6 +655,48 @@ private fun CatalogApp(
                             upwardDistance -= available.y
                             if (upwardDistance >= bestTableSwitcherHideThreshold) {
                                 bestTableSwitcherVisible = false
+                                upwardDistance = 0f
+                            }
+                        } else {
+                            upwardDistance = 0f
+                        }
+                    }
+                }
+                return super.onPreScroll(available, source)
+            }
+        }
+    }
+    val communityAliasSwitcherShowThreshold = with(LocalDensity.current) { 56.dp.toPx() }
+    val communityAliasSwitcherHideThreshold = with(LocalDensity.current) { 36.dp.toPx() }
+    val communityAliasSwitcherScrollConnection = remember(
+        communityAliasSwitcherShowThreshold,
+        communityAliasSwitcherHideThreshold,
+    ) {
+        object : NestedScrollConnection {
+            private var downwardDistance = 0f
+            private var upwardDistance = 0f
+
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (source != NestedScrollSource.UserInput) return super.onPreScroll(available, source)
+                when {
+                    available.y > 0f -> {
+                        upwardDistance = 0f
+                        if (communityAliasSwitcherVisible) {
+                            downwardDistance = 0f
+                        } else {
+                            downwardDistance += available.y
+                            if (downwardDistance >= communityAliasSwitcherShowThreshold) {
+                                communityAliasSwitcherVisible = true
+                                downwardDistance = 0f
+                            }
+                        }
+                    }
+                    available.y < 0f -> {
+                        downwardDistance = 0f
+                        if (communityAliasSwitcherVisible) {
+                            upwardDistance -= available.y
+                            if (upwardDistance >= communityAliasSwitcherHideThreshold) {
+                                communityAliasSwitcherVisible = false
                                 upwardDistance = 0f
                             }
                         } else {
@@ -833,6 +877,7 @@ private fun CatalogApp(
     fun pushRoute(route: AppRoute) {
         if (route == AppRoute.Recommendations) recommendationSwitcherVisible = true
         if (route == AppRoute.BestTable) bestTableSwitcherVisible = true
+        if (route == AppRoute.CommunityAliases) communityAliasSwitcherVisible = true
         if (navBackStack.lastOrNull() != route) {
             navBackStack.add(route)
         }
@@ -1007,6 +1052,13 @@ private fun CatalogApp(
                         interactionSource = searchInteractionSource,
                     )
                 }
+                if (page == 16) {
+                    org.rhythmeta.chunithmd.ui.community.CommunityAliasPageSwitcher(
+                        selectedPage = communityAliasSelectedPage,
+                        visible = communityAliasSwitcherVisible,
+                        onSelectedPageChange = { communityAliasSelectedPage = it },
+                    )
+                }
                 if (page == 7) {
                     org.rhythmeta.chunithmd.ui.best.BestTablePageSwitcher(
                         selectedPage = bestTableSelectedPage,
@@ -1061,6 +1113,34 @@ private fun CatalogApp(
                 11 -> constantTableTopBarScrollBehavior
                 else -> settingsTopBarScrollBehavior
             }
+            // Home's Best card shows the counts the rating actually used, not the capacity setting.
+            val homeBestSummary by produceState<org.rhythmeta.chunithmd.shared.PlayerRatingSummary?>(
+                null,
+                page,
+                bundle,
+                profileScores,
+                activeProfile?.server,
+                bestTablePreferences.bestCount,
+                bestTablePreferences.newCount,
+            ) {
+                val catalog = bundle
+                value = if (page != 0 || catalog == null) {
+                    null
+                } else {
+                    withContext(Dispatchers.Default) {
+                        val entries = buildBestTableEntries(
+                            catalog,
+                            profileScores,
+                            activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
+                        )
+                        calculatePlayerRating(
+                            entries.map { RatingChartEntry(it.chartId, it.songId, it.rating, it.isNew) },
+                            bestSlotCount = bestTablePreferences.bestCount,
+                            newSlotCount = bestTablePreferences.newCount,
+                        )
+                    }
+                }
+            }
             AppFrame(page, topBarScrollBehavior) { padding, topBarScrollConnection ->
             when (page) {
                 0 -> LazyColumn(
@@ -1077,8 +1157,8 @@ private fun CatalogApp(
                     }
                     item {
                         BestTableHomeCard(
-                            bestCount = bestTablePreferences.bestCount,
-                            newCount = bestTablePreferences.newCount,
+                            bestCount = homeBestSummary?.best30?.size ?: bestTablePreferences.bestCount,
+                            newCount = homeBestSummary?.new20?.size ?: bestTablePreferences.newCount,
                             onClick = { pushRoute(AppRoute.BestTable) },
                         )
                     }
@@ -1355,6 +1435,8 @@ private fun CatalogApp(
                     localJacketPath = repository::localJacketPath,
                     contentTopPadding = padding.calculateTopPadding(),
                     topBarScrollConnection = connection,
+                    selectedPage = communityAliasSelectedPage,
+                    switcherScrollConnection = communityAliasSwitcherScrollConnection,
                     onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
                     onLogin = { pushRoute(AppRoute.Account) },
                 )

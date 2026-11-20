@@ -42,7 +42,14 @@ class CommunityAliasStore(
             accountGeneration++
             personalRevision++
             boardOffset = 0
-            mutableState.update { CommunityAliasState(accountId = api.accountId, approvedAliases = it.approvedAliases, syncError = it.syncError) }
+            mutableState.update {
+                CommunityAliasState(
+                    accountId = api.accountId,
+                    approvedAliases = it.approvedAliases,
+                    approvedItems = it.approvedItems,
+                    syncError = it.syncError,
+                )
+            }
         }
         return AccountKey(api.accountId, accountGeneration)
     }
@@ -78,11 +85,17 @@ class CommunityAliasStore(
                 api.request("$Base/aliases:sync", authenticated = false),
             )
             check(snapshot.complete) { tr("社区别名同步不完整，请重试。") }
-            val aliases = snapshot.rows.filter { it.status == "approved" }
+            val approvedRows = snapshot.rows
+                .filter { it.status == "approved" }
+                .map { it.copy(aliasText = it.aliasText.trim()) }
+                .filter { it.aliasText.isNotEmpty() }
+            val aliases = approvedRows
                 .groupBy { it.songIdentifier }.mapValues { (_, rows) -> rows.map { it.aliasText } }
                 .let { mergeCommunityAliases(it) }
             cache.write(aliases)
-            mutableState.update { it.copy(approvedAliases = aliases, syncError = null) }
+            mutableState.update {
+                it.copy(approvedAliases = aliases, approvedItems = approvedRows, syncError = null)
+            }
             lastSync = nowMillis()
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { mutableState.update { it.copy(syncError = errorMessage(failure)) } }

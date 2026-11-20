@@ -49,7 +49,13 @@ internal data class CommunityDailyCount(val count: Int)
 @Serializable
 internal data class CommunityVoteResult(val candidateId: String, val supportCount: Int, val opposeCount: Int, val myVote: Int? = null)
 @Serializable
-internal data class CommunityApprovedAlias(val songIdentifier: String, val aliasText: String, val status: String = "approved")
+data class CommunityApprovedAlias(
+    val songIdentifier: String,
+    val aliasText: String,
+    val status: String = "approved",
+    val candidateId: String = "",
+    val approvedAt: String? = null,
+)
 @Serializable
 internal data class CommunityAliasSnapshot(val rows: List<CommunityApprovedAlias>, val complete: Boolean = false)
 
@@ -67,6 +73,7 @@ data class SongAliasState(
 data class CommunityAliasState(
     val accountId: String? = null,
     val approvedAliases: Map<String, List<String>> = emptyMap(),
+    val approvedItems: List<CommunityApprovedAlias> = emptyList(),
     val personalAliases: Map<String, List<String>> = emptyMap(),
     val songs: Map<String, SongAliasState> = emptyMap(),
     val dailyUsed: Int? = null,

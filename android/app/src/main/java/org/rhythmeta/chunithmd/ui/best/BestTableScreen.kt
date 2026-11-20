@@ -463,12 +463,14 @@ fun BestTableScreen(
                                 BestCapacitySlider(
                                     label = tr("旧曲"),
                                     value = bestCount,
+                                    snapValue = BestTablePreferences.DEFAULT_BEST_COUNT,
                                     onValueChange = { bestCountText = it.toString() },
                                     onCommit = { scope.launch { preferencesRepository.setCapacity(bestCount, newCount) } },
                                 )
                                 BestCapacitySlider(
                                     label = tr("新曲"),
                                     value = newCount,
+                                    snapValue = BestTablePreferences.DEFAULT_NEW_COUNT,
                                     onValueChange = { newCountText = it.toString() },
                                     onCommit = { scope.launch { preferencesRepository.setCapacity(bestCount, newCount) } },
                                 )
@@ -592,6 +594,7 @@ private val RankFilterOrder = listOf("SSS+", "SSS", "SS+", "SS", "S+", "S", "AAA
 private fun BestCapacitySlider(
     label: String,
     value: Int,
+    snapValue: Int,
     onValueChange: (Int) -> Unit,
     onCommit: () -> Unit,
 ) {
@@ -615,6 +618,9 @@ private fun BestCapacitySlider(
             onValueChange = { onValueChange(it.roundToInt()) },
             onValueChangeFinished = onCommit,
             valueRange = BestTablePreferences.MIN_COUNT.toFloat()..BestTablePreferences.MAX_COUNT.toFloat(),
+            keyPoints = listOf(snapValue.toFloat()),
+            showKeyPoints = true,
+            magnetThreshold = 0.03f,
         )
     }
 }
