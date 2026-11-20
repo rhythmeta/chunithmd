@@ -5116,5 +5116,11 @@
     "ja": "自分の投稿",
     "zh-Hans": "我投稿的",
     "zh-Hant": "我投稿的"
+  },
+  "查看 Best {0} 成绩表": {
+    "en": "View Best {0} scores",
+    "ja": "Best {0} のスコアを表示",
+    "zh-Hans": "查看 Best {0} 成绩表",
+    "zh-Hant": "查看 Best {0} 成績表"
   }
 }

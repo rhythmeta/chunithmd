@@ -621,6 +621,7 @@ private fun BestCapacitySlider(
             keyPoints = listOf(snapValue.toFloat()),
             showKeyPoints = true,
             magnetThreshold = 0.03f,
+            hapticEffect = top.yukonga.miuix.kmp.basic.SliderDefaults.SliderHapticEffect.Step,
         )
     }
 }
@@ -1158,7 +1159,11 @@ fun BestTableHomeCard(
             )
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(tr("查看 Best 50 成绩表"), style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold)
+                Text(
+                    tr("查看 Best {0} 成绩表", bestCount + newCount),
+                    style = MiuixTheme.textStyles.body1,
+                    fontWeight = FontWeight.Bold,
+                )
                 Text(
                     tr("基于 B{0} + N{1} 计算的玩家 Rating", bestCount, newCount),
                     style = MiuixTheme.textStyles.footnote2,
