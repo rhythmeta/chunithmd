@@ -36,6 +36,7 @@ fun buildBestTableEntries(
     records: Iterable<ScoreRecord>,
     activeServer: ProfileServer,
     selectedVersion: String? = null,
+    theoretical: Boolean = false,
 ): List<BestTableEntry> {
     val bestScores = records.groupBy(ScoreRecord::sheetKey)
         .mapValues { (_, values) -> values.bestScoreSummary() }
@@ -53,7 +54,8 @@ fun buildBestTableEntries(
             releasedBySelectedVersion && (selectedVersion != null || song.isSheetPlayableIn(sheet, activeServer.wireValue))
         }.mapNotNull { sheet ->
             val key = song.sheetKey(sheet)
-            val record = bestScores[key] ?: return@mapNotNull null
+            val record = bestScores[key]
+            if (record == null && !theoretical) return@mapNotNull null
             val constant = if (activeServer == ProfileServer.Cn) {
                 song.regionOverrides["cn"]?.charts?.get("${sheet.type}:${sheet.difficulty}")?.levelValue
                     ?: sheet.internalLevelValue
@@ -61,7 +63,8 @@ fun buildBestTableEntries(
             } else {
                 sheet.internalLevelValue ?: sheet.levelValue
             } ?: return@mapNotNull null
-            val rating = calculateSingleRating(constant, record.score)
+            val score = if (theoretical) TheoreticalBestScore else record?.score ?: return@mapNotNull null
+            val rating = calculateSingleRating(constant, score)
             if (rating <= 0.0) return@mapNotNull null
             BestTableEntry(
                 chartId = key,
@@ -71,17 +74,20 @@ fun buildBestTableEntries(
                 type = sheet.type,
                 difficulty = sheet.difficulty,
                 constant = constant,
-                score = record.score,
-                rank = record.rank,
+                score = score,
+                rank = if (theoretical) "SSS+" else record?.rank.orEmpty(),
                 rating = rating,
                 isNew = latestVersion != null && song.version.equals(latestVersion, true),
-                clear = record.clear,
-                fullCombo = record.fullCombo,
-                fullChain = record.fullChain,
+                clear = if (theoretical) ClearType.Catastrophy.wireValue else record?.clear,
+                fullCombo = if (theoretical) FullComboType.AllJusticeCritical.wireValue else record?.fullCombo,
+                fullChain = if (theoretical) FullChainType.FullChain2.wireValue else record?.fullChain,
             )
         }
     }.sortedByDescending(BestTableEntry::rating)
 }
+
+/** Full score a theoretical rating assumes for every chart. */
+const val TheoreticalBestScore = 1_010_000
 
 data class RatingTableRow(
     val rank: String,

@@ -4990,5 +4990,113 @@
     "ja": "上部バーのぼかしを下に向かって徐々に弱めます",
     "zh-Hans": "顶栏的模糊强度由上而下逐渐减弱",
     "zh-Hant": "頂端列的模糊強度由上而下逐漸減弱"
+  },
+  "平均 {0}": {
+    "en": "Average {0}",
+    "ja": "平均 {0}",
+    "zh-Hans": "平均 {0}",
+    "zh-Hant": "平均 {0}"
+  },
+  "B{0} 占比 {1}%": {
+    "en": "B{0} share {1}%",
+    "ja": "B{0} 割合 {1}%",
+    "zh-Hans": "B{0} 占比 {1}%",
+    "zh-Hant": "B{0} 佔比 {1}%"
+  },
+  "N{0} 占比 {1}%": {
+    "en": "N{0} share {1}%",
+    "ja": "N{0} 割合 {1}%",
+    "zh-Hans": "N{0} 占比 {1}%",
+    "zh-Hant": "N{0} 佔比 {1}%"
+  },
+  "Best 表设置": {
+    "en": "Best table settings",
+    "ja": "Best 表の設定",
+    "zh-Hans": "Best 表设置",
+    "zh-Hant": "Best 表設定"
+  },
+  "已筛选": {
+    "en": "Filtered",
+    "ja": "絞り込み中",
+    "zh-Hans": "已筛选",
+    "zh-Hant": "已篩選"
+  },
+  "容量": {
+    "en": "Capacity",
+    "ja": "容量",
+    "zh-Hans": "容量",
+    "zh-Hant": "容量"
+  },
+  "Rank": {
+    "en": "Rank",
+    "ja": "Rank",
+    "zh-Hans": "Rank",
+    "zh-Hant": "Rank"
+  },
+  "理论 Best 表": {
+    "en": "Theoretical best table",
+    "ja": "理論値 Best 表",
+    "zh-Hans": "理论 Best 表",
+    "zh-Hant": "理論值 Best 表"
+  },
+  "按每张谱面 1,010,000 分计算 Rating": {
+    "en": "Rate every chart as a 1,010,000 score",
+    "ja": "全譜面を 1,010,000 点として Rating を計算",
+    "zh-Hans": "按每张谱面 1,010,000 分计算 Rating",
+    "zh-Hant": "依每張譜面 1,010,000 分計算 Rating"
+  },
+  "FULL COMBO": {
+    "en": "Full combo",
+    "ja": "フルコンボ",
+    "zh-Hans": "FULL COMBO",
+    "zh-Hant": "FULL COMBO"
+  },
+  "FULL CHAIN": {
+    "en": "Full chain",
+    "ja": "フルチェイン",
+    "zh-Hans": "FULL CHAIN",
+    "zh-Hant": "FULL CHAIN"
+  },
+  "完成": {
+    "en": "Done",
+    "ja": "完了",
+    "zh-Hans": "完成",
+    "zh-Hant": "完成"
+  },
+  "当前总计 {0} 首": {
+    "en": "Total {0}",
+    "ja": "合計 {0} 曲",
+    "zh-Hans": "当前总计 {0} 首",
+    "zh-Hant": "目前總計 {0} 首"
+  },
+  "理论 B50": {
+    "en": "Theoretical B50",
+    "ja": "理論値 B50",
+    "zh-Hans": "理论 B50",
+    "zh-Hant": "理論值 B50"
+  },
+  "显示当前版本的理论最高 Rating": {
+    "en": "Show the highest possible rating for the current version",
+    "ja": "現在のバージョンで到達できる最高 Rating を表示",
+    "zh-Hans": "显示当前版本的理论最高 Rating",
+    "zh-Hant": "顯示目前版本的理論最高 Rating"
+  },
+  "难度等级": {
+    "en": "Difficulty",
+    "ja": "難易度",
+    "zh-Hans": "难度等级",
+    "zh-Hant": "難度等級"
+  },
+  "{0} 首": {
+    "en": "{0}",
+    "ja": "{0} 曲",
+    "zh-Hans": "{0} 首",
+    "zh-Hant": "{0} 首"
+  },
+  "平均分数": {
+    "en": "Average score",
+    "ja": "平均スコア",
+    "zh-Hans": "平均分数",
+    "zh-Hant": "平均分數"
   }
 }

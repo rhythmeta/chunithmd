@@ -545,6 +545,9 @@ private fun CatalogApp(
     var catalogGridMode by rememberSaveable { mutableStateOf(false) }
     var profileCreateRequested by remember { mutableStateOf(false) }
     var bestTableShareRequested by remember { mutableStateOf(false) }
+    var bestTableSettingsRequested by remember { mutableStateOf(false) }
+    var bestTableSelectedPage by rememberSaveable { mutableIntStateOf(0) }
+    var bestTableSwitcherVisible by rememberSaveable { mutableStateOf(true) }
     var randomSongFilterRequested by remember { mutableStateOf(false) }
     var randomSongFilterActive by remember { mutableStateOf(false) }
     var recommendationSelectedPage by rememberSaveable { mutableIntStateOf(0) }
@@ -619,6 +622,48 @@ private fun CatalogApp(
     DisposableEffect(otogameController) { onDispose { otogameController.disconnect() } }
     val recommendationSwitcherShowThreshold = with(LocalDensity.current) { 56.dp.toPx() }
     val recommendationSwitcherHideThreshold = with(LocalDensity.current) { 36.dp.toPx() }
+    val bestTableSwitcherShowThreshold = with(LocalDensity.current) { 56.dp.toPx() }
+    val bestTableSwitcherHideThreshold = with(LocalDensity.current) { 36.dp.toPx() }
+    val bestTableSwitcherScrollConnection = remember(
+        bestTableSwitcherShowThreshold,
+        bestTableSwitcherHideThreshold,
+    ) {
+        object : NestedScrollConnection {
+            private var downwardDistance = 0f
+            private var upwardDistance = 0f
+
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (source != NestedScrollSource.UserInput) return super.onPreScroll(available, source)
+                when {
+                    available.y > 0f -> {
+                        upwardDistance = 0f
+                        if (bestTableSwitcherVisible) {
+                            downwardDistance = 0f
+                        } else {
+                            downwardDistance += available.y
+                            if (downwardDistance >= bestTableSwitcherShowThreshold) {
+                                bestTableSwitcherVisible = true
+                                downwardDistance = 0f
+                            }
+                        }
+                    }
+                    available.y < 0f -> {
+                        downwardDistance = 0f
+                        if (bestTableSwitcherVisible) {
+                            upwardDistance -= available.y
+                            if (upwardDistance >= bestTableSwitcherHideThreshold) {
+                                bestTableSwitcherVisible = false
+                                upwardDistance = 0f
+                            }
+                        } else {
+                            upwardDistance = 0f
+                        }
+                    }
+                }
+                return super.onPreScroll(available, source)
+            }
+        }
+    }
     val recommendationSwitcherScrollConnection = remember(
         recommendationSwitcherShowThreshold,
         recommendationSwitcherHideThreshold,
@@ -787,6 +832,7 @@ private fun CatalogApp(
 
     fun pushRoute(route: AppRoute) {
         if (route == AppRoute.Recommendations) recommendationSwitcherVisible = true
+        if (route == AppRoute.BestTable) bestTableSwitcherVisible = true
         if (navBackStack.lastOrNull() != route) {
             navBackStack.add(route)
         }
@@ -914,6 +960,9 @@ private fun CatalogApp(
                     }
                 }
                 if (page == 7) {
+                    MiuixIconButton(onClick = { bestTableSettingsRequested = true }) {
+                        MiuixIcon(Icons.Rounded.FilterList, contentDescription = tr("筛选"))
+                    }
                     MiuixIconButton(onClick = { bestTableShareRequested = true }) {
                         MiuixIcon(Icons.Rounded.IosShare, contentDescription = tr("分享 Best Table"))
                     }
@@ -956,6 +1005,13 @@ private fun CatalogApp(
                         backEnabled = searchFocused,
                         onExpandedChange = { searchExpanded = it },
                         interactionSource = searchInteractionSource,
+                    )
+                }
+                if (page == 7) {
+                    org.rhythmeta.chunithmd.ui.best.BestTablePageSwitcher(
+                        selectedPage = bestTableSelectedPage,
+                        visible = bestTableSwitcherVisible,
+                        onSelectedPageChange = { bestTableSelectedPage = it },
                     )
                 }
                 if (page == 9) {
@@ -1389,11 +1445,15 @@ private fun CatalogApp(
                     localJacketPath = repository::localJacketPath,
                     contentTopPadding = padding.calculateTopPadding(),
                     topBarScrollConnection = topBarScrollConnection,
+                    selectedPage = bestTableSelectedPage,
+                    switcherScrollConnection = bestTableSwitcherScrollConnection,
                     onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
                     preferencesRepository = bestTablePreferencesRepository,
                     profileName = activeProfile?.name,
                     shareRequested = bestTableShareRequested,
                     onShareRequestHandled = { bestTableShareRequested = false },
+                    settingsRequested = bestTableSettingsRequested,
+                    onSettingsRequestHandled = { bestTableSettingsRequested = false },
                 )
             }
         }
@@ -1649,7 +1709,7 @@ private fun CatalogApp(
     org.rhythmeta.chunithmd.ui.update.AppUpdateHost(
         viewModel = appUpdateViewModel,
         blocked = navBackStack.size > 1 || selectedTab !in listOf(0, 3) || filterOpen || sortOpen ||
-            profileCreateRequested || bestTableShareRequested || randomSongFilterRequested ||
+            profileCreateRequested || bestTableShareRequested || bestTableSettingsRequested || randomSongFilterRequested ||
             scoreQueryFilterOpen || constantTableFilterOpen || quickEditProfile != null,
     )
 
