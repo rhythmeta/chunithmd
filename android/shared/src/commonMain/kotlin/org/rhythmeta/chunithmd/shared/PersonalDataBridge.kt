@@ -222,6 +222,11 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
     @Throws(Exception::class)
     fun bestEntries(bundle: CatalogBundle): List<BestTableEntry> = read().let { buildBestTableEntries(bundle, records(it), server(it)) }
 
+    /** Returns every candidate chart so native clients can apply filters before selecting slots. */
+    @Throws(Exception::class)
+    fun allBestTableEntries(bundle: CatalogBundle, version: String?, theoretical: Boolean): List<BestTableEntry> =
+        read().let { buildBestTableEntries(bundle, records(it), server(it), version, theoretical) }
+
     @Throws(Exception::class)
     fun rating(bundle: CatalogBundle): PlayerRatingSummary = calculatePlayerRating(bestEntries(bundle).map { RatingChartEntry(it.chartId, it.songId, it.rating, it.isNew) })
 

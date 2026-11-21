@@ -5,6 +5,7 @@ struct BestTableRow: View {
     let entry: BestTableEntry
     @Environment(CatalogStore.self) private var catalog
     @Environment(SongNavigation.self) private var navigation
+    @Environment(\.colorScheme) private var colorScheme
     @State private var identity = UUID()
 
     var body: some View {
@@ -30,7 +31,9 @@ struct BestTableRow: View {
                 }.frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(entry.rating, format: .number.precision(.fractionLength(2)))
-                        .font(.system(size: 18, weight: .black, design: .rounded)).foregroundStyle(.orange)
+                        .font(.system(size: 18, weight: .black, design: .rounded))
+                        .foregroundStyle(ratingTierStyle(entry.rating))
+                        .brightness(colorScheme == .light ? -0.2 : 0)
                     Text(tr("定数 {0}", entry.constant.formatted(.number.precision(.fractionLength(1)))))
                         .font(.system(size: 11)).foregroundStyle(.secondary)
                 }.fixedSize()

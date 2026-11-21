@@ -4,6 +4,7 @@ data class BestTableEntry(
     val chartId: String,
     val songId: String,
     val title: String,
+    val category: String,
     val imageName: String,
     val type: String,
     val difficulty: String,
@@ -47,11 +48,15 @@ fun buildBestTableEntries(
 
     return bundle.catalog.songs.flatMap { song ->
         song.sheets.filter { sheet ->
+            // WORLD'S END charts are separate challenge charts and never participate in B50.
+            val isWorldsEnd = sheet.type.equals("we", ignoreCase = true) ||
+                sheet.difficulty.equals("we", ignoreCase = true) ||
+                sheet.difficulty.equals("world's end", ignoreCase = true)
             val songVersionIndex = song.version?.let { songVersion ->
                 bundle.catalog.versions.indexOfFirst { it.version.equals(songVersion, true) }
             }
             val releasedBySelectedVersion = selectedVersionIndex == null || songVersionIndex == null || songVersionIndex <= selectedVersionIndex
-            releasedBySelectedVersion && (selectedVersion != null || song.isSheetPlayableIn(sheet, activeServer.wireValue))
+            !isWorldsEnd && releasedBySelectedVersion && (selectedVersion != null || song.isSheetPlayableIn(sheet, activeServer.wireValue))
         }.mapNotNull { sheet ->
             val key = song.sheetKey(sheet)
             val record = bestScores[key]
@@ -70,6 +75,7 @@ fun buildBestTableEntries(
                 chartId = key,
                 songId = song.songId,
                 title = CatalogSongFormatter.displayTitle(song),
+                category = song.category,
                 imageName = song.imageName,
                 type = sheet.type,
                 difficulty = sheet.difficulty,
@@ -84,6 +90,24 @@ fun buildBestTableEntries(
             )
         }
     }.sortedByDescending(BestTableEntry::rating)
+}
+
+/** Applies the Best-table filters before B/N slots are selected. */
+fun filterBestTableEntries(
+    entries: Iterable<BestTableEntry>,
+    difficultyFilter: List<String> = emptyList(),
+    categoryFilter: List<String> = emptyList(),
+    rankFilter: List<String> = emptyList(),
+    clearFilter: List<String> = emptyList(),
+    comboFilter: List<String> = emptyList(),
+    chainFilter: List<String> = emptyList(),
+): List<BestTableEntry> = entries.filter { entry ->
+    (difficultyFilter.isEmpty() || entry.difficulty.lowercase() in difficultyFilter) &&
+        (categoryFilter.isEmpty() || entry.category in categoryFilter) &&
+        (rankFilter.isEmpty() || entry.rank.uppercase() in rankFilter) &&
+        (clearFilter.isEmpty() || entry.clear in clearFilter) &&
+        (comboFilter.isEmpty() || entry.fullCombo in comboFilter) &&
+        (chainFilter.isEmpty() || entry.fullChain in chainFilter)
 }
 
 /** Full score a theoretical rating assumes for every chart. */

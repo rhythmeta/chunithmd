@@ -79,6 +79,26 @@ class BestTableCalculatorTest {
     }
 
     @Test
+    fun bestTableExcludesWorldsEndCharts() {
+        val bundle = CatalogBundle(1, Catalog(songs = listOf(
+            CatalogSong("normal", "Normal", sheets = listOf(
+                CatalogSheet("std", "master", internalLevelValue = 13.0, regions = mapOf("jp" to true)),
+            )),
+            CatalogSong("worlds-end", "World's End", sheets = listOf(
+                CatalogSheet("we", "world's end", internalLevelValue = 14.0, regions = mapOf("jp" to true)),
+            )),
+        )))
+        val records = listOf(
+            ScoreRecord("normal-score", "p", "normal", "normal:std:master", 1_009_000, "SSS+", 1),
+            ScoreRecord("worlds-end-score", "p", "worlds-end", "worlds-end:we:world's end", 1_009_000, "SSS+", 1),
+        )
+
+        val entries = buildBestTableEntries(bundle, records, ProfileServer.Jp)
+
+        assertEquals(listOf("normal:std:master"), entries.map(BestTableEntry::chartId))
+    }
+
+    @Test
     fun noteBreakdownUsesChunithmNoteWeights() {
         val rows = CatalogNoteCounts(tap = 1, hold = 1, slide = 1, air = 1, flick = 1).breakdown()
         assertEquals(listOf("TAP", "HOLD", "SLIDE", "AIR", "FLICK"), rows.map(NoteCountBreakdown::label))
