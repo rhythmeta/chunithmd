@@ -41,12 +41,14 @@ import org.rhythmeta.chunithmd.collection.SongCollection
 import org.rhythmeta.chunithmd.shared.CatalogSheet
 import org.rhythmeta.chunithmd.shared.CatalogSong
 import org.rhythmeta.chunithmd.shared.CatalogSongFormatter
+import org.rhythmeta.chunithmd.shared.ScoreRecord
+import org.rhythmeta.chunithmd.shared.progressSheets
+import org.rhythmeta.chunithmd.shared.sheetKey
 import org.rhythmeta.chunithmd.ui.catalog.*
 import org.rhythmeta.chunithmd.ui.components.ZoomableCoverImage
 import org.rhythmeta.chunithmd.ui.components.squircleShape
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
-import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -94,6 +96,8 @@ internal fun CollectionChartCard(
     grid: Boolean,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
+    scoresBySheetKey: Map<String, ScoreRecord>,
+    region: String,
     onOpen: () -> Unit,
     onDelete: () -> Unit,
     gridImageSize: Int? = null,
@@ -106,6 +110,8 @@ internal fun CollectionChartCard(
     Box(Modifier.fillMaxWidth().then(if (filler) Modifier.clearAndSetSemantics {} else Modifier)) {
         val song = card.song
         val sheet = card.sheet
+        // Collections show every playable difficulty of the song, each with its own best score.
+        val dotSheets = remember(song, region) { song?.progressSheets(region).orEmpty() }
         if (song == null || sheet == null) {
             Card(Modifier.fillMaxWidth().combinedClickable(enabled = !filler, onClick = { if (song != null) onOpen() }, onLongClick = { menuExpanded = true }), cornerRadius = 14.dp, insideMargin = PaddingValues(14.dp)) {
                 Text(card.entry.songId)
@@ -114,6 +120,13 @@ internal fun CollectionChartCard(
         } else if (grid) {
             val coverNavigation = rememberSongCoverNavigation(song.songId, onOpen, 8.dp, key = card.entry.key, enabled = !filler,
                 cardColor = MiuixTheme.colorScheme.surfaceVariant)
+            val darkTheme = MiuixTheme.colorScheme.background.luminance() < 0.5f
+            val badgeBackground = if (darkTheme) Color(0xFFF9F7FC).copy(alpha = 0.88f)
+                else MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.88f)
+            val badge = remember(dotSheets, scoresBySheetKey, gridColumns, badgeBackground) {
+                CatalogProgressBadgeData(dotSheets.map { it to scoresBySheetKey[song.sheetKey(it)] },
+                    gridColumns, badgeBackground)
+            }
             Box(
                 Modifier.fillMaxWidth().aspectRatio(1f).then(coverNavigation.modifier).clip(squircleShape(8.dp))
                     .semantics { contentDescription = "${CatalogSongFormatter.displayTitle(song)} ${sheet.difficulty.uppercase()}" }
@@ -122,23 +135,22 @@ internal fun CollectionChartCard(
                 CollectionCover(song, jacketBaseUrl, localJacketPath, Modifier.fillMaxSize(), gridImageSize, animateCoverChanges,
                     onPainterChanged = coverNavigation::onPainter, fallbackPainter = coverNavigation.source.painter)
                 SongCoverDecorations(coverNavigation) {
-                    Row(
-                        Modifier.align(Alignment.BottomEnd).padding(if (gridColumns == 3) 6.dp else 4.dp)
-                            .graphicsLayer {
-                                scaleX = progressScale()
-                                scaleY = scaleX
-                                transformOrigin = TransformOrigin(1f, 1f)
-                            }
-                            .squircleSurface(
-                                if (MiuixTheme.colorScheme.background.luminance() < 0.5f) Color(0xFFF9F7FC).copy(alpha = 0.88f)
-                                else MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.88f), 50.dp,
-                            ).padding(horizontal = if (gridColumns == 3) 6.dp else 4.dp,
-                                vertical = if (gridColumns == 3) 3.dp else 2.dp),
-                    ) { SongScoreProgressDot(sheet, null) }
+                    if (dotSheets.isNotEmpty()) {
+                        CatalogProgressBadge(
+                            badge,
+                            Modifier.align(Alignment.BottomEnd).padding(if (gridColumns == 3) 6.dp else 4.dp)
+                                .graphicsLayer {
+                                    scaleX = progressScale()
+                                    scaleY = scaleX
+                                    transformOrigin = TransformOrigin(1f, 1f)
+                                },
+                        )
+                    }
                 }
             }
         } else {
-            SongCard(song, jacketBaseUrl, localJacketPath, emptyMap(), onClick = onOpen, actualSheet = sheet, onLongClick = { menuExpanded = true })
+            SongCard(song, jacketBaseUrl, localJacketPath, scoresBySheetKey, onClick = onOpen,
+                actualSheet = sheet, progressSheets = dotSheets, onLongClick = { menuExpanded = true })
         }
         CollectionContextMenu(menuExpanded && !filler, { menuExpanded = false }) {
             CollectionMenuItem(tr("移出收藏夹"), Icons.Rounded.DeleteOutline, destructive = true) { menuExpanded = false; onDelete() }

@@ -39,6 +39,7 @@ fun SongCollectionsScreen(
     collectionId: String? = null,
     bundle: CatalogBundle?,
     activeServer: ProfileServer,
+    scoresBySheetKey: Map<String, ScoreRecord>,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
     contentTopPadding: Dp,
@@ -162,6 +163,7 @@ fun SongCollectionsScreen(
                 cards = cards, state = gridState, modifier = scrollModifier,
                 contentTopPadding = contentTopPadding,
                 jacketBaseUrl = jacketBaseUrl, localJacketPath = localJacketPath,
+                scoresBySheetKey = scoresBySheetKey, region = activeServer.wireValue,
                 onOpen = { onOpenSong(it.entry.songId) },
                 onDelete = { card -> perform { repository.setMembership(collectionId, card.entry, false) } },
             )
@@ -172,6 +174,7 @@ fun SongCollectionsScreen(
             ) {
                 items(cards, key = { it.entry.key }) { card ->
                     CollectionChartCard(card, false, jacketBaseUrl, localJacketPath,
+                        scoresBySheetKey = scoresBySheetKey, region = activeServer.wireValue,
                         onOpen = { onOpenSong(card.entry.songId) },
                         onDelete = { perform { repository.setMembership(collectionId, card.entry, false) } })
                 }

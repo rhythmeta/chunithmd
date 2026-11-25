@@ -23,7 +23,7 @@ struct SongTile: View {
                 }
                 .overlay(alignment: .bottomTrailing) {
                     if showsProgress || showsDifficultyBorder {
-                        SongProgressDots(song: song, preferredSheet: preferredSheet)
+                        SongProgressDots(song: song)
                             .padding(.horizontal, radius > 6 ? 6 : 4).padding(.vertical, radius > 6 ? 3 : 2)
                             .background(.ultraThickMaterial, in: .capsule).environment(\.colorScheme, .light)
                             .padding(radius > 6 ? 6 : 4)

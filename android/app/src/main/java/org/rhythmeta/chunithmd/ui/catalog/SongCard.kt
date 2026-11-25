@@ -58,6 +58,7 @@ internal fun SongCard(
     scoresBySheetKey: Map<String, ScoreRecord>,
     onClick: () -> Unit,
     actualSheet: CatalogSheet? = null,
+    progressSheets: List<CatalogSheet>? = null,
     onLongClick: (() -> Unit)? = null,
     onTransitionClick: ((CatalogListTransitionSource) -> Unit)? = null,
 ) {
@@ -87,10 +88,10 @@ internal fun SongCard(
         MiuixTheme.colorScheme.surfaceContainer.copy(alpha = if (isDark) 0.82f else 0.88f),
         accentColor, hasWorldsEnd, hasUltima,
     )
-    val progressSheets = actualSheet?.let(::listOf) ?: song.progressSheets()
+    val dotSheets = progressSheets ?: actualSheet?.let(::listOf) ?: song.progressSheets()
     val badges = CatalogListBadgesData(CatalogVersionFormatter.badge(song.version),
         Color(badgeBackground.toInt()), Color(badgeForeground.toInt()),
-        progressSheets.map { it to scoresBySheetKey[song.sheetKey(it)] })
+        dotSheets.map { it to scoresBySheetKey[song.sheetKey(it)] })
     SideEffect {
         transitionSource?.appearance = appearance
         transitionSource?.badges = badges

@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import org.rhythmeta.chunithmd.shared.ScoreRecord
 import org.rhythmeta.chunithmd.ui.catalog.CatalogPhotoGridState
 import org.rhythmeta.chunithmd.ui.components.ZoomableCoverGrid
 
@@ -17,6 +18,8 @@ internal fun CollectionChartGrid(
     contentTopPadding: Dp,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
+    scoresBySheetKey: Map<String, ScoreRecord>,
+    region: String,
     onOpen: (CollectionCard) -> Unit,
     onDelete: (CollectionCard) -> Unit,
 ) {
@@ -26,6 +29,7 @@ internal fun CollectionChartGrid(
     } }
     ZoomableCoverGrid(modifier, contentTopPadding, cards, state, { it.entry.key }) { card, columns, imageSize, filler ->
         CollectionChartCard(card, true, jacketBaseUrl, localJacketPath,
+            scoresBySheetKey = scoresBySheetKey, region = region,
             onOpen = { onOpen(card) }, onDelete = { onDelete(card) },
             gridImageSize = imageSize, gridColumns = columns,
             animateCoverChanges = state.transforming, progressScale = progressScale, filler = filler)
