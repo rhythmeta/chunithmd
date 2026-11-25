@@ -21,6 +21,7 @@ struct CommunityViewState: Decodable {
         let error: String?
     }
     var accountId: String?
+    var isAdmin = false
     var dailyUsed: Int?
     var approvedAliases: [String: [String]] = [:]
     var personalAliases: [String: [String]] = [:]
@@ -29,6 +30,8 @@ struct CommunityViewState: Decodable {
     var boardLoading = false
     var boardHasMore = true
     var votingId: String?
+    var moderatingId: String?
+    var updatingId: String? { votingId ?? moderatingId }
     var boardError: String?
     var syncError: String?
 }

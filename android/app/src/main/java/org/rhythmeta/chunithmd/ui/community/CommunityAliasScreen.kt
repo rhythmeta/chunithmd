@@ -47,6 +47,7 @@ import org.rhythmeta.chunithmd.ui.components.SquircleExtension
 import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -122,18 +123,27 @@ fun CommunityAliasScreen(
                             CommunitySongHeader(songsById[songId], songId, candidates.size, jacketBaseUrl, localJacketPath, onOpenSong)
                         }
                         items(candidates, key = { "candidate:${it.candidateId}" }) { candidate ->
-                            CommunityCandidateCard(candidate, state.authenticated && state.votingId == null && !state.boardLoading, state.votingId == candidate.candidateId) {
-                                support -> scope.launch {
-                                    store.vote(candidate.candidateId, support)
-                                    if (store.state.value.accountId == state.accountId && store.state.value.boardError == null) {
-                                        snackbar.showSnackbar(tr("投票已更新"), duration = SnackbarDuration.Short)
-                                    }
-                                }
+                            key(state.accountId) {
+                                CommunityCandidateCard(
+                                    candidate = candidate,
+                                    enabled = state.authenticated && state.updatingId == null && !state.boardLoading,
+                                    updating = state.updatingId == candidate.candidateId,
+                                    isAdmin = state.isAdmin,
+                                    onModerate = { decision -> scope.launch { store.moderate(candidate.candidateId, decision) } },
+                                    onVote = { support ->
+                                        scope.launch {
+                                            store.vote(candidate.candidateId, support)
+                                            if (store.state.value.accountId == state.accountId && store.state.value.boardError == null) {
+                                                snackbar.showSnackbar(tr("投票已更新"), duration = SnackbarDuration.Short)
+                                            }
+                                        }
+                                    },
+                                )
                             }
                         }
                     }
                     if (state.boardHasMore && state.board.isNotEmpty()) item("more") {
-                        Button(enabled = !state.boardLoading && state.votingId == null, onClick = { scope.launch { store.refreshBoard(loadMore = true) } }, modifier = Modifier.fillMaxWidth()) {
+                        Button(enabled = !state.boardLoading && state.updatingId == null, onClick = { scope.launch { store.refreshBoard(loadMore = true) } }, modifier = Modifier.fillMaxWidth()) {
                             Text(if (state.boardLoading) tr("正在加载…") else tr("加载更多"))
                         }
                     }
@@ -215,7 +225,15 @@ private fun CommunitySongHeader(
 }
 
 @Composable
-private fun CommunityCandidateCard(candidate: CommunityCandidate, enabled: Boolean, voting: Boolean, onVote: (Boolean) -> Unit) {
+internal fun CommunityCandidateCard(
+    candidate: CommunityCandidate,
+    enabled: Boolean,
+    updating: Boolean,
+    isAdmin: Boolean,
+    onModerate: (CommunityAliasModeration) -> Unit,
+    onVote: (Boolean) -> Unit,
+) {
+    var pending by remember(candidate.candidateId, isAdmin, enabled) { mutableStateOf<CommunityAliasModeration?>(null) }
     Card(
         Modifier.fillMaxWidth(), cornerRadius = 14.dp, insideMargin = PaddingValues(14.dp),
         colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
@@ -226,35 +244,71 @@ private fun CommunityCandidateCard(candidate: CommunityCandidate, enabled: Boole
                 Text(tr("截止 {0}", formatCommunityDeadline(candidate.voteCloseAt)), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                VoteButton(true, candidate.supportCount, candidate.myVote == 1, enabled) { onVote(true) }
-                VoteButton(false, candidate.opposeCount, candidate.myVote == -1, enabled) { onVote(false) }
-                if (voting) CircularProgressIndicator(size = 24.dp, strokeWidth = 2.dp)
+                VoteButton(true, candidate.supportCount, candidate.myVote == 1, enabled,
+                    onClick = { onVote(true) },
+                    onLongPress = if (isAdmin) ({ pending = CommunityAliasModeration.Approved }) else null)
+                VoteButton(false, candidate.opposeCount, candidate.myVote == -1, enabled,
+                    onClick = { onVote(false) },
+                    onLongPress = if (isAdmin) ({ pending = CommunityAliasModeration.Rejected }) else null)
+                if (updating) CircularProgressIndicator(size = 24.dp, strokeWidth = 2.dp)
+            }
+        }
+    }
+    pending?.let { decision ->
+        val approve = decision == CommunityAliasModeration.Approved
+        WindowDialog(
+            show = true,
+            title = if (approve) tr("直接通过这个别名？") else tr("直接拒绝这个别名？"),
+            summary = candidate.aliasText,
+            onDismissRequest = { pending = null },
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(onClick = { pending = null }, modifier = Modifier.weight(1f)) { Text(tr("取消")) }
+                Button(
+                    onClick = { pending = null; onModerate(decision) },
+                    modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColorsPrimary(),
+                ) { Text(if (approve) tr("设为通过") else tr("设为拒绝")) }
             }
         }
     }
 }
 
 @Composable
-private fun VoteButton(support: Boolean, count: Int, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
+private fun VoteButton(
+    support: Boolean, count: Int, selected: Boolean, enabled: Boolean,
+    onClick: () -> Unit, onLongPress: (() -> Unit)?,
+) {
     val accent = if (support) Color(0xFF36A65C) else Color(0xFFD65C5C)
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        colors = ButtonDefaults.buttonColors(
-            color = if (selected) accent else accent.copy(alpha = 0.12f),
-            contentColor = if (selected) Color.White else accent,
+    val colors = ButtonDefaults.buttonColors(
+        color = if (selected) accent else accent.copy(alpha = 0.12f),
+        contentColor = if (selected) Color.White else accent,
+    )
+    Card(
+        onClick = onClick.takeIf { enabled },
+        onLongPress = onLongPress.takeIf { enabled },
+        cornerRadius = ButtonDefaults.CornerRadius,
+        colors = CardDefaults.defaultColors(
+            color = if (enabled) colors.color else colors.disabledColor,
+            contentColor = if (enabled) colors.contentColor else colors.disabledContentColor,
         ),
-        insideMargin = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        showIndication = true,
+        insideMargin = PaddingValues(0.dp),
     ) {
-        Icon(if (support) Icons.Rounded.ThumbUp else Icons.Rounded.ThumbDown, null, Modifier.size(17.dp))
-        Spacer(Modifier.width(5.dp))
-        val label = when {
-            selected && support -> tr("取消支持")
-            selected -> tr("取消反对")
-            support -> tr("支持")
-            else -> tr("反对")
+        Row(
+            modifier = Modifier.defaultMinSize(ButtonDefaults.MinWidth, ButtonDefaults.MinHeight)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(if (support) Icons.Rounded.ThumbUp else Icons.Rounded.ThumbDown, null, Modifier.size(17.dp))
+            Spacer(Modifier.width(5.dp))
+            val label = when {
+                selected && support -> tr("取消支持")
+                selected -> tr("取消反对")
+                support -> tr("支持")
+                else -> tr("反对")
+            }
+            Text("$label $count")
         }
-        Text("$label $count")
     }
 }
 

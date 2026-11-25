@@ -26,7 +26,8 @@ class CommunityAliasStore(
 ) {
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
     private val mutableState = MutableStateFlow(CommunityAliasState(
-        accountId = api.accountId,
+        accountId = api.account.id,
+        isAdmin = api.account.isAdmin,
         approvedAliases = runCatching { mergeCommunityAliases(cache.read()) }.getOrDefault(emptyMap()),
     ))
     val state = mutableState.asStateFlow()
@@ -38,20 +39,24 @@ class CommunityAliasStore(
 
     private data class AccountKey(val id: String?, val generation: Long)
     private fun account(): AccountKey {
-        if (mutableState.value.accountId != api.accountId) {
+        val current = api.account
+        if (mutableState.value.accountId != current.id) {
             accountGeneration++
             personalRevision++
             boardOffset = 0
             mutableState.update {
                 CommunityAliasState(
-                    accountId = api.accountId,
+                    accountId = current.id,
+                    isAdmin = current.isAdmin,
                     approvedAliases = it.approvedAliases,
                     approvedItems = it.approvedItems,
                     syncError = it.syncError,
                 )
             }
+        } else if (mutableState.value.isAdmin != current.isAdmin) {
+            mutableState.update { it.copy(isAdmin = current.isAdmin) }
         }
-        return AccountKey(api.accountId, accountGeneration)
+        return AccountKey(current.id, accountGeneration)
     }
     private fun isCurrent(key: AccountKey): Boolean = key == account()
 
@@ -178,7 +183,7 @@ class CommunityAliasStore(
 
     suspend fun refreshBoard(loadMore: Boolean = false) {
         val owner = account()
-        if (state.value.boardLoading || state.value.votingId != null || (loadMore && !state.value.boardHasMore)) return
+        if (state.value.boardLoading || state.value.updatingId != null || (loadMore && !state.value.boardHasMore)) return
         val offset = if (loadMore) boardOffset else 0
         mutableState.update { it.copy(boardLoading = true, boardError = null) }
         try {
@@ -198,7 +203,7 @@ class CommunityAliasStore(
         if (owner.id == null) {
             mutableState.update { it.copy(boardError = tr("请先登录 Rhythmeta 账户。")) }; return
         }
-        if (state.value.votingId != null || state.value.boardLoading) return
+        if (state.value.updatingId != null || state.value.boardLoading) return
         mutableState.update { it.copy(votingId = candidateId, boardError = null) }
         try {
             val result = json.decodeFromJsonElement<CommunityVoteResult>(api.request(
@@ -211,6 +216,33 @@ class CommunityAliasStore(
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { if (isCurrent(owner)) mutableState.update { it.copy(boardError = errorMessage(failure)) } }
         finally { if (isCurrent(owner)) mutableState.update { it.copy(votingId = null) } }
+    }
+
+    suspend fun moderate(candidateId: String, decision: CommunityAliasModeration) {
+        val owner = account()
+        val board = state.value
+        if (owner.id == null || !board.isAdmin || board.updatingId != null || board.boardLoading) return
+        val candidate = board.board.firstOrNull { it.candidateId == candidateId && it.status == "voting" } ?: return
+        mutableState.update { it.copy(moderatingId = candidateId, boardError = null) }
+        try {
+            api.request("chunithmd/v1/admin/candidates/${candidateId.encodeURLParameter()}:setStatus", "POST",
+                buildJsonObject { put("status", decision.status) })
+            if (!isCurrent(owner)) return
+            boardOffset = (boardOffset - 1).coerceAtLeast(0)
+            personalRevision++
+            lastSync = null
+            mutableState.update { it.copy(board = it.board.filterNot { row -> row.candidateId == candidateId }) }
+            if (candidate.songIdentifier in state.value.songs) {
+                updateSong(candidate.songIdentifier) { song -> song.copy(candidates = song.candidates.map {
+                    if (it.candidateId == candidateId) it.copy(status = decision.status) else it
+                }) }
+            }
+            syncApproved(force = true)
+            if (isCurrent(owner)) refreshPersonalAliases()
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) {
+            if (isCurrent(owner)) mutableState.update { it.copy(boardError = tr("候选状态更新失败：{0}", errorMessage(failure))) }
+        } finally { if (isCurrent(owner)) mutableState.update { it.copy(moderatingId = null) } }
     }
 
     private fun updateSong(id: String, change: (SongAliasState) -> SongAliasState) {

@@ -58,10 +58,12 @@ struct CommunityAliasView: View {
                 let candidates = groups[songID] ?? []
                 Section {
                     ForEach(candidates.sorted { ($0.voteCloseAt ?? "~") < ($1.voteCloseAt ?? "~") }) { candidate in
-                        CommunityCandidateRow(candidate: candidate, votingID: state.votingId,
-                                              canVote: state.accountId != nil && !state.boardLoading) { support in
+                        CommunityCandidateRow(candidate: candidate, updatingID: state.updatingId,
+                                              canVote: state.accountId != nil && !state.boardLoading, isAdmin: state.isAdmin,
+                                              moderate: { account.bridge.moderateCommunity(id: candidate.id, decision: $0) }) { support in
                             account.bridge.voteCommunity(id: candidate.id, vote: support ? 1 : -1)
                         }
+                        .id(candidate.id + ":" + (state.accountId ?? ""))
                     }
                 } header: {
                     CommunitySongHeader(song: songs[songID], songID: songID, count: candidates.count, showsSongLinks: showsSongLinks)
@@ -70,6 +72,7 @@ struct CommunityAliasView: View {
             if !state.boardLoading && state.boardHasMore && !state.board.isEmpty {
                 Section {
                     Button(tr("加载更多")) { account.bridge.moreCommunity() }
+                        .disabled(state.updatingId != nil)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("community-more")
                 }
             }

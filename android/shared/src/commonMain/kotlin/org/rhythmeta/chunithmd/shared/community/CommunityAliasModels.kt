@@ -8,6 +8,8 @@ import org.rhythmeta.chunithmd.shared.CatalogBundle
 const val CommunityAliasDailyQuota = 5
 const val CommunityAliasMaxLength = 64
 
+enum class CommunityAliasModeration(val status: String) { Approved("approved"), Rejected("rejected") }
+
 @Serializable
 data class CommunityCandidate(
     val candidateId: String,
@@ -72,6 +74,7 @@ data class SongAliasState(
 @Serializable
 data class CommunityAliasState(
     val accountId: String? = null,
+    val isAdmin: Boolean = false,
     val approvedAliases: Map<String, List<String>> = emptyMap(),
     val approvedItems: List<CommunityApprovedAlias> = emptyList(),
     val personalAliases: Map<String, List<String>> = emptyMap(),
@@ -81,10 +84,12 @@ data class CommunityAliasState(
     val boardLoading: Boolean = false,
     val boardHasMore: Boolean = true,
     val votingId: String? = null,
+    val moderatingId: String? = null,
     val boardError: String? = null,
     val syncError: String? = null,
 ) {
     val authenticated: Boolean get() = accountId != null
+    val updatingId: String? get() = votingId ?: moderatingId
     fun song(id: String): SongAliasState = songs[id] ?: SongAliasState()
     fun canSubmit(id: String): Boolean = authenticated && !song(id).submitting && !song(id).loading &&
         song(id).draft.trim().length in 1..CommunityAliasMaxLength &&

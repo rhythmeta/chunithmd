@@ -1,9 +1,12 @@
 import SwiftUI
+import Shared
 
 struct CommunityCandidateRow: View {
     let candidate: CommunityViewState.Candidate
-    let votingID: String?
+    let updatingID: String?
     let canVote: Bool
+    let isAdmin: Bool
+    let moderate: (CommunityAliasModeration) -> Void
     let vote: (Bool) -> Void
 
     var body: some View {
@@ -16,14 +19,16 @@ struct CommunityCandidateRow: View {
             }
             HStack(spacing: 10) {
                 CommunityVoteButton(support: true, count: candidate.supportCount, selected: candidate.myVote == 1,
-                                    inFlight: votingID == candidate.id) { vote(true) }
+                                    inFlight: updatingID == candidate.id, alias: candidate.aliasText,
+                                    moderate: isAdmin ? { moderate(.approved) } : nil) { vote(true) }
                     .accessibilityIdentifier("community-support-" + candidate.id)
                 CommunityVoteButton(support: false, count: candidate.opposeCount, selected: candidate.myVote == -1,
-                                    inFlight: votingID == candidate.id) { vote(false) }
+                                    inFlight: updatingID == candidate.id, alias: candidate.aliasText,
+                                    moderate: isAdmin ? { moderate(.rejected) } : nil) { vote(false) }
                     .accessibilityIdentifier("community-oppose-" + candidate.id)
                 Spacer(minLength: 0)
             }
-            .disabled(!canVote || votingID != nil)
+            .disabled(!canVote || updatingID != nil)
         }
         .padding(.top, 6)
         .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 6, trailing: 16))

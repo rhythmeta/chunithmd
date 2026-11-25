@@ -5,6 +5,8 @@ struct CommunityVoteButton: View {
     let count: Int
     let selected: Bool
     let inFlight: Bool
+    let alias: String
+    let moderate: (() -> Void)?
     let action: () -> Void
     private var tint: Color { support ? .green : .red }
     private var title: String {
@@ -12,7 +14,7 @@ struct CommunityVoteButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        let button = Button(action: action) {
             HStack(spacing: 6) {
                 if inFlight { ProgressView().controlSize(.mini) }
                 Image(systemName: (support ? "hand.thumbsup" : "hand.thumbsdown") + (selected ? ".fill" : ""))
@@ -25,7 +27,12 @@ struct CommunityVoteButton: View {
             .overlay { Capsule().strokeBorder(tint.opacity(0.35), lineWidth: 1) }
             .frame(minHeight: 44).contentShape(.rect)
         }
-        .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
+
+        if let moderate {
+            button.buttonStyle(CommunityAliasReviewButtonStyle(approve: support, alias: alias, moderate: moderate))
+        } else {
+            button.buttonStyle(.plain)
+        }
     }
 }
