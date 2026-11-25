@@ -200,6 +200,7 @@ fun SongDetailScreen(
     onOpenCommunity: () -> Unit,
     onLogin: () -> Unit,
     onBackgroundChanged: (Color?) -> Unit = {},
+    onJacketColorChanged: (Color?) -> Unit = {},
     onHeaderTitleHiddenChange: (Boolean) -> Unit = {},
 ) {
     if (song == null) {
@@ -250,7 +251,10 @@ fun SongDetailScreen(
         }
     }
     val isDark = SongVisualUtils.isDarkTheme(MiuixTheme.colorScheme.background)
-    var jacketAccent by remember(song.songId) { mutableStateOf<Color?>(null) }
+    var jacketAccent by remember(song.songId, song.imageName) { mutableStateOf<Color?>(null) }
+    LaunchedEffect(song.songId, jacketAccent) {
+        onJacketColorChanged(jacketAccent)
+    }
     val detailColors = jacketAccent?.let { SongVisualUtils.detailColors(it, isDark) }
     val accent = detailColors?.accent ?: MiuixTheme.colorScheme.primary
     val pageBackground = detailColors?.background ?: MiuixTheme.colorScheme.background

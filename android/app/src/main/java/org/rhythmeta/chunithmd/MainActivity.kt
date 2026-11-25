@@ -176,6 +176,7 @@ import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBar
 import org.rhythmeta.chunithmd.ui.theme.LocalEnableFloatingBottomBarBlur
 import org.rhythmeta.chunithmd.ui.theme.LocalEnablePredictiveBack
 import org.rhythmeta.chunithmd.ui.theme.ThemePreferencesRepository
+import org.rhythmeta.chunithmd.ui.theme.SongJacketTheme
 import org.rhythmeta.chunithmd.ui.update.AppUpdateViewModel
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.NavigationBar
@@ -770,7 +771,6 @@ private fun CatalogApp(
     LaunchedEffect(profileRepository) { profileRepository.ensureDefaultProfile() }
     // Miuix's surface is the page canvas used by the reference navigation shell.
     val pageBackground = MiuixTheme.colorScheme.surface
-    var songDetailBackground by remember { mutableStateOf<Color?>(null) }
     val enableBlur = LocalEnableBlur.current
     val navigationBackdrop = rememberKyantLayerBackdrop {
         drawRect(pageBackground)
@@ -1381,12 +1381,16 @@ private fun CatalogApp(
     @Composable
     fun SongDetailPage(songId: String, coverTransition: CatalogCoverTransition? = null) {
         var showTopTitle by rememberSaveable(songId) { mutableStateOf(false) }
-        CatalogContainerTransform(coverTransition, songDetailBackground ?: pageBackground) {
+        var songDetailBackground by remember(songId) { mutableStateOf<Color?>(null) }
+        var jacketColor by remember(songId) { mutableStateOf<Color?>(null) }
+        SongJacketTheme(seedColor = jacketColor) {
+        val detailBackground = songDetailBackground ?: MiuixTheme.colorScheme.background
+        CatalogContainerTransform(coverTransition, detailBackground) {
             val song = bundle?.catalog?.songs?.firstOrNull { it.songId == songId }
             AppPageScaffold(
                 title = song?.let(CatalogSongFormatter::displayTitle) ?: tr("歌曲详情"),
                 smallTitleVisible = song == null || showTopTitle,
-                pageBackground = songDetailBackground ?: pageBackground,
+                pageBackground = detailBackground,
                 blurEnabled = enableBlur,
                 progressiveBlurEnabled = LocalEnableTopBarProgressiveBlur.current,
                 largeTitle = false,
@@ -1424,11 +1428,13 @@ private fun CatalogApp(
                     onOpenCommunity = { pushRoute(AppRoute.CommunityAliases) },
                     onLogin = { pushRoute(AppRoute.Account) },
                     onBackgroundChanged = { songDetailBackground = it },
+                    onJacketColorChanged = { jacketColor = it },
                     onHeaderTitleHiddenChange = { showTopTitle = it },
                     scoreRepository = scoreRepository,
                     collectionRepository = collectionRepository,
                 )
             }
+        }
         }
     }
 
