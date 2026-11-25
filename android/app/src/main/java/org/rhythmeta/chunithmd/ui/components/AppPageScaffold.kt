@@ -3,6 +3,7 @@ package org.rhythmeta.chunithmd.ui.components
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -112,6 +113,8 @@ fun AppPageScaffold(
     progressiveBlurEnabled: Boolean = true,
     largeTitle: Boolean = true,
     smallTitleVisible: Boolean? = null,
+    titleBarVisible: Boolean? = null,
+    contentScrolled: Boolean? = null,
     topBarScrollBehavior: ScrollBehavior = MiuixScrollBehavior(),
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
@@ -122,11 +125,11 @@ fun AppPageScaffold(
     val blurActive = blurEnabled && topBarBackdrop != null
     val progressive = blurActive && progressiveBlurEnabled
     val scrollState = topBarScrollBehavior.state
-    val contentScrolled by remember(scrollState) {
+    val scrollStateContentScrolled by remember(scrollState) {
         derivedStateOf { scrollState.contentOffset < -1f || scrollState.overscrollOffset < -1f }
     }
     val bandProgress = animateFloatAsState(
-        targetValue = if (contentScrolled) 1f else 0f,
+        targetValue = if (contentScrolled ?: scrollStateContentScrolled) 1f else 0f,
         animationSpec = tween(durationMillis = TopBarBandFadeMillis, easing = LinearEasing),
         label = "top-bar-band",
     )
@@ -170,7 +173,19 @@ fun AppPageScaffold(
                 colors = bandColors,
                 measurements = measurements,
             ) {
-                if (largeTitle) MiuixTopAppBar(
+                if (titleBarVisible != null) {
+                    CollapsibleTitleTopAppBar(
+                        title = title,
+                        titleVisible = titleBarVisible,
+                        modifier = barModifier.background(barColor),
+                        navigationIcon = navigationIcon,
+                        actions = actions,
+                        scrollBehavior = topBarScrollBehavior,
+                        bottomContent = {
+                            MeasuredBottomContent(measurements) { bottomContent() }
+                        },
+                    )
+                } else if (largeTitle) MiuixTopAppBar(
                     title = title,
                     largeTitle = title,
                     navigationIcon = navigationIcon,
@@ -286,7 +301,11 @@ private fun TopBarSlot(
     ) { measurables, constraints ->
         // The bar is measured first: its bottom content height sizes the band.
         val barPlaceable = measurables[1].measure(constraints)
-        val coveredPx = statusBarPx + collapsedPx + measurements.bottomContentHeight
+        // Search removes the title row, so its blur must not include the hidden title's height.
+        val coveredPx = minOf(
+            barPlaceable.height.toFloat(),
+            statusBarPx + collapsedPx + measurements.bottomContentHeight,
+        )
         val bandHeightPx = ((coveredPx + extraPx) * TopBarBandScale).roundToInt()
         val bandPlaceable = measurables[0].measure(
             Constraints.fixed(barPlaceable.width, bandHeightPx),

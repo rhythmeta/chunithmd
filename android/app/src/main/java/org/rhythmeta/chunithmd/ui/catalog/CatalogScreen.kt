@@ -2,13 +2,7 @@ package org.rhythmeta.chunithmd.ui.catalog
 
 import org.rhythmeta.chunithmd.shared.localization.tr
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,11 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.CatalogSong
@@ -50,11 +41,9 @@ import top.yukonga.miuix.kmp.basic.Button as MiuixButton
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
-import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
-import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowListPopup
@@ -75,6 +64,9 @@ internal fun CatalogScreen(
     listState: LazyListState,
     gridState: CatalogPhotoGridState,
     gridMode: Boolean,
+    searchExpanded: Boolean,
+    searchText: String,
+    searchPending: Boolean,
     searchScrollConnection: NestedScrollConnection,
     topBarScrollConnection: NestedScrollConnection,
     onRetry: () -> Unit,
@@ -82,19 +74,13 @@ internal fun CatalogScreen(
     onGridCoverClick: ((CatalogSong, Rect, Painter?) -> Unit)? = null,
     onListTransitionClick: ((CatalogSong, CatalogListTransitionSource) -> Unit)? = null,
 ) {
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
+    if (searchExpanded && (searchText.isBlank() || searchPending)) return
     if (bundle == null) {
         InitialLoad(sync, error, onRetry, modifier.padding(top = contentTopPadding))
     } else {
         val scrollModifier = modifier
-            .nestedScroll(searchScrollConnection)
+            .then(if (searchExpanded) Modifier else Modifier.nestedScroll(searchScrollConnection))
             .nestedScroll(topBarScrollConnection)
-        val openSong: (CatalogSong) -> Unit = { song ->
-            focusManager.clearFocus(force = true)
-            keyboardController?.hide()
-            onSongClick(song)
-        }
         if (gridMode) {
             CatalogPhotoGrid(
                 modifier = scrollModifier,
@@ -104,12 +90,8 @@ internal fun CatalogScreen(
                 jacketBaseUrl = jacketBaseUrl,
                 localJacketPath = localJacketPath,
                 state = gridState,
-                onSongClick = openSong,
-                onCoverClick = onGridCoverClick?.let { openCover -> { song, bounds, painter ->
-                    focusManager.clearFocus(force = true)
-                    keyboardController?.hide()
-                    openCover(song, bounds, painter)
-                } },
+                onSongClick = onSongClick,
+                onCoverClick = onGridCoverClick,
             )
         } else {
             SongList(
@@ -120,50 +102,10 @@ internal fun CatalogScreen(
                 jacketBaseUrl = jacketBaseUrl,
                 localJacketPath = localJacketPath,
                 listState = listState,
-                onSongClick = openSong,
-                onTransitionClick = onListTransitionClick?.let { open -> { song, source ->
-                    focusManager.clearFocus(force = true)
-                    keyboardController?.hide()
-                    open(song, source)
-                } },
+                onSongClick = onSongClick,
+                onTransitionClick = onListTransitionClick,
             )
         }
-    }
-}
-
-@Composable
-fun CatalogSearchField(
-    search: String,
-    onSearchChange: (String) -> Unit,
-    visible: Boolean,
-    expanded: Boolean,
-    backEnabled: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    interactionSource: MutableInteractionSource,
-) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-        exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
-    ) {
-        SearchBar(
-            inputField = {
-                InputField(
-                    query = search,
-                    onQueryChange = onSearchChange,
-                    onSearch = {},
-                    expanded = expanded,
-                    onExpandedChange = onExpandedChange,
-                    interactionSource = interactionSource,
-                    label = tr("歌曲、艺术家、别名..."),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-            onExpandedChange = onExpandedChange,
-            insideMargin = DpSize(width = 16.dp, height = 10.dp),
-            expanded = expanded && backEnabled,
-            content = {},
-        )
     }
 }
 

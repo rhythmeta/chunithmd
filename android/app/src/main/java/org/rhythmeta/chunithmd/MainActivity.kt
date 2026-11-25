@@ -76,6 +76,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -125,6 +127,7 @@ import org.rhythmeta.chunithmd.ui.catalog.CatalogFilterDialog
 import org.rhythmeta.chunithmd.ui.catalog.CatalogPreferencesRepository
 import org.rhythmeta.chunithmd.ui.catalog.CatalogScreen
 import org.rhythmeta.chunithmd.ui.catalog.CatalogSearchField
+import org.rhythmeta.chunithmd.ui.components.rememberSearchScrollState
 import org.rhythmeta.chunithmd.ui.components.rememberDebouncedSearch
 import org.rhythmeta.chunithmd.ui.catalog.CatalogToolbarActions
 import org.rhythmeta.chunithmd.ui.catalog.FavoriteSongRepository
@@ -535,8 +538,12 @@ private fun CatalogApp(
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var animateRootTransition by remember { mutableStateOf(true) }
     val rootBackProgress = remember { Animatable(0f) }
-    var search by remember { mutableStateOf("") }
+    var search by rememberSaveable { mutableStateOf("") }
     val debouncedSearch by rememberDebouncedSearch(search)
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var catalogSearchFocusRequestToken by rememberSaveable { mutableIntStateOf(0) }
+    var restoreCatalogSearchFocus by rememberSaveable { mutableStateOf(false) }
     var sort by remember { mutableStateOf(CatalogSort.Default) }
     var ascending by remember { mutableStateOf(true) }
     var filters by remember { mutableStateOf(CatalogFilters()) }
@@ -555,14 +562,15 @@ private fun CatalogApp(
     var recommendationSelectedPage by rememberSaveable { mutableIntStateOf(0) }
     var recommendationSwitcherVisible by rememberSaveable { mutableStateOf(true) }
     var scoreQuerySearch by rememberSaveable { mutableStateOf("") }
-    val debouncedScoreQuerySearch by rememberDebouncedSearch(scoreQuerySearch)
+    var scoreQuerySearchFocusRequestToken by rememberSaveable { mutableIntStateOf(0) }
+    var restoreScoreQuerySearchFocus by rememberSaveable { mutableStateOf(false) }
     var scoreQueryFilterSettings by remember { mutableStateOf(ScoreQueryFilterSettings()) }
     var scoreQueryDisplayMode by rememberSaveable { mutableStateOf(ScoreQueryDisplayMode.List) }
     var scoreQuerySortMode by rememberSaveable { mutableStateOf(ScoreQuerySortMode.Rating) }
     var scoreQueryAscending by rememberSaveable { mutableStateOf(false) }
     var scoreQueryFilterOpen by remember { mutableStateOf(false) }
     var scoreQuerySearchVisible by remember { mutableStateOf(true) }
-    var scoreQuerySearchExpanded by remember { mutableStateOf(false) }
+    var scoreQuerySearchExpanded by rememberSaveable { mutableStateOf(false) }
     val scoreQuerySearchInteractionSource = remember { MutableInteractionSource() }
     val scoreQuerySearchFocused by scoreQuerySearchInteractionSource.collectIsFocusedAsState()
     var constantTableFilterSettings by remember { mutableStateOf(CatalogFilters()) }
@@ -605,6 +613,10 @@ private fun CatalogApp(
     val catalogGridState = org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState(
         org.rhythmeta.chunithmd.ui.catalog.CoverGridPage.Catalog,
     )
+    val catalogSearchListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val catalogSearchGridState = rememberSaveable(
+        saver = org.rhythmeta.chunithmd.ui.catalog.CatalogPhotoGridState.Saver,
+    ) { org.rhythmeta.chunithmd.ui.catalog.CatalogPhotoGridState() }
     val songCoverTransitions = remember { androidx.compose.runtime.mutableStateMapOf<String, CatalogCoverTransition>() }
     var catalogCoverTransition by remember { mutableStateOf<CatalogCoverTransition?>(null) }
     val navigationCornerRadius = rememberNavSystemCornerRadius()
@@ -781,9 +793,34 @@ private fun CatalogApp(
     val collectionDetailTopBarScrollBehavior = MiuixScrollBehavior()
     val communityTopBarScrollBehavior = MiuixScrollBehavior()
     var searchVisible by remember { mutableStateOf(true) }
-    var searchExpanded by remember { mutableStateOf(false) }
+    var searchExpanded by rememberSaveable { mutableStateOf(false) }
     val searchInteractionSource = remember { MutableInteractionSource() }
     val searchFocused by searchInteractionSource.collectIsFocusedAsState()
+    LaunchedEffect(searchExpanded) {
+        if (searchExpanded) catalogSearchGridState.zoom = catalogGridState.zoom
+    }
+    LaunchedEffect(searchExpanded, debouncedSearch) {
+        if (searchExpanded) {
+            catalogSearchListState.requestScrollToItem(0)
+            catalogSearchGridState.requestScrollToItem(0)
+        }
+    }
+    fun cancelCatalogSearch() {
+        restoreCatalogSearchFocus = false
+        searchExpanded = false
+        search = ""
+        searchVisible = true
+        focusManager.clearFocus(force = true)
+        keyboardController?.hide()
+    }
+    fun cancelScoreQuerySearch() {
+        restoreScoreQuerySearchFocus = false
+        scoreQuerySearchExpanded = false
+        scoreQuerySearch = ""
+        scoreQuerySearchVisible = true
+        focusManager.clearFocus(force = true)
+        keyboardController?.hide()
+    }
     val searchScrollConnection = remember {
         object : NestedScrollConnection {
             private var downDistance = 0f
@@ -846,11 +883,12 @@ private fun CatalogApp(
     fun refresh() { catalogState.refresh(communityContext, repository) }
 
     val playableRegion = activeProfile?.server?.wireValue ?: "jp"
-    val songs = remember(bundle, debouncedSearch, sort, ascending, filters, playableRegion, favoriteSongIds) {
+    val appliedSearch = if (searchExpanded) debouncedSearch else ""
+    val songs = remember(bundle, appliedSearch, sort, ascending, filters, playableRegion, favoriteSongIds) {
         bundle?.let {
             CatalogQuery.filterAndSort(
                 it,
-                debouncedSearch,
+                appliedSearch,
                 sort,
                 ascending,
                 filters,
@@ -866,6 +904,31 @@ private fun CatalogApp(
     // Keep the detail page in the same navigation state as the root pages so its
     // enter/exit transition is observable and back can return to Settings.
     val navBackStack = rememberNavBackStack<AppRoute>(AppRoute.Home)
+    val currentRoute = navBackStack.lastOrNull()
+    LaunchedEffect(currentRoute, selectedTab, restoreCatalogSearchFocus) {
+        if (currentRoute == AppRoute.Home && selectedTab == 2 && restoreCatalogSearchFocus) {
+            catalogSearchFocusRequestToken++
+        }
+    }
+    LaunchedEffect(currentRoute, selectedTab, searchFocused, restoreCatalogSearchFocus) {
+        if (currentRoute == AppRoute.Home && selectedTab == 2 && searchFocused && restoreCatalogSearchFocus) {
+            withFrameNanos { }
+            keyboardController?.show()
+            restoreCatalogSearchFocus = false
+        }
+    }
+    LaunchedEffect(currentRoute, restoreScoreQuerySearchFocus) {
+        if (currentRoute == AppRoute.ScoreQuery && restoreScoreQuerySearchFocus) {
+            scoreQuerySearchFocusRequestToken++
+        }
+    }
+    LaunchedEffect(currentRoute, scoreQuerySearchFocused, restoreScoreQuerySearchFocus) {
+        if (currentRoute == AppRoute.ScoreQuery && scoreQuerySearchFocused && restoreScoreQuerySearchFocus) {
+            withFrameNanos { }
+            keyboardController?.show()
+            restoreScoreQuerySearchFocus = false
+        }
+    }
     val scannerActivity = androidx.activity.compose.LocalActivity.current
     val scannerVisible = selectedTab == 1 && navBackStack.lastOrNull() == AppRoute.Home
     LaunchedEffect(scannerActivity, scannerVisible) {
@@ -875,6 +938,16 @@ private fun CatalogApp(
     }
 
     fun pushRoute(route: AppRoute) {
+        if (route is AppRoute.SongDetail || route is AppRoute.CatalogSongDetail) {
+            if (currentRoute == AppRoute.Home && selectedTab == 2 && searchFocused) {
+                restoreCatalogSearchFocus = true
+            }
+            if (currentRoute == AppRoute.ScoreQuery && scoreQuerySearchFocused) {
+                restoreScoreQuerySearchFocus = true
+            }
+            focusManager.clearFocus(force = true)
+            keyboardController?.hide()
+        }
         if (route == AppRoute.Recommendations) recommendationSwitcherVisible = true
         if (route == AppRoute.BestTable) bestTableSwitcherVisible = true
         if (route == AppRoute.CommunityAliases) communityAliasSwitcherVisible = true
@@ -905,6 +978,7 @@ private fun CatalogApp(
         }
     }
     fun navigateToTab(index: Int) {
+        if (selectedTab == 2 && index != selectedTab && searchExpanded) cancelCatalogSearch()
         animateRootTransition = true
         selectedTab = index
     }
@@ -914,7 +988,9 @@ private fun CatalogApp(
         selectedTab = 0
     }
 
-    val rootBackEnabled = navBackStack.lastOrNull() == AppRoute.Home && selectedTab != 0
+    val catalogSearchBackEnabled = currentRoute == AppRoute.Home && selectedTab == 2 && searchExpanded
+    val scoreQuerySearchBackEnabled = currentRoute == AppRoute.ScoreQuery && scoreQuerySearchExpanded
+    val rootBackEnabled = currentRoute == AppRoute.Home && selectedTab != 0 && !catalogSearchBackEnabled
     val predictiveBackEnabled = LocalEnablePredictiveBack.current
     if (LocalEnablePredictiveBack.current) {
         PredictiveBackHandler(enabled = rootBackEnabled) { progress: Flow<BackEventCompat> ->
@@ -941,8 +1017,8 @@ private fun CatalogApp(
             }
         }
     } else {
-        BackHandler(enabled = rootBackEnabled) {
-            navigateToTab(0)
+        BackHandler(enabled = rootBackEnabled || catalogSearchBackEnabled) {
+            if (catalogSearchBackEnabled) cancelCatalogSearch() else navigateToTab(0)
         }
     }
 
@@ -953,9 +1029,17 @@ private fun CatalogApp(
         titleOverride: String? = null,
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
+        val searching = when (page) {
+            2 -> searchExpanded
+            10 -> scoreQuerySearchExpanded
+            else -> false
+        }
+        val searchScrollState = rememberSearchScrollState(searching, if (page == 2) search else scoreQuerySearch)
         AppPageScaffold(
             title = titleOverride ?: when (page) { 20 -> tr("登录 Otogame"); 19 -> tr("Otogame 导入"); 18 -> tr("落雪导入"); 17 -> tr("水鱼导入"); 16 -> tr("社区别名"); 15 -> tr("云端账户"); 14, 13 -> tr("收藏夹"); 12 -> tr("牌子进度"); 11 -> tr("定数表"); 10 -> tr("成绩查询"); 9 -> tr("吃分推荐"); 8 -> tr("随机歌曲"); 7 -> tr("Best 表"); 6 -> tr("用户档案"); 5 -> tr("静态数据"); 4 -> tr("主题"); 3 -> tr("设置"); 0 -> tr("主页"); 1 -> tr("扫描"); else -> tr("歌曲") },
             largeTitle = page != 20,
+            titleBarVisible = (!searching).takeIf { page == 2 || page == 10 },
+            contentScrolled = searchScrollState.contentScrolled.takeIf { searching },
             pageBackground = pageBackground,
             blurEnabled = enableBlur,
             progressiveBlurEnabled = LocalEnableTopBarProgressiveBlur.current,
@@ -1045,11 +1129,18 @@ private fun CatalogApp(
                     CatalogSearchField(
                         search = search,
                         onSearchChange = { search = it },
-                        visible = searchVisible || searchFocused,
+                        visible = searchVisible || searchExpanded || restoreCatalogSearchFocus,
                         expanded = searchExpanded,
-                        backEnabled = searchFocused,
-                        onExpandedChange = { searchExpanded = it },
+                        backEnabled = currentRoute == AppRoute.Home && selectedTab == 2,
+                        onExpandedChange = { expanded ->
+                            if (expanded) {
+                                searchExpanded = true
+                                searchVisible = true
+                            } else cancelCatalogSearch()
+                        },
                         interactionSource = searchInteractionSource,
+                        focusRequestToken = catalogSearchFocusRequestToken,
+                        onCancelSearch = ::cancelCatalogSearch,
                     )
                 }
                 if (page == 16) {
@@ -1077,15 +1168,24 @@ private fun CatalogApp(
                     CatalogSearchField(
                         search = scoreQuerySearch,
                         onSearchChange = { scoreQuerySearch = it },
-                        visible = scoreQuerySearchVisible || scoreQuerySearchFocused,
+                        visible = scoreQuerySearchVisible || scoreQuerySearchExpanded || restoreScoreQuerySearchFocus,
                         expanded = scoreQuerySearchExpanded,
-                        backEnabled = scoreQuerySearchFocused,
-                        onExpandedChange = { scoreQuerySearchExpanded = it },
+                        backEnabled = currentRoute == AppRoute.ScoreQuery,
+                        onExpandedChange = { expanded ->
+                            if (expanded) {
+                                scoreQuerySearchExpanded = true
+                                scoreQuerySearchVisible = true
+                            } else cancelScoreQuerySearch()
+                        },
                         interactionSource = scoreQuerySearchInteractionSource,
+                        focusRequestToken = scoreQuerySearchFocusRequestToken,
+                        onCancelSearch = ::cancelScoreQuerySearch,
                     )
                 }
             },
-            content = content,
+            content = { padding, connection ->
+                content(padding, if (searching) searchScrollState.nestedScrollConnection else connection)
+            },
         )
     }
 
@@ -1233,9 +1333,12 @@ private fun CatalogApp(
                     scoresBySheetKey = scoresBySheetKey,
                     jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(),
                     localJacketPath = repository::localJacketPath,
-                    listState = catalogListState,
-                    gridState = catalogGridState,
+                    listState = if (searchExpanded) catalogSearchListState else catalogListState,
+                    gridState = if (searchExpanded) catalogSearchGridState else catalogGridState,
                     gridMode = catalogGridMode,
+                    searchExpanded = searchExpanded,
+                    searchText = search,
+                    searchPending = appliedSearch != search,
                     searchScrollConnection = searchScrollConnection,
                     topBarScrollConnection = topBarScrollConnection,
                     onRetry = ::refresh,
@@ -1271,7 +1374,7 @@ private fun CatalogApp(
 
     if (!predictiveBackEnabled) {
         BackHandler(enabled = navBackStack.size > 1) {
-            navBackStack.removeLastOrNull()
+            if (scoreQuerySearchBackEnabled) cancelScoreQuerySearch() else navBackStack.removeLastOrNull()
         }
     }
 
@@ -1340,6 +1443,14 @@ private fun CatalogApp(
         transition = NavTransitions.MiuixDefault,
         effects = NavDisplayEffects(cornerClipRadius = navigationCornerRadius),
         onBack = {
+            if (catalogSearchBackEnabled) {
+                cancelCatalogSearch()
+                return@NavDisplay
+            }
+            if (scoreQuerySearchBackEnabled) {
+                cancelScoreQuerySearch()
+                return@NavDisplay
+            }
             if (navBackStack.lastOrNull() == AppRoute.Otogame || navBackStack.lastOrNull() == AppRoute.OtogameLogin || navBackStack.lastOrNull() == AppRoute.Lxns || navBackStack.lastOrNull() == AppRoute.DivingFish || navBackStack.lastOrNull() == AppRoute.CommunityAliases || navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() is AppRoute.CatalogSongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
@@ -1583,7 +1694,7 @@ private fun CatalogApp(
         }
         entry<AppRoute.ScoreQuery>(
             transition = SettingsDetailTransition,
-            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+            swipeDismiss = if (predictiveBackEnabled && !scoreQuerySearchExpanded) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
         ) {
             AppFrame(10, scoreQueryTopBarScrollBehavior) { padding, topBarScrollConnection ->
                 ScoreQueryScreen(
@@ -1595,7 +1706,8 @@ private fun CatalogApp(
                     contentTopPadding = padding.calculateTopPadding(),
                     searchScrollConnection = scoreQuerySearchScrollConnection,
                     topBarScrollConnection = topBarScrollConnection,
-                    searchText = debouncedScoreQuerySearch,
+                    searchText = scoreQuerySearch,
+                    searchExpanded = scoreQuerySearchExpanded,
                     filterSettings = scoreQueryFilterSettings,
                     displayMode = scoreQueryDisplayMode,
                     sortMode = scoreQuerySortMode,

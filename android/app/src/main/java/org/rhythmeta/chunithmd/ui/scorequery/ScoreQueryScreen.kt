@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
@@ -40,10 +41,12 @@ import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -86,6 +89,7 @@ import org.rhythmeta.chunithmd.ui.catalog.rememberCatalogPhotoGridState
 import org.rhythmeta.chunithmd.ui.catalog.CoverGridPage
 import org.rhythmeta.chunithmd.ui.components.ZoomableCoverImage
 import org.rhythmeta.chunithmd.ui.components.ZoomableCoverGrid
+import org.rhythmeta.chunithmd.ui.components.rememberDebouncedSearch
 import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
 import org.rhythmeta.chunithmd.ui.catalog.ultimaStripedBrush
 import org.rhythmeta.chunithmd.ui.catalog.WORLDS_END_GRADIENT_COLORS
@@ -120,6 +124,7 @@ fun ScoreQueryScreen(
     searchScrollConnection: androidx.compose.ui.input.nestedscroll.NestedScrollConnection,
     topBarScrollConnection: androidx.compose.ui.input.nestedscroll.NestedScrollConnection,
     searchText: String,
+    searchExpanded: Boolean,
     filterSettings: ScoreQueryFilterSettings,
     displayMode: org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode,
     sortMode: ScoreQuerySortMode,
@@ -129,7 +134,23 @@ fun ScoreQueryScreen(
     onFilterDismiss: () -> Unit,
     onOpenSong: (String) -> Unit,
 ) {
-    val gridState = rememberCatalogPhotoGridState(CoverGridPage.ScoreQuery)
+    val debouncedSearch by rememberDebouncedSearch(searchText)
+    val appliedSearch = if (searchExpanded) debouncedSearch else ""
+    val browsingGridState = rememberCatalogPhotoGridState(CoverGridPage.ScoreQuery)
+    val searchGridState = rememberSaveable(saver = CatalogPhotoGridState.Saver) { CatalogPhotoGridState() }
+    val browsingListState = rememberLazyListState()
+    val searchListState = rememberLazyListState()
+    val gridState = if (searchExpanded) searchGridState else browsingGridState
+    val listState = if (searchExpanded) searchListState else browsingListState
+    LaunchedEffect(searchExpanded) {
+        if (searchExpanded) searchGridState.zoom = browsingGridState.zoom
+    }
+    LaunchedEffect(searchExpanded, appliedSearch) {
+        if (searchExpanded) {
+            searchListState.requestScrollToItem(0)
+            searchGridState.requestScrollToItem(0)
+        }
+    }
     if (bundle == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
@@ -137,17 +158,20 @@ fun ScoreQueryScreen(
     val response by produceState<ScoreQueryResponse?>(null, bundle, records, activeServer) {
         value = withContext(Dispatchers.Default) { buildScoreQueryResponse(bundle, records, activeServer) }
     }
+    if (searchExpanded && (searchText.isBlank() || appliedSearch != searchText)) return
     if (response == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
     }
-    val entries = remember(response, searchText, filterSettings, sortMode, ascending) {
-        filterAndSortScoreQueryEntries(response!!.entries, searchText, filterSettings, sortMode, ascending)
+    val entries = remember(response, appliedSearch, filterSettings, sortMode, ascending) {
+        filterAndSortScoreQueryEntries(response!!.entries, appliedSearch, filterSettings, sortMode, ascending)
     }
     if (displayMode == org.rhythmeta.chunithmd.shared.ScoreQueryDisplayMode.Grid) {
-        ScoreQueryGrid(entries, response!!.stats, gridState, contentTopPadding, jacketBaseUrl, localJacketPath, searchScrollConnection, topBarScrollConnection, onOpenSong)
+        ScoreQueryGrid(entries, response!!.stats, gridState, listState, !searchExpanded,
+            contentTopPadding, jacketBaseUrl, localJacketPath, searchScrollConnection, topBarScrollConnection, onOpenSong)
     } else {
-        ScoreQueryList(entries, response!!.stats, contentTopPadding, jacketBaseUrl, localJacketPath, searchScrollConnection, topBarScrollConnection, onOpenSong)
+        ScoreQueryList(entries, response!!.stats, listState, !searchExpanded,
+            contentTopPadding, jacketBaseUrl, localJacketPath, searchScrollConnection, topBarScrollConnection, onOpenSong)
     }
     ScoreQueryFilterSheet(filterOpen, filterSettings, onFilterSettingsChange, onFilterDismiss)
 }
@@ -216,6 +240,8 @@ private fun ScoreQueryGrid(
     entries: List<ScoreQueryEntry>,
     stats: ScoreQueryStats,
     state: CatalogPhotoGridState,
+    listState: LazyListState,
+    showStats: Boolean,
     contentTopPadding: Dp,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
@@ -224,7 +250,7 @@ private fun ScoreQueryGrid(
     onOpenSong: (String) -> Unit,
 ) {
     if (entries.isEmpty()) {
-        ScoreQueryList(entries, stats, contentTopPadding, jacketBaseUrl, localJacketPath,
+        ScoreQueryList(entries, stats, listState, showStats, contentTopPadding, jacketBaseUrl, localJacketPath,
             searchScrollConnection, topBarScrollConnection, onOpenSong)
         return
     }
@@ -234,19 +260,19 @@ private fun ScoreQueryGrid(
     } }
     ZoomableCoverGrid(
         modifier = Modifier.fillMaxSize()
-            .nestedScroll(searchScrollConnection)
+            .then(if (showStats) Modifier.nestedScroll(searchScrollConnection) else Modifier)
             .nestedScroll(topBarScrollConnection),
         contentTopPadding = contentTopPadding,
         contentBottomPadding = 32.dp,
         items = entries,
         state = state,
         itemKey = ScoreQueryEntry::sheetKey,
-        header = {
+        header = if (showStats) ({
             Box(Modifier.fillMaxWidth().background(MiuixTheme.colorScheme.background)
                 .padding(horizontal = 12.dp, vertical = 8.dp)) {
                 ScoreQueryStatsHeader(stats)
             }
-        },
+        }) else null,
     ) { entry, columns, imageSize, filler ->
         ScoreQueryGridCell(entry, jacketBaseUrl, localJacketPath, badgeScale, filler,
             columns, imageSize, state.transforming) { onOpenSong(entry.songId) }
@@ -326,6 +352,8 @@ private fun ScoreBadge(text: String, color: Color) {
 private fun ScoreQueryList(
     entries: List<ScoreQueryEntry>,
     stats: ScoreQueryStats,
+    listState: LazyListState,
+    showStats: Boolean,
     contentTopPadding: Dp,
     jacketBaseUrl: String,
     localJacketPath: (String) -> String?,
@@ -333,17 +361,16 @@ private fun ScoreQueryList(
     topBarScrollConnection: androidx.compose.ui.input.nestedscroll.NestedScrollConnection,
     onOpenSong: (String) -> Unit,
 ) {
-    val listState = rememberLazyListState()
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .nestedScroll(searchScrollConnection)
+            .then(if (showStats) Modifier.nestedScroll(searchScrollConnection) else Modifier)
             .nestedScroll(topBarScrollConnection),
         state = listState,
         contentPadding = PaddingValues(start = 16.dp, top = contentTopPadding + 8.dp, end = 16.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        item(key = "stats") { ScoreQueryStatsHeader(stats) }
+        if (showStats) item(key = "stats") { ScoreQueryStatsHeader(stats) }
         if (entries.isEmpty()) item(key = "empty") { ScoreQueryEmpty() }
         else items(entries, key = ScoreQueryEntry::sheetKey) { entry ->
             ScoreQueryListRow(entry, jacketBaseUrl, localJacketPath) { onOpenSong(entry.songId) }
