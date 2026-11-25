@@ -123,6 +123,7 @@ fun StaticResourcesScreen(
         modifier = modifier.fillMaxSize(),
         isRefreshing = isSyncing,
         onRefresh = { if (!isSyncing) onCheck() },
+        contentPadding = PaddingValues(top = contentTopPadding),
         topAppBarScrollBehavior = topAppBarScrollBehavior,
     ) {
         LazyColumn(
