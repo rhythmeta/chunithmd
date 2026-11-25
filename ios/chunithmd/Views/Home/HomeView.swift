@@ -39,6 +39,7 @@ struct HomeView: View {
             case .best: BestTableView()
             case .scores: ScoreQueryView()
             case .constants: ConstantTableView()
+            case .overPower: OverPowerView()
             case .random: RandomSongView()
             case .recommendation: RecommendationView()
             case .plate: PlateProgressView()

@@ -67,6 +67,9 @@ struct ContentView: View {
             if catalog.bundle != nil { onboardingCompleted = true }
             personal.reload(catalog: catalog)
         }
+        .task(id: personal.revision) {
+            await personal.reloadOverPower(bundle: catalog.bundle)
+        }
         .onChange(of: account.community.approvedAliases) { updateAliases() }
         .onChange(of: account.community.personalAliases) { updateAliases() }
         .onChange(of: account.state.busy) { _, busy in if !busy { personal.reload(catalog: catalog) } }

@@ -27,16 +27,12 @@ struct RecommendationView: View {
         .navigationTitle(tr("吃分推荐"))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Picker(tr("推荐范围"), selection: $newSongs) {
-                        Text(tr("新曲推荐")).tag(true)
-                        Text(tr("旧曲推荐")).tag(false)
-                    }
-                } label: {
-                    Label(newSongs ? tr("新曲推荐") : tr("旧曲推荐"), systemImage: "rectangle.2.swap")
-                        .labelStyle(.iconOnly)
-                        .font(.body)
-                }.tint(.primary).accessibilityIdentifier("recommendation-scope")
+                Button(newSongs ? tr("旧曲推荐") : tr("新曲推荐"), systemImage: "rectangle.2.swap") {
+                    newSongs.toggle()
+                }
+                .labelStyle(.iconOnly).tint(.primary)
+                .accessibilityValue(newSongs ? tr("新曲推荐") : tr("旧曲推荐"))
+                .accessibilityIdentifier("recommendation-scope")
             }
         }
         .task(id: personal.revision) { reload() }

@@ -2601,7 +2601,7 @@
     "en": "Retry",
     "ja": "再試行",
     "zh-Hans": "重试",
-    "zh-Hant": "再試一次"
+    "zh-Hant": "重試"
   },
   "金 FC": {
     "en": "Gold FC",
@@ -3204,10 +3204,10 @@
     "ja": "{0} 共有画像、{1} ページ目"
   },
   "下载更新": {
-    "zh-Hans": "下载更新",
-    "zh-Hant": "下載更新",
     "en": "Download update",
-    "ja": "更新をダウンロード"
+    "ja": "更新をダウンロード",
+    "zh-Hans": "下载更新",
+    "zh-Hant": "下載更新"
   },
   "下载歌曲资源": {
     "zh-Hans": "下载歌曲资源",
@@ -3726,10 +3726,10 @@
     "ja": "プロフィール名"
   },
   "检查更新": {
-    "zh-Hans": "检查更新",
-    "zh-Hant": "檢查更新",
     "en": "Check for updates",
-    "ja": "更新を確認"
+    "ja": "更新を確認",
+    "zh-Hans": "检查更新",
+    "zh-Hant": "檢查更新"
   },
   "检查更新失败": {
     "zh-Hans": "检查更新失败",
@@ -4769,12 +4769,6 @@
     "zh-Hans": "查看完整变更",
     "zh-Hant": "查看完整變更"
   },
-  "正在检查更新…": {
-    "en": "Checking for updates…",
-    "ja": "更新を確認中…",
-    "zh-Hans": "正在检查更新…",
-    "zh-Hant": "正在檢查更新…"
-  },
   "正在下载更新…": {
     "en": "Downloading update…",
     "ja": "更新をダウンロード中…",
@@ -4841,18 +4835,6 @@
     "zh-Hans": "允许安装",
     "zh-Hant": "允許安裝"
   },
-  "下载更新": {
-    "en": "Download update",
-    "ja": "更新をダウンロード",
-    "zh-Hans": "下载更新",
-    "zh-Hant": "下載更新"
-  },
-  "重试": {
-    "en": "Retry",
-    "ja": "再試行",
-    "zh-Hans": "重试",
-    "zh-Hant": "重試"
-  },
   "无法连接更新服务，请检查网络后重试。": {
     "en": "Can't reach the update service. Check your connection and try again.",
     "ja": "更新サービスに接続できません。通信状態を確認して再試行してください。",
@@ -4906,12 +4888,6 @@
     "ja": "システムインストーラーを開けません。",
     "zh-Hans": "无法打开系统安装程序。",
     "zh-Hant": "無法開啟系統安裝程式。"
-  },
-  "检查更新": {
-    "en": "Check for updates",
-    "ja": "更新を確認",
-    "zh-Hans": "检查更新",
-    "zh-Hant": "檢查更新"
   },
   "检查并下载最新 CI 构建": {
     "en": "Check for and download the latest CI build",
@@ -5057,12 +5033,6 @@
     "zh-Hans": "FULL CHAIN",
     "zh-Hant": "FULL CHAIN"
   },
-  "完成": {
-    "en": "Done",
-    "ja": "完了",
-    "zh-Hans": "完成",
-    "zh-Hant": "完成"
-  },
   "当前总计 {0} 首": {
     "en": "Total {0}",
     "ja": "合計 {0} 曲",
@@ -5122,5 +5092,173 @@
     "ja": "Best {0} のスコアを表示",
     "zh-Hans": "查看 Best {0} 成绩表",
     "zh-Hant": "查看 Best {0} 成績表"
+  },
+  "全曲 OP 率 {0}": {
+    "zh-Hans": "全曲 OP 率 {0}",
+    "zh-Hant": "全曲 OP 率 {0}",
+    "en": "Overall OP rate {0}",
+    "ja": "全曲 OP 率 {0}"
+  },
+  "查看全曲与新曲进度": {
+    "zh-Hans": "查看全曲与新曲进度",
+    "zh-Hant": "查看全曲與新曲進度",
+    "en": "View overall and new song progress",
+    "ja": "全曲・新曲の達成状況を確認"
+  },
+  "全曲": {
+    "zh-Hans": "全曲",
+    "zh-Hant": "全曲",
+    "en": "All songs",
+    "ja": "全曲"
+  },
+  "HOT·新曲": {
+    "zh-Hans": "HOT·新曲",
+    "zh-Hant": "HOT·新曲",
+    "en": "HOT · New songs",
+    "ja": "HOT・新曲"
+  },
+  "当前范围没有可统计的歌曲": {
+    "zh-Hans": "当前范围没有可统计的歌曲",
+    "zh-Hant": "此範圍沒有可統計的歌曲",
+    "en": "No eligible songs in this selection",
+    "ja": "この範囲に集計対象の楽曲はありません"
+  },
+  "已记录歌曲 {0} / {1}": {
+    "zh-Hans": "已记录歌曲 {0} / {1}",
+    "zh-Hant": "已記錄歌曲 {0} / {1}",
+    "en": "Songs recorded: {0} / {1}",
+    "ja": "記録済みの楽曲 {0} / {1}"
+  },
+  "歌曲明细": {
+    "zh-Hans": "歌曲明细",
+    "zh-Hant": "歌曲明細",
+    "en": "Song details",
+    "ja": "楽曲別"
+  },
+  "按谱面等级": {
+    "zh-Hans": "按谱面等级",
+    "zh-Hant": "依譜面等級",
+    "en": "By chart level",
+    "ja": "譜面レベル別"
+  },
+  "成绩记录": {
+    "zh-Hans": "成绩记录",
+    "zh-Hant": "成績紀錄",
+    "en": "Score records",
+    "ja": "スコア記録"
+  },
+  "已记录": {
+    "zh-Hans": "已记录",
+    "zh-Hant": "已記錄",
+    "en": "Recorded",
+    "ja": "記録あり"
+  },
+  "未记录": {
+    "zh-Hans": "未记录",
+    "zh-Hant": "未記錄",
+    "en": "Unrecorded",
+    "ja": "未記録"
+  },
+  "没有符合条件的歌曲": {
+    "zh-Hans": "没有符合条件的歌曲",
+    "zh-Hant": "沒有符合條件的歌曲",
+    "en": "No matching songs",
+    "ja": "該当する楽曲はありません"
+  },
+  "{0} 计入": {
+    "zh-Hans": "{0} 计入",
+    "zh-Hant": "採計 {0}",
+    "en": "Counting {0}",
+    "ja": "{0} を採用"
+  },
+  "已记录谱面 {0} / {1}": {
+    "zh-Hans": "已记录谱面 {0} / {1}",
+    "zh-Hant": "已記錄譜面 {0} / {1}",
+    "en": "Charts recorded: {0} / {1}",
+    "ja": "記録済みの譜面 {0} / {1}"
+  },
+  "已获得 / 理论 OP": {
+    "zh-Hans": "已获得 / 理论 OP",
+    "zh-Hant": "已取得 / 理論 OP",
+    "en": "Earned / maximum OP",
+    "ja": "獲得 OP / 理論値"
+  },
+  "银色": {
+    "zh-Hans": "银色",
+    "zh-Hant": "銀色",
+    "en": "Silver",
+    "ja": "銀"
+  },
+  "金色": {
+    "zh-Hans": "金色",
+    "zh-Hant": "金色",
+    "en": "Gold",
+    "ja": "金"
+  },
+  "铂色": {
+    "zh-Hans": "铂色",
+    "zh-Hant": "鉑色",
+    "en": "Platinum",
+    "ja": "プラチナ"
+  },
+  "虹色": {
+    "zh-Hans": "虹色",
+    "zh-Hant": "虹色",
+    "en": "Rainbow",
+    "ja": "虹"
+  },
+  "已达理论值": {
+    "zh-Hans": "已达理论值",
+    "zh-Hant": "已達理論值",
+    "en": "Maximum OP reached",
+    "ja": "理論値達成"
+  },
+  "距 100.00% 还差 {0} OP": {
+    "zh-Hans": "距 100.00% 还差 {0} OP",
+    "zh-Hant": "距 100.00% 還差 {0} OP",
+    "en": "{0} OP to 100.00%",
+    "ja": "100.00% まであと {0} OP"
+  },
+  "距{0} {1} 还差 {2} OP": {
+    "zh-Hans": "距{0} {1} 还差 {2} OP",
+    "zh-Hant": "距{0} {1} 還差 {2} OP",
+    "en": "{2} OP to {0} ({1})",
+    "ja": "{0}（{1}）まであと {2} OP"
+  },
+  "OP 率": {
+    "zh-Hans": "OP 率",
+    "zh-Hant": "OP 率",
+    "en": "OP rate",
+    "ja": "OP 率"
+  },
+  "已获得 OP": {
+    "zh-Hans": "已获得 OP",
+    "zh-Hant": "已取得 OP",
+    "en": "Earned OP",
+    "ja": "獲得 OP"
+  },
+  "理论 OP": {
+    "zh-Hans": "理论 OP",
+    "zh-Hant": "理論 OP",
+    "en": "Maximum OP",
+    "ja": "理論 OP"
+  },
+  "已记录歌曲": {
+    "zh-Hans": "已记录歌曲",
+    "zh-Hant": "已記錄歌曲",
+    "en": "Songs recorded",
+    "ja": "記録済みの楽曲"
+  },
+  "已记录谱面": {
+    "zh-Hans": "已记录谱面",
+    "zh-Hant": "已記錄譜面",
+    "en": "Charts recorded",
+    "ja": "記録済みの譜面"
+  },
+  "剩余 OP": {
+    "zh-Hans": "剩余 OP",
+    "zh-Hant": "剩餘 OP",
+    "en": "Remaining OP",
+    "ja": "残り OP"
   }
 }

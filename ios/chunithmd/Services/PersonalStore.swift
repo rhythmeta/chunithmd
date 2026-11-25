@@ -9,13 +9,18 @@ final class PersonalStore {
     private(set) var playRecords: [ScoreRecord] = []
     private(set) var chartProgress: [String: ChartProgress] = [:]
     private(set) var best: [BestTableEntry] = []
+    private(set) var overPower: OverPowerReport?
     private(set) var rating = 0.0
     private(set) var revision = 0
     var error: String?
 
     func reload(catalog: CatalogStore) {
         do {
+            let previous = snapshot.activeProfile
             snapshot = try JSONDecoder().decode(PersonalSnapshot.self, from: Data(try bridge.snapshotJson().utf8))
+            if previous?.id != snapshot.activeProfile?.id || previous?.server != snapshot.activeProfile?.server {
+                overPower = nil
+            }
             playRecords = try bridge.playHistory()
             chartProgress = try bridge.chartProgress()
             if let bundle = catalog.bundle {
@@ -26,6 +31,20 @@ final class PersonalStore {
             catalog.favorites = snapshot.favoriteSongIds
             revision += 1
         } catch { self.error = error.localizedDescription }
+    }
+
+    func reloadOverPower(bundle: CatalogBundle?) async {
+        guard let bundle else { overPower = nil; return }
+        let revision = self.revision
+        do {
+            let report = try await bridge.overPower(bundle: bundle)
+            guard !Task.isCancelled, revision == self.revision else { return }
+            overPower = report
+        } catch {
+            guard !Task.isCancelled, revision == self.revision else { return }
+            overPower = nil
+            self.error = error.localizedDescription
+        }
     }
 
     func perform(catalog: CatalogStore, _ action: () throws -> Void) {

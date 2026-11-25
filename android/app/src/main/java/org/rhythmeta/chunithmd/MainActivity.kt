@@ -153,6 +153,16 @@ import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableScreen
 import org.rhythmeta.chunithmd.ui.constanttable.ConstantTableToolbarActions
 import org.rhythmeta.chunithmd.ui.plate.PlateProgressHomeCard
 import org.rhythmeta.chunithmd.ui.plate.PlateProgressScreen
+import org.rhythmeta.chunithmd.shared.OverPowerCalculator
+import org.rhythmeta.chunithmd.shared.OverPowerSort
+import org.rhythmeta.chunithmd.ui.components.AutoHidePageSwitcher
+import org.rhythmeta.chunithmd.ui.components.rememberPageSwitcherScroll
+import org.rhythmeta.chunithmd.ui.overpower.OverPowerSortMenu
+import org.rhythmeta.chunithmd.ui.overpower.rememberOverPowerOrder
+import org.rhythmeta.chunithmd.shared.OverPowerReport
+import org.rhythmeta.chunithmd.ui.overpower.OverPowerHomeCard
+import org.rhythmeta.chunithmd.ui.overpower.OverPowerLevelScreen
+import org.rhythmeta.chunithmd.ui.overpower.OverPowerScreen
 import org.rhythmeta.chunithmd.ui.profile.CurrentProfileCard
 import org.rhythmeta.chunithmd.ui.profile.ProfileEditorSheet
 import org.rhythmeta.chunithmd.ui.profile.ProfileScreen
@@ -222,6 +232,8 @@ private sealed interface AppRoute : NavKey {
     @Serializable data object Recommendations : AppRoute
     @Serializable data object ScoreQuery : AppRoute
     @Serializable data object ConstantTable : AppRoute
+    @Serializable data object OverPower : AppRoute
+    @Serializable data class OverPowerLevel(val level: String, val hot: Boolean) : AppRoute
     @Serializable data object PlateProgress : AppRoute
     @Serializable data object Collections : AppRoute
     @Serializable data class CollectionDetail(val collectionId: String) : AppRoute
@@ -581,6 +593,15 @@ private fun CatalogApp(
     val randomSongSessionState = remember { RandomSongSessionState() }
     val activeProfile by profileRepository.activeProfile.collectAsState(initial = null)
     val profileScores by scoreRepository.observeCurrentProfileRecords().collectAsState(initial = emptyList())
+    val overPowerReport by key(activeProfile?.id, activeProfile?.server) {
+        produceState<OverPowerReport?>(null, catalogBundle, profileScores) {
+            val profile = activeProfile
+            val catalog = catalogBundle
+            value = if (catalog == null || profile == null) null else withContext(Dispatchers.Default) {
+                OverPowerCalculator.calculate(catalog, profileScores, profile.id, profile.server)
+            }
+        }
+    }
     val bestTablePreferences by bestTablePreferencesRepository.preferences.collectAsState(initial = BestTablePreferences())
     val profileRating by key(activeProfile?.id) {
         produceState(0.0, bundle, profileScores, activeProfile?.server, bestTablePreferences) {
@@ -637,47 +658,8 @@ private fun CatalogApp(
     DisposableEffect(otogameController) { onDispose { otogameController.disconnect() } }
     val recommendationSwitcherShowThreshold = with(LocalDensity.current) { 56.dp.toPx() }
     val recommendationSwitcherHideThreshold = with(LocalDensity.current) { 36.dp.toPx() }
-    val bestTableSwitcherShowThreshold = with(LocalDensity.current) { 56.dp.toPx() }
-    val bestTableSwitcherHideThreshold = with(LocalDensity.current) { 36.dp.toPx() }
-    val bestTableSwitcherScrollConnection = remember(
-        bestTableSwitcherShowThreshold,
-        bestTableSwitcherHideThreshold,
-    ) {
-        object : NestedScrollConnection {
-            private var downwardDistance = 0f
-            private var upwardDistance = 0f
-
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (source != NestedScrollSource.UserInput) return super.onPreScroll(available, source)
-                when {
-                    available.y > 0f -> {
-                        upwardDistance = 0f
-                        if (bestTableSwitcherVisible) {
-                            downwardDistance = 0f
-                        } else {
-                            downwardDistance += available.y
-                            if (downwardDistance >= bestTableSwitcherShowThreshold) {
-                                bestTableSwitcherVisible = true
-                                downwardDistance = 0f
-                            }
-                        }
-                    }
-                    available.y < 0f -> {
-                        downwardDistance = 0f
-                        if (bestTableSwitcherVisible) {
-                            upwardDistance -= available.y
-                            if (upwardDistance >= bestTableSwitcherHideThreshold) {
-                                bestTableSwitcherVisible = false
-                                upwardDistance = 0f
-                            }
-                        } else {
-                            upwardDistance = 0f
-                        }
-                    }
-                }
-                return super.onPreScroll(available, source)
-            }
-        }
+    val bestTableSwitcherScrollConnection = rememberPageSwitcherScroll(bestTableSwitcherVisible) {
+        bestTableSwitcherVisible = it
     }
     val communityAliasSwitcherShowThreshold = with(LocalDensity.current) { 56.dp.toPx() }
     val communityAliasSwitcherHideThreshold = with(LocalDensity.current) { 36.dp.toPx() }
@@ -1027,6 +1009,8 @@ private fun CatalogApp(
         page: Int,
         topBarScrollBehavior: ScrollBehavior,
         titleOverride: String? = null,
+        toolbarActions: @Composable () -> Unit = {},
+        toolbarBottom: @Composable () -> Unit = {},
         content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
     ) {
         val searching = when (page) {
@@ -1045,11 +1029,12 @@ private fun CatalogApp(
             progressiveBlurEnabled = LocalEnableTopBarProgressiveBlur.current,
             topBarScrollBehavior = topBarScrollBehavior,
             navigationIcon = {
-                if (page in 4..20) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
+                if (page >= 4) MiuixIconButton(onClick = { navBackStack.removeLastOrNull() }) {
                     MiuixIcon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = tr("返回"))
                 }
             },
             actions = {
+                toolbarActions()
                 if (page == 13 || page == 14) {
                     CollectionsToolbarActions(collectionsUiState, detail = page == 14)
                 }
@@ -1125,6 +1110,7 @@ private fun CatalogApp(
                 }
             },
             bottomContent = {
+                toolbarBottom()
                 if (page == 2 && bundle != null) {
                     CatalogSearchField(
                         search = search,
@@ -1151,7 +1137,8 @@ private fun CatalogApp(
                     )
                 }
                 if (page == 7) {
-                    org.rhythmeta.chunithmd.ui.best.BestTablePageSwitcher(
+                    AutoHidePageSwitcher(
+                        tabs = listOf(tr("新曲"), tr("旧曲")),
                         selectedPage = bestTableSelectedPage,
                         visible = bestTableSwitcherVisible,
                         onSelectedPageChange = { bestTableSelectedPage = it },
@@ -1299,13 +1286,13 @@ private fun CatalogApp(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
                         ) {
+                            OverPowerHomeCard(
+                                report = overPowerReport, modifier = Modifier.weight(1f),
+                                onClick = { pushRoute(AppRoute.OverPower) },
+                            )
                             PlateProgressHomeCard(
                                 modifier = Modifier.weight(1f),
                                 onClick = { pushRoute(AppRoute.PlateProgress) },
-                            )
-                            CommunityAliasHomeCard(
-                                modifier = Modifier.weight(1f),
-                                onClick = { pushRoute(AppRoute.CommunityAliases) },
                             )
                         }
                     }
@@ -1314,11 +1301,14 @@ private fun CatalogApp(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
                         ) {
+                            CommunityAliasHomeCard(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pushRoute(AppRoute.CommunityAliases) },
+                            )
                             CollectionsHomeCard(
                                 modifier = Modifier.weight(1f),
                                 onClick = { pushRoute(AppRoute.Collections) },
                             )
-                            androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
                         }
                     }
                 }
@@ -1387,6 +1377,10 @@ private fun CatalogApp(
         val detailBackground = songDetailBackground ?: MiuixTheme.colorScheme.background
         CatalogContainerTransform(coverTransition, detailBackground) {
             val song = bundle?.catalog?.songs?.firstOrNull { it.songId == songId }
+            val opBySheet = remember(overPowerReport, songId) {
+                overPowerReport?.all?.songs?.firstOrNull { it.songId == songId }
+                    ?.charts.orEmpty().associate { it.sheetKey to it.points }
+            }
             AppPageScaffold(
                 title = song?.let(CatalogSongFormatter::displayTitle) ?: tr("歌曲详情"),
                 smallTitleVisible = song == null || showTopTitle,
@@ -1417,6 +1411,7 @@ private fun CatalogApp(
             ) { padding, topBarScrollConnection ->
                 SongDetailScreen(
                     song = song,
+                    opBySheet = opBySheet,
                     activeServer = activeProfile?.server ?: org.rhythmeta.chunithmd.shared.ProfileServer.Jp,
                     loading = bundle == null,
                     aliases = bundle?.aliases?.get(songId).orEmpty(),
@@ -1459,7 +1454,7 @@ private fun CatalogApp(
             }
             if (navBackStack.lastOrNull() == AppRoute.Otogame || navBackStack.lastOrNull() == AppRoute.OtogameLogin || navBackStack.lastOrNull() == AppRoute.Lxns || navBackStack.lastOrNull() == AppRoute.DivingFish || navBackStack.lastOrNull() == AppRoute.CommunityAliases || navBackStack.lastOrNull() == AppRoute.Account || navBackStack.lastOrNull() == AppRoute.Theme || navBackStack.lastOrNull() == AppRoute.Resources || navBackStack.lastOrNull() == AppRoute.Profiles || navBackStack.lastOrNull() == AppRoute.BestTable || navBackStack.lastOrNull() == AppRoute.RandomSong || navBackStack.lastOrNull() == AppRoute.Recommendations || navBackStack.lastOrNull() == AppRoute.ScoreQuery || navBackStack.lastOrNull() == AppRoute.ConstantTable || navBackStack.lastOrNull() == AppRoute.PlateProgress) {
                 navBackStack.removeLastOrNull()
-            } else if (navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() is AppRoute.CatalogSongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
+            } else if (currentRoute == AppRoute.OverPower || currentRoute is AppRoute.OverPowerLevel || navBackStack.lastOrNull() is AppRoute.SongDetail || navBackStack.lastOrNull() is AppRoute.CatalogSongDetail || navBackStack.lastOrNull() == AppRoute.Collections || navBackStack.lastOrNull() is AppRoute.CollectionDetail) {
                 navBackStack.removeLastOrNull()
             } else if (navBackStack.size > 1) {
                 navBackStack.removeLastOrNull()
@@ -1746,6 +1741,54 @@ private fun CatalogApp(
                     onFilterDismiss = { constantTableFilterOpen = false },
                     onExportRequestHandled = { constantTableExportRequested = false },
                     onOpenSong = { songId -> pushRoute(AppRoute.SongDetail(songId)) },
+                )
+            }
+        }
+        entry<AppRoute.OverPower>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) {
+            var scopeIndex by rememberSaveable { mutableIntStateOf(0) }
+            var breakdown by rememberSaveable { mutableIntStateOf(0) }
+            var tabsVisible by rememberSaveable { mutableStateOf(true) }
+            val tabScroll = rememberPageSwitcherScroll(tabsVisible) { tabsVisible = it }
+            val songOrder = rememberOverPowerOrder(OverPowerSort.Remaining)
+            val levelOrder = rememberOverPowerOrder(OverPowerSort.Level)
+            val order = if (breakdown == 0) songOrder else levelOrder
+            AppFrame(
+                21, MiuixScrollBehavior(), titleOverride = "OVER POWER",
+                toolbarActions = { OverPowerSortMenu(order, levels = breakdown == 1) },
+                toolbarBottom = {
+                    AutoHidePageSwitcher(listOf(tr("全曲"), tr("HOT·新曲")), scopeIndex, tabsVisible) { scopeIndex = it }
+                },
+            ) { padding, connection ->
+                OverPowerScreen(
+                    scopeIndex = scopeIndex, breakdown = breakdown, onBreakdownChange = { breakdown = it },
+                    order = order.value,
+                    report = overPowerReport, hasCatalog = catalogBundle != null,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(), localJacketPath = repository::localJacketPath,
+                    modifier = Modifier.nestedScroll(tabScroll).nestedScroll(connection),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 12.dp, bottom = 36.dp),
+                    onOpenLevel = { level, hot -> pushRoute(AppRoute.OverPowerLevel(level, hot)) },
+                    onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
+                )
+            }
+        }
+        entry<AppRoute.OverPowerLevel>(
+            transition = SettingsDetailTransition,
+            swipeDismiss = if (predictiveBackEnabled) NavSwipeDirection.LeftToRight else NavSwipeDirection.None,
+        ) { route ->
+            val order = rememberOverPowerOrder(OverPowerSort.Name)
+            AppFrame(22, MiuixScrollBehavior(), titleOverride = "Lv. " + route.level,
+                toolbarActions = { OverPowerSortMenu(order) },
+            ) { padding, connection ->
+                OverPowerLevelScreen(
+                    order = order.value,
+                    report = overPowerReport, hasCatalog = catalogBundle != null, level = route.level, hot = route.hot,
+                    jacketBaseUrl = manifest?.assets?.jacketBaseUrl.orEmpty(), localJacketPath = repository::localJacketPath,
+                    modifier = Modifier.nestedScroll(connection),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 12.dp, bottom = 36.dp),
+                    onOpenSong = { pushRoute(AppRoute.SongDetail(it)) },
                 )
             }
         }

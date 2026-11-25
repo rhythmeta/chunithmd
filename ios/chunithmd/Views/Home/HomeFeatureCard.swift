@@ -1,7 +1,17 @@
+import Shared
 import SwiftUI
 
 struct HomeFeatureCard: View {
     let destination: HomeDestination
+    @Environment(PersonalStore.self) private var personal
+
+    private var subtitle: String {
+        if destination == .overPower, let scope = personal.overPower?.all, scope.recordedCount > 0 {
+            return tr("全曲 OP 率 {0}", scope.points.rateText)
+        }
+        return destination.subtitle
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Image(systemName: destination.icon)
@@ -10,7 +20,7 @@ struct HomeFeatureCard: View {
                 .frame(width: 32, height: 32, alignment: .leading)
             VStack(alignment: .leading, spacing: 4) {
                 Text(destination.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(.primary)
-                Text(destination.subtitle).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(2)
+                Text(subtitle).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(2)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

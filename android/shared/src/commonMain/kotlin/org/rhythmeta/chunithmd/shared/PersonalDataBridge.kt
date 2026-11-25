@@ -3,6 +3,8 @@ package org.rhythmeta.chunithmd.shared
 import org.rhythmeta.chunithmd.shared.localization.tr
 import org.rhythmeta.chunithmd.shared.backup.*
 import kotlin.time.Clock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.rhythmeta.chunithmd.collection.*
 import org.rhythmeta.chunithmd.shared.importing.*
 import org.rhythmeta.chunithmd.shared.community.mergeCommunityAliases
@@ -221,6 +223,13 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
 
     @Throws(Exception::class)
     fun bestEntries(bundle: CatalogBundle): List<BestTableEntry> = read().let { buildBestTableEntries(bundle, records(it), server(it)) }
+
+    @Throws(Exception::class)
+    suspend fun overPower(bundle: CatalogBundle): OverPowerReport? = withContext(Dispatchers.Default) {
+        val state = read()
+        val profile = state.profiles.firstOrNull { it.active } ?: return@withContext null
+        OverPowerCalculator.calculate(bundle, records(state), profile.id, server(state))
+    }
 
     /** Returns every candidate chart so native clients can apply filters before selecting slots. */
     @Throws(Exception::class)

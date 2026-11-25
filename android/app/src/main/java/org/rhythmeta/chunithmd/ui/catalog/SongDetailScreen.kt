@@ -147,6 +147,7 @@ import org.rhythmeta.chunithmd.shared.ScoreRecord
 import org.rhythmeta.chunithmd.shared.ScoreHistorySort
 import org.rhythmeta.chunithmd.shared.bestScore
 import org.rhythmeta.chunithmd.shared.BestScoreSummary
+import org.rhythmeta.chunithmd.shared.OverPowerPoints
 import org.rhythmeta.chunithmd.shared.bestScoreSummary
 import org.rhythmeta.chunithmd.shared.buildRatingTable
 import org.rhythmeta.chunithmd.shared.breakdown
@@ -161,6 +162,7 @@ import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import org.rhythmeta.chunithmd.ui.components.clearStatusColor
 import org.rhythmeta.chunithmd.ui.components.comboStatusColor
 import org.rhythmeta.chunithmd.ui.components.chainStatusColor
+import org.rhythmeta.chunithmd.ui.overpower.overPowerNumber
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.Button as MiuixButton
@@ -187,6 +189,7 @@ private val CHART_TYPE_ORDER = listOf("std", "standard", "we")
 @Composable
 fun SongDetailScreen(
     song: CatalogSong?,
+    opBySheet: Map<String, OverPowerPoints>,
     activeServer: ProfileServer,
     loading: Boolean = false,
     aliases: List<String>,
@@ -365,16 +368,18 @@ fun SongDetailScreen(
                     items = visibleSheets,
                     key = { sheet -> "${song.songId}:${sheet.type}:${sheet.difficulty}" },
                 ) { sheet ->
+                    val sheetKey = song.sheetKey(sheet)
                     ChartDetailCard(
                         song = song,
                         sheet = sheet,
                         surfaceColor = surfaceColor,
                         accentColor = accent,
                         actionSurfaceColor = selectedSurfaceColor,
-                        records = recordsBySheet[song.sheetKey(sheet)].orEmpty(),
-                        onRecord = { scoreEntrySheetKey = song.sheetKey(sheet) },
+                        records = recordsBySheet[sheetKey].orEmpty(),
+                        op = opBySheet[sheetKey],
+                        onRecord = { scoreEntrySheetKey = sheetKey },
                         onDeleteRecord = { recordToDelete = it },
-                        onAddToCollection = { collectionSheetKey = song.sheetKey(sheet) },
+                        onAddToCollection = { collectionSheetKey = sheetKey },
                     )
                 }
             }
@@ -826,6 +831,7 @@ private fun ChartDetailCard(
     accentColor: Color,
     actionSurfaceColor: Color,
     records: List<ScoreRecord>,
+    op: OverPowerPoints?,
     onRecord: () -> Unit,
     onDeleteRecord: (ScoreRecord) -> Unit,
     onAddToCollection: () -> Unit,
@@ -940,6 +946,7 @@ private fun ChartDetailCard(
             ) {
                 ScoreSummarySection(
                     bestRecord = bestRecord,
+                    op = op,
                     accentColor = accentColor,
                 )
                 NoteCountSection(
@@ -1114,6 +1121,7 @@ private fun noteCountColor(label: String): Color = when (label) {
 @Composable
 private fun ScoreSummarySection(
     bestRecord: BestScoreSummary?,
+    op: OverPowerPoints?,
     accentColor: Color,
 ) {
     Row(
@@ -1151,6 +1159,14 @@ private fun ScoreSummarySection(
                 }
                 RecordStatusBadges(bestRecord.clear, bestRecord.fullCombo, bestRecord.fullChain, accentColor)
             }
+        }
+        if (op != null) {
+            MiuixText(
+                text = "${overPowerNumber(op.earned)} / ${overPowerNumber(op.maximum)} OP",
+                modifier = Modifier.padding(start = 8.dp),
+                style = MiuixTheme.textStyles.body2,
+                textAlign = TextAlign.End,
+            )
         }
     }
 }

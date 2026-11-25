@@ -2,23 +2,18 @@ package org.rhythmeta.chunithmd.ui.catalog
 
 import org.rhythmeta.chunithmd.shared.localization.tr
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.automirrored.rounded.ViewList
@@ -28,25 +23,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.rhythmeta.chunithmd.shared.CatalogBundle
 import org.rhythmeta.chunithmd.shared.CatalogSong
+import org.rhythmeta.chunithmd.ui.components.SortAction
 import org.rhythmeta.chunithmd.shared.CatalogSort
 import org.rhythmeta.chunithmd.shared.CatalogSyncStage
 import org.rhythmeta.chunithmd.shared.CatalogSyncState
 import org.rhythmeta.chunithmd.shared.ScoreRecord
 import top.yukonga.miuix.kmp.basic.Button as MiuixButton
-import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
-import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.window.WindowListPopup
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 
@@ -129,6 +120,7 @@ fun CatalogToolbarActions(
         )
     }
     SortAction(
+        options = CatalogSort.entries, label = ::sortLabel,
         expanded = sortOpen,
         sort = sort,
         ascending = ascending,
@@ -142,51 +134,6 @@ fun CatalogToolbarActions(
             contentDescription = tr("筛选"),
             tint = if (filterActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurface,
         )
-    }
-}
-
-@Composable
-private fun SortAction(
-    expanded: Boolean,
-    sort: CatalogSort,
-    ascending: Boolean,
-    onToggle: () -> Unit,
-    onSort: (CatalogSort) -> Unit,
-    onAscending: () -> Unit,
-) {
-    Box {
-        MiuixIconButton(onClick = onToggle) {
-            MiuixIcon(Icons.AutoMirrored.Rounded.Sort, contentDescription = tr("排序"))
-        }
-        WindowListPopup(
-            show = expanded,
-            alignment = PopupPositionProvider.Align.End,
-            enableWindowDim = true,
-            onDismissRequest = onToggle,
-        ) {
-            ListPopupColumn {
-                CatalogSort.entries.forEachIndexed { index, option ->
-                    DropdownImpl(
-                        text = sortLabel(option),
-                        optionSize = CatalogSort.entries.size,
-                        isSelected = option == sort,
-                        index = index,
-                        onSelectedIndexChange = { onSort(option) },
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(role = Role.Button, onClick = onAscending)
-                        .padding(horizontal = 18.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    MiuixText(if (ascending) "↑" else "↓", style = MiuixTheme.textStyles.title3, color = MiuixTheme.colorScheme.primary)
-                    Spacer(Modifier.width(10.dp))
-                    MiuixText(if (ascending) tr("升序") else tr("降序"), style = MiuixTheme.textStyles.body1)
-                }
-            }
-        }
     }
 }
 

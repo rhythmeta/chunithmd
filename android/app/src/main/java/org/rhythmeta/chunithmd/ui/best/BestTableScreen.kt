@@ -1,20 +1,12 @@
 package org.rhythmeta.chunithmd.ui.best
 
-import org.rhythmeta.chunithmd.ui.catalog.rememberSongCoverNavigation
-import org.rhythmeta.chunithmd.ui.catalog.SongCardTransitionContent
 
 import org.rhythmeta.chunithmd.shared.localization.tr
 
 import android.content.Intent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.border
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +35,6 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.EmojiEvents
-import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -62,7 +53,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.onFocusChanged
@@ -72,13 +62,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import java.io.File
 import org.rhythmeta.chunithmd.shared.calculateSingleRating
 import kotlin.math.roundToInt
 import java.util.Locale
@@ -100,21 +87,21 @@ import org.rhythmeta.chunithmd.shared.buildBestTableEntries
 import org.rhythmeta.chunithmd.shared.calculatePlayerRating
 import org.rhythmeta.chunithmd.shared.latestPlayableVersion
 import org.rhythmeta.chunithmd.ui.catalog.difficultyColor
-import org.rhythmeta.chunithmd.ui.catalog.ultimaStripedBrush
 import org.rhythmeta.chunithmd.ui.catalog.SongVisualUtils
+import org.rhythmeta.chunithmd.ui.components.ScoreEntryBadge
+import org.rhythmeta.chunithmd.ui.components.ScoreEntryCard
+import org.rhythmeta.chunithmd.ui.components.rankColor
 import org.rhythmeta.chunithmd.ui.components.clearStatusColor
 import org.rhythmeta.chunithmd.ui.components.comboStatusColor
 import org.rhythmeta.chunithmd.ui.components.chainStatusColor
 import org.rhythmeta.chunithmd.ui.components.ExpandableBottomSheet
 import org.rhythmeta.chunithmd.ui.components.SquircleExtension
-import org.rhythmeta.chunithmd.ui.components.fadingMarquee
 import org.rhythmeta.chunithmd.ui.components.playerRatingColors
 import org.rhythmeta.chunithmd.ui.components.ratingTierColor
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.TabRowWithContour
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
@@ -563,29 +550,6 @@ fun BestTableScreen(
     }
 }
 
-/** Tab row switching between the Best and New halves, mirroring maimaid's page switcher. */
-@Composable
-internal fun BestTablePageSwitcher(
-    selectedPage: Int,
-    visible: Boolean,
-    onSelectedPageChange: (Int) -> Unit,
-) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-        exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
-    ) {
-        TabRowWithContour(
-            tabs = listOf(tr("新曲"), tr("旧曲")),
-            selectedTabIndex = selectedPage,
-            onTabSelected = onSelectedPageChange,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
-            minWidth = 112.dp,
-            maxWidth = 180.dp,
-        )
-    }
-}
-
 private val DifficultyFilterOrder = listOf("basic", "advanced", "expert", "master", "ultima")
 
 private val RankFilterOrder = listOf("SSS+", "SSS", "SS+", "SS", "S+", "S", "AAA", "AA", "A", "BBB", "BB", "B", "C", "D")
@@ -969,107 +933,18 @@ private fun BestTableEntryCard(
     localJacketPath: (String) -> String?,
     onClick: () -> Unit,
 ) {
-    val coverNavigation = rememberSongCoverNavigation(entry.songId, onClick, 10.dp, key = entry, cardColor = MiuixTheme.colorScheme.surfaceContainer, cardCornerRadius = 16.dp)
-    val accent = difficultyColor(entry.difficulty)
-    val isUltima = entry.difficulty.equals("ultima", ignoreCase = true)
-    val imageModel = remember(entry.imageName, jacketBaseUrl) {
-        localJacketPath(entry.imageName)?.let(::File)
-            ?: jacketBaseUrl.trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/${entry.imageName.trimStart('/')}" }
-    }
-    Card(
-        modifier = Modifier.fillMaxWidth().then(coverNavigation.cardModifier).clip(RoundedCornerShape(16.dp)).clickable(onClick = coverNavigation::open),
-        cornerRadius = 16.dp,
-        insideMargin = PaddingValues(start = 8.dp),
-        colors = CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer),
+    val darkTheme = SongVisualUtils.isDarkTheme(MiuixTheme.colorScheme.background)
+    ScoreEntryCard(
+        songId = entry.songId, chartKey = entry.chartId, title = entry.title, imageName = entry.imageName,
+        difficulty = entry.difficulty, score = entry.score, rank = entry.rank,
+        value = formatRating(entry.rating), caption = tr("定数 {0}", formatLevel(entry.constant)),
+        valueBrush = ratingTierBrush(entry.rating, darkTheme),
+        jacketBaseUrl = jacketBaseUrl, localJacketPath = localJacketPath, onClick = onClick,
     ) {
-        SongCardTransitionContent(coverNavigation) { showCover ->
-            Row(
-                modifier = Modifier.fillMaxWidth().height(84.dp).padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    Modifier
-                        .height(52.dp)
-                        .width(4.dp)
-                        .then(
-                            if (isUltima) {
-                                Modifier.clip(RoundedCornerShape(2.dp)).background(ultimaStripedBrush())
-                            } else {
-                                Modifier.squircleSurface(
-                                    color = accent,
-                                    cornerRadius = 2.dp,
-                                    extension = SquircleExtension,
-                                )
-                            },
-                        ),
-                )
-                Spacer(Modifier.width(10.dp))
-                Box(
-                    Modifier.size(56.dp).then(if (showCover) coverNavigation.modifier else Modifier).squircleSurface(
-                        color = if (showCover) MiuixTheme.colorScheme.onSurface.copy(alpha = 0.05f) else Color.Transparent,
-                        cornerRadius = 10.dp,
-                        extension = SquircleExtension,
-                    ),
-                ) {
-                    if (showCover) {
-                        if (imageModel == null) {
-                            Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = accent, modifier = Modifier.align(Alignment.Center))
-                        } else {
-                            AsyncImage(imageModel, placeholder = coverNavigation.source.painter, error = coverNavigation.source.painter, onSuccess = { coverNavigation.onPainter(it.painter) }, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-                        }
-                    }
-                }
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(entry.title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Clip, modifier = Modifier.fillMaxWidth().fadingMarquee())
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            entry.rank,
-                            style = MiuixTheme.textStyles.footnote1,
-                            fontWeight = FontWeight.Black,
-                            color = rankColor(entry.rank).takeUnless { it == Color.Unspecified }
-                                ?: MiuixTheme.colorScheme.onSurface,
-                        )
-                        Text(formatScore(entry.score), style = MiuixTheme.textStyles.footnote1.copy(fontFamily = FontFamily.Monospace), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        ClearType.displayName(entry.clear)?.let { display ->
-                            EntryBadge(display, clearStatusColor(entry.clear))
-                        }
-                        FullComboType.displayName(entry.fullCombo)?.let { display ->
-                            EntryBadge(display, comboStatusColor(entry.fullCombo))
-                        }
-                        FullChainType.displayName(entry.fullChain)?.let { display ->
-                            EntryBadge(display, chainStatusColor(entry.fullChain))
-                        }
-                    }
-                }
-                Column(modifier = Modifier.padding(end = 14.dp), horizontalAlignment = Alignment.End) {
-                    val entryDarkTheme = SongVisualUtils.isDarkTheme(MiuixTheme.colorScheme.background)
-                    Text(
-                        formatRating(entry.rating),
-                        style = MiuixTheme.textStyles.title3.copy(
-                            fontWeight = FontWeight.Black,
-                            brush = ratingTierBrush(entry.rating, entryDarkTheme),
-                        ),
-                        color = Color.Unspecified,
-                    )
-                    Text(tr("定数 {0}", formatLevel(entry.constant)), style = MiuixTheme.textStyles.footnote2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
-                }
-            }
-        }
+        ClearType.displayName(entry.clear)?.let { ScoreEntryBadge(tr(it), clearStatusColor(entry.clear)) }
+        FullComboType.displayName(entry.fullCombo)?.let { ScoreEntryBadge(tr(it), comboStatusColor(entry.fullCombo)) }
+        FullChainType.displayName(entry.fullChain)?.let { ScoreEntryBadge(tr(it), chainStatusColor(entry.fullChain)) }
     }
-}
-
-@Composable
-private fun EntryBadge(text: String, color: Color) {
-    Text(
-        tr(text),
-        style = MiuixTheme.textStyles.footnote2.copy(fontSize = 9.sp),
-        fontWeight = FontWeight.Bold,
-        color = color,
-        modifier = Modifier.squircleSurface(color.copy(alpha = 0.13f), 4.dp, SquircleExtension).padding(horizontal = 5.dp, vertical = 2.dp),
-    )
 }
 
 private fun formatLevel(value: Double): String = String.format(Locale.ROOT, "%.1f", value)
@@ -1077,16 +952,6 @@ private fun formatLevel(value: Double): String = String.format(Locale.ROOT, "%.1
 private fun formatRating(value: Double): String = String.format(Locale.ROOT, "%.2f", value)
 
 private fun formatScore(value: Int): String = String.format(Locale.ROOT, "%,d", value)
-
-private fun rankColor(rank: String): Color = when (rank.uppercase(Locale.ROOT)) {
-    "SSS+", "SSS" -> Color(0xFFFFD900)
-    "SS+", "SS" -> Color(0xFFFFBF00)
-    "S+", "S" -> Color(0xFFFF9900)
-    "AAA" -> Color(0xFFCC99FF)
-    "AA" -> Color(0xFF99CCFF)
-    "A" -> Color(0xFF80E680)
-    else -> Color.Unspecified
-}
 
 private val BestAccent = Color(0xFFFF9500)
 

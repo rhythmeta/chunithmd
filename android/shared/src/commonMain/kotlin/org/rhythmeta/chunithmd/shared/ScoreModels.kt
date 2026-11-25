@@ -133,12 +133,14 @@ fun CatalogSong.progressSheets(region: String = "jp"): List<CatalogSheet> {
     val worldsEnd = available.filter { it.type.equals("we", true) }
     return (preferred + worldsEnd)
         .distinctBy { if (it.type.equals("we", true)) "we" else it.difficulty.lowercase() }
-        .sortedByDescending { progressDifficultyOrder(if (it.type.equals("we", true)) "world's end" else it.difficulty) }
+        .sortedByDescending { chartDifficultyOrder(if (it.type.equals("we", true)) "world's end" else it.difficulty) }
 }
 
-private fun progressDifficultyOrder(value: String): Int = listOf(
+private val chartDifficulties = listOf(
     "basic", "advanced", "expert", "master", "ultima", "world's end",
-).indexOfFirst { it.equals(value, true) }
+)
+
+internal fun chartDifficultyOrder(value: String): Int = chartDifficulties.indexOfFirst { it.equals(value, true) }
 
 /** Score where the hollow progress ring starts filling; 975,000 is the S rank boundary. */
 private const val RING_START_SCORE = 975_000

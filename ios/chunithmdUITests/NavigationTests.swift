@@ -27,6 +27,47 @@ final class NavigationTests: XCTestCase {
         return app
     }
 
+    func testOverPowerScopeSortAndLevelNavigation() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        let download = app.buttons["下载资源并继续"]
+        let startup = app.buttons.matching(NSPredicate(format: "label == %@ OR identifier == %@", "下载资源并继续", "home-overPower")).firstMatch
+        XCTAssertTrue(startup.waitForExistence(timeout: 20))
+        if download.exists { download.tap() }
+        let card = app.buttons["home-overPower"]
+        XCTAssertTrue(card.waitForExistence(timeout: 120))
+        if !card.isHittable { app.swipeUp() }
+        card.tap()
+
+        let scope = app.buttons["overpower-scope"]
+        XCTAssertEqual(scope.value as? String, "全曲")
+        scope.tap()
+        XCTAssertEqual(scope.value as? String, "HOT·新曲")
+        let sort = app.buttons["overpower-sort"]
+        sort.tap()
+        app.buttons["难度"].tap()
+        sort.tap()
+        app.buttons["降序"].tap()
+        sort.tap()
+        XCTAssertTrue(app.buttons["升序"].exists)
+        app.buttons["升序"].tap()
+
+        let filter = app.buttons["overpower-record-filter"]
+        filter.tap()
+        app.buttons["未记录"].tap()
+        app.buttons["按谱面等级"].tap()
+        scope.tap()
+        XCTAssertEqual(scope.value as? String, "全曲")
+        let level = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Lv. '")).firstMatch
+        XCTAssertTrue(level.waitForExistence(timeout: 5))
+        level.tap()
+        let bar = app.navigationBars.matching(NSPredicate(format: "identifier BEGINSWITH 'Lv. '")).firstMatch
+        XCTAssertTrue(bar.waitForExistence(timeout: 5))
+        XCTAssertFalse(bar.staticTexts["全曲"].exists)
+    }
+
     func testScoreImportPagesAndOtogameLoginNavigation() {
         continueAfterFailure = false
         let app = XCUIApplication()
@@ -483,10 +524,11 @@ final class NavigationTests: XCTestCase {
         XCTAssertTrue(rows.firstMatch.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "[+][0-9]+[.][0-9]{2}")).firstMatch.exists)
         XCTAssertTrue(rows.firstMatch.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "目标 ")).firstMatch.exists)
         capture(app, name: "recommendations-new")
-        XCTAssertLessThan(app.buttons["recommendation-scope"].frame.width, 60)
-        app.buttons["recommendation-scope"].tap()
-        capture(app, name: "recommendations-scope-menu")
-        app.buttons["旧曲推荐"].tap()
+        let scope = app.buttons["recommendation-scope"]
+        XCTAssertLessThan(scope.frame.width, 60)
+        XCTAssertEqual(scope.value as? String, "新曲推荐")
+        scope.tap()
+        XCTAssertEqual(scope.value as? String, "旧曲推荐")
         XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
         XCTAssertNotEqual(rows.firstMatch.identifier, firstNew)
         capture(app, name: "recommendations-old")
@@ -497,9 +539,12 @@ final class NavigationTests: XCTestCase {
         rows.allElementsBoundByIndex.first { $0.isHittable }!.tap()
         XCTAssertTrue(app.buttons["song-detail-back"].waitForExistence(timeout: 5))
         app.buttons["song-detail-back"].tap()
-        XCTAssertTrue(app.buttons["recommendation-scope"].label.contains("旧曲推荐"))
+        XCTAssertEqual(scope.value as? String, "旧曲推荐")
         for _ in 0..<5 { list.swipeDown() }
         XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5))
+        scope.tap()
+        XCTAssertEqual(scope.value as? String, "新曲推荐")
+        XCTAssertEqual(rows.firstMatch.identifier, firstNew)
         app.terminate()
         app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "-appearance", "dark"]
         app.launch()
