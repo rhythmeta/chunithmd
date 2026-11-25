@@ -1,8 +1,11 @@
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { promisify } from "node:util";
 import { canonicalJson } from "./canonical-json.js";
 import { mergeSources, validateLxnsAliasList, validateLxnsSongList, validatePrimaryData } from "./merge.js";
+import { enrichFromOtoge, validateOtogeSongs } from "./otoge.js";
 import type { BuildManifest, JsonValue, MappingReport } from "./types.js";
 
 export const DEFAULT_PRIMARY_URL = "https://dp4p6x0xfi5o9.cloudfront.net/chunithm/data.json";
@@ -26,6 +29,21 @@ export const fetchJson = async (url: string, timeoutMs = 60_000): Promise<{ valu
 	}
 	return { value, bytes, hash: sha256(bytes) };
 };
+
+async function fetchOtogeSongs(pinnedRevision?: string) {
+	const revision = pinnedRevision ?? (await promisify(execFile)("git", [
+		"ls-remote", "--exit-code", "https://github.com/zvuc/otoge-db.git", "refs/heads/main",
+	], { timeout: 60_000 })).stdout.split("\t")[0];
+	if (!revision || !/^[a-f0-9]{40}$/u.test(revision)) throw new Error("Expected a full OTOGE DB commit SHA.");
+	const base = `https://raw.githubusercontent.com/zvuc/otoge-db/${revision}/chunithm/data`;
+	const load = async (file: string) => {
+		const url = `${base}/${file}`;
+		const { value, hash } = await fetchJson(url);
+		return { songs: validateOtogeSongs(value), source: { url, revision, contentSha256: hash } };
+	};
+	const [jp, intl] = await Promise.all([load("music-ex.json"), load("music-ex-intl.json")]);
+	return { jp, intl };
+}
 
 const downloadImage = async (url: string, timeoutMs = 60_000): Promise<Uint8Array> => {
 	const response = await fetch(url, { headers: { accept: "image/*", "user-agent": "chunithmd-static-bundle-builder/1" }, signal: AbortSignal.timeout(timeoutMs) });
@@ -74,6 +92,7 @@ export type BuildOptions = {
 	primaryUrl?: string;
 	lxnsCatalogUrl?: string;
 	lxnsAliasUrl?: string;
+	otogeRevision?: string;
 	imageBaseUrl?: string;
 	staticBaseUrl?: string;
 	createdAt?: string;
@@ -86,15 +105,18 @@ export const buildStaticBundle = async (options: BuildOptions) => {
 	const lxnsAliasUrl = options.lxnsAliasUrl ?? DEFAULT_LXNS_ALIAS_URL;
 	const imageBaseUrl = (options.imageBaseUrl ?? DEFAULT_IMAGE_BASE_URL).replace(/\/+$/u, "/");
 	const staticBaseUrl = (options.staticBaseUrl ?? DEFAULT_STATIC_BASE_URL).replace(/\/+$/u, "");
-	const [primary, lxnsCatalog, lxnsAliases] = await Promise.all([
+	const [primary, lxnsCatalog, lxnsAliases, otoge] = await Promise.all([
 		fetchJson(primaryUrl),
 		fetchJson(lxnsCatalogUrl),
 		fetchJson(lxnsAliasUrl),
+		fetchOtogeSongs(options.otogeRevision),
 	]);
 	const primaryValue = validatePrimaryData(primary.value);
 	const lxnsCatalogValue = validateLxnsSongList(lxnsCatalog.value);
 	const lxnsAliasesValue = validateLxnsAliasList(lxnsAliases.value);
-	const { payload, report } = mergeSources(primaryValue, lxnsCatalogValue, lxnsAliasesValue);
+	const enriched = enrichFromOtoge(primaryValue, otoge.jp.songs, otoge.intl.songs);
+	const { payload, report: mapping } = mergeSources(enriched.primary, lxnsCatalogValue, lxnsAliasesValue);
+	const report = { ...mapping, otoge: enriched.report };
 	if (report.ambiguousSongCount > 0) throw new Error("Bundle contains ambiguous song matches.");
 
 	const bundleBytes = new TextEncoder().encode(canonicalJson(payload as unknown as JsonValue));
@@ -114,6 +136,8 @@ export const buildStaticBundle = async (options: BuildOptions) => {
 			primary: { url: primaryUrl, contentSha256: primary.hash, ...(primaryValue.updateTime ? { updateTime: primaryValue.updateTime } : {}) },
 			lxnsCatalog: { url: lxnsCatalogUrl, contentSha256: lxnsCatalog.hash },
 			lxnsAliases: { url: lxnsAliasUrl, contentSha256: lxnsAliases.hash },
+			otogeJp: otoge.jp.source,
+			otogeIntl: otoge.intl.source,
 		},
 		mapping: {
 			primarySongCount: report.primarySongCount,

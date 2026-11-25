@@ -19,7 +19,7 @@ export type PrimarySong = {
 	title: string;
 	artist: string;
 	category: string;
-	bpm: number;
+	bpm: number | null;
 	imageName: string;
 	version: string | null;
 	releaseDate: string | null;
@@ -133,6 +133,7 @@ export type BuildManifest = {
 	sources: Record<string, {
 		url: string;
 		contentSha256: string;
+		revision?: string;
 		updateTime?: string;
 	}>;
 	mapping: Omit<MappingReport, "unmatchedPrimarySongs" | "ambiguousPrimarySongs" | "unmatchedAliasEntries">;

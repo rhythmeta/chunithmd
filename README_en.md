@@ -103,11 +103,13 @@ Run iOS UI tests with Product → Test in Xcode. To update translations, edit `l
 
 ### Catalog and scanner models
 
-The clients use published assets by default, so normal app builds do not require regenerating catalogs or models. The catalog build fetches upstream data and cover images, merges LXNS catalog and alias data, and validates the output:
+The clients use published assets by default, so normal app builds do not require regenerating catalogs or models. The catalog build fetches upstream data and cover images, merges the LXNS Chinese catalog and aliases, and uses the Japanese and international OTOGE DB data to fill missing metadata, constants, note counts, and designers on existing songs across servers. Positive international flags enable listed standard charts and matching WORLD’S END charts. ULTIMA availability comes from the international chart list. LXNS supplies regional constants for China. The build command verifies the output.
 
 ```sh
 pnpm build:static-bundle
 ```
+
+The build reads the current OTOGE DB `main` commit and records its SHA and the file SHA-256 in the manifest. Set `CHUNITHMD_OTOGE_REVISION` to a full commit SHA to reproduce that input. The `otoge` section of the build report lists fill counts, ambiguous matches, field conflicts, and inconsistent note counts. [OTOGE DB data sources](https://github.com/zvuc/otoge-db#data-sources)
 
 Generated assets go to `static-worker/public/`, with a report at `artifacts/static-bundle-report.json`. `pnpm verify:static-bundle` checks published remote assets; set `CHUNITHMD_STATIC_BASE_URL` to configure the publication URL. See the [build entry point](scripts/build-static-bundle.ts) and [default sources](src/static-bundle/build.ts) for data sources and other environment variables.
 

@@ -103,11 +103,13 @@ iOS UI 测试可在 Xcode 中通过 Product → Test 运行。修改翻译时，
 
 ### 曲库与扫描模型
 
-客户端默认使用已发布的资源，日常构建应用无需重新生成曲库或模型。曲库构建会联网获取上游数据与封面，合并落雪曲库及别名数据，并校验输出：
+客户端默认使用已发布的资源，日常构建应用无需重新生成曲库或模型。曲库构建会联网获取上游数据与封面，合并落雪国服曲库及别名，并用 OTOGE DB 日版和国际版数据为已有曲目补齐三服共用的曲目资料、定数、物量和谱师。国际服收录标记补充普通谱面和对应 WORLD’S END 的可玩性，ULTIMA 以国际版列出的谱面为准。国服使用落雪提供的区域定数。构建命令会校验产物。
 
 ```sh
 pnpm build:static-bundle
 ```
+
+默认构建读取 OTOGE DB 的 `main` 提交，提交 SHA 和文件 SHA-256 记入发布清单。可通过 `CHUNITHMD_OTOGE_REVISION` 指定完整提交 SHA 来复现该来源。构建报告的 `otoge` 部分列出补全数量、匹配歧义、字段冲突和物量校验结果。[OTOGE DB 数据及来源](https://github.com/zvuc/otoge-db#data-sources)
 
 产物写入 `static-worker/public/`，构建报告写入 `artifacts/static-bundle-report.json`。`pnpm verify:static-bundle` 校验已发布的远端资源；发布目标可通过 `CHUNITHMD_STATIC_BASE_URL` 配置。数据源和其他环境变量见 [构建入口](scripts/build-static-bundle.ts) 与 [默认数据源](src/static-bundle/build.ts)。
 

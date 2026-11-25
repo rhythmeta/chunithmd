@@ -12,6 +12,7 @@ const buildOptions = {
 	...(process.env.CHUNITHMD_PRIMARY_URL ? { primaryUrl: process.env.CHUNITHMD_PRIMARY_URL } : {}),
 	...(process.env.CHUNITHMD_LXNS_CATALOG_URL ? { lxnsCatalogUrl: process.env.CHUNITHMD_LXNS_CATALOG_URL } : {}),
 	...(process.env.CHUNITHMD_LXNS_ALIAS_URL ? { lxnsAliasUrl: process.env.CHUNITHMD_LXNS_ALIAS_URL } : {}),
+	...(process.env.CHUNITHMD_OTOGE_REVISION ? { otogeRevision: process.env.CHUNITHMD_OTOGE_REVISION } : {}),
 	...(process.env.CHUNITHMD_IMAGE_BASE_URL ? { imageBaseUrl: process.env.CHUNITHMD_IMAGE_BASE_URL } : {}),
 	...(process.env.CHUNITHMD_STATIC_BASE_URL ? { staticBaseUrl: process.env.CHUNITHMD_STATIC_BASE_URL } : {}),
 };
@@ -20,3 +21,5 @@ const result = await buildStaticBundle(buildOptions);
 await verifyOutput(outputDirectory);
 console.log(`[static-bundle] wrote ${result.manifest.bundle} (${result.manifest.sha256})`);
 console.log(`[static-bundle] matched ${result.report.matchedSongCount}/${result.report.primarySongCount} songs`);
+const { jp, intl } = result.report.otoge;
+console.log(`[static-bundle] OTOGE DB added international availability to ${jp.addedIntlCharts + intl.addedIntlCharts} charts`);
