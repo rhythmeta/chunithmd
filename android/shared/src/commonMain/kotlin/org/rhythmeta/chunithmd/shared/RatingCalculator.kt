@@ -1,6 +1,7 @@
 package org.rhythmeta.chunithmd.shared
 
 import kotlin.math.floor
+import kotlin.math.roundToLong
 
 /**
  * A chart result that can participate in the player's B30/N20 calculation.
@@ -28,6 +29,7 @@ data class PlayerRatingSummary(
 
     /** Empty slots count as zero, so this remains a B50 rating while importing partial data. */
     val rating: Double get() = total / (bestSlotCount + newSlotCount).coerceAtLeast(1)
+    val displayedRating: Double get() = displayedPlayerRating(total, bestSlotCount + newSlotCount)
     val best30Average: Double get() = best30Total / bestSlotCount.coerceAtLeast(1)
     val new20Average: Double get() = new20Total / newSlotCount.coerceAtLeast(1)
 
@@ -35,6 +37,13 @@ data class PlayerRatingSummary(
         const val BEST_SLOT_COUNT = 30.0
         const val NEW_SLOT_COUNT = 20.0
     }
+}
+
+/** Round the B/N average half-up using the exact hundredths of its constituent chart Ratings. */
+internal fun displayedPlayerRating(total: Double, slots: Int): Double {
+    val capacity = slots.coerceAtLeast(1)
+    val totalHundredths = (total * 100).roundToLong()
+    return ((totalHundredths + capacity / 2) / capacity) / 100.0
 }
 
 /**

@@ -617,7 +617,7 @@ private fun CatalogApp(
                     entries.map { RatingChartEntry(it.chartId, it.songId, it.rating, it.isNew) },
                     bestSlotCount = bestTablePreferences.bestCount,
                     newSlotCount = bestTablePreferences.newCount,
-                ).rating
+                ).displayedRating
             }
         }
     }

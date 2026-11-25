@@ -25,10 +25,8 @@ data class RecommendationResponse(
 /**
  * Finds the next rank target that can replace a B30/N20 entry.
  *
- * The calculation intentionally uses the same unrounded Rating values as the
- * Best table. The result gain is divided by the same total B/N slot count used
- * by the player's displayed rating, so it represents the actual player Rating
- * increase after the replacement rather than the chart's raw Rating increase.
+ * Each target must improve on both the chart's current Rating and the lowest
+ * occupied slot it would replace. Empty slots contribute zero to the average.
  */
 object RecommendationCalculator {
     private val targetMilestones = ChunithmScoreRules.rankThresholds
@@ -70,37 +68,27 @@ object RecommendationCalculator {
                 currentRating = score?.let { calculateSingleRating(chart.constant, it) } ?: 0.0,
             )
         }
-        val selectedNew = scoredCharts
-            .filter { it.chart.isNew && it.currentRating > 0.0 }
-            .sortedByDescending(ScoredChart::currentRating)
-            .take(normalizedNewCount)
-        val selectedOld = scoredCharts
-            .filter { !it.chart.isNew && it.currentRating > 0.0 }
-            .sortedByDescending(ScoredChart::currentRating)
-            .take(normalizedBestCount)
-        val selectedNewIds = selectedNew.mapTo(mutableSetOf()) { it.chart.chartId }
-        val selectedOldIds = selectedOld.mapTo(mutableSetOf()) { it.chart.chartId }
-        val newThreshold = replacementThreshold(selectedNew, normalizedNewCount)
-        val oldThreshold = replacementThreshold(selectedOld, normalizedBestCount)
+        val summary = calculatePlayerRating(scoredCharts.map { (chart, _, rating) ->
+            RatingChartEntry(chart.chartId, chart.song.songId, rating, chart.isNew)
+        }, normalizedBestCount, normalizedNewCount)
+        val total = summary.total
+        val currentDisplay = summary.displayedRating
+        val newThreshold = replacementThreshold(summary.new20, normalizedNewCount)
+        val oldThreshold = replacementThreshold(summary.best30, normalizedBestCount)
 
         val results = scoredCharts.mapNotNull { scoredChart ->
             val chart = scoredChart.chart
             val score = scoredChart.score
             if (score != null && score >= SCORE_SSS_PLUS) return@mapNotNull null
             val currentRating = scoredChart.currentRating
-            val target = targetMilestones.firstOrNull { it.score > (score ?: SCORE_BELOW_CUTOFF) }
-                ?: return@mapNotNull null
-            val potentialRating = calculateSingleRating(chart.constant, target.score)
-            val selectedIds = if (chart.isNew) selectedNewIds else selectedOldIds
             val threshold = if (chart.isNew) newThreshold else oldThreshold
-            val singleRatingGain = if (chart.chartId in selectedIds) {
-                (potentialRating - currentRating).coerceAtLeast(0.0)
-            } else {
-                (potentialRating - threshold).takeIf { potentialRating > threshold } ?: 0.0
-            }
-            if (singleRatingGain <= 0.0) return@mapNotNull null
-            val playerRatingGain = singleRatingGain / totalSlotCount
-            if (playerRatingGain < MIN_DISPLAYED_GAIN) return@mapNotNull null
+            val baseline = maxOf(currentRating, threshold)
+            val target = targetMilestones.firstOrNull {
+                if (it.score <= (score ?: SCORE_BELOW_CUTOFF)) return@firstOrNull false
+                val gain = calculateSingleRating(chart.constant, it.score) - baseline
+                gain > 0 && displayedPlayerRating(total + gain, totalSlotCount) > currentDisplay
+            } ?: return@mapNotNull null
+            val potentialRating = calculateSingleRating(chart.constant, target.score)
             RecommendationResult(
                 song = chart.song,
                 sheet = chart.sheet,
@@ -110,7 +98,7 @@ object RecommendationCalculator {
                 targetRank = target.rank,
                 targetScore = target.score,
                 potentialRating = potentialRating,
-                potentialGain = playerRatingGain,
+                potentialGain = (potentialRating - baseline) / totalSlotCount,
                 isNew = chart.isNew,
             )
         }
@@ -127,9 +115,13 @@ object RecommendationCalculator {
         .thenBy { it.chartId }
 
     private fun replacementThreshold(
-        selected: List<ScoredChart>,
+        selected: List<RatingChartEntry>,
         capacity: Int,
-    ): Double = if (capacity > 0 && selected.size >= capacity) selected.lastOrNull()?.currentRating ?: 0.0 else 0.0
+    ): Double = when {
+        capacity == 0 -> Double.POSITIVE_INFINITY
+        selected.size < capacity -> 0.0
+        else -> selected.last().rating
+    }
 
     private fun isPlayableChart(song: CatalogSong, sheet: CatalogSheet, server: ProfileServer): Boolean =
         song.isSheetPlayableIn(sheet, server.wireValue)
@@ -160,6 +152,5 @@ object RecommendationCalculator {
     private const val SCORE_BELOW_CUTOFF = 0
     private const val SCORE_S = 975_000
     private const val SCORE_SSS_PLUS = 1_009_000
-    private const val MIN_DISPLAYED_GAIN = 0.005
     private const val DEFAULT_CANDIDATE_LIMIT = 100
 }

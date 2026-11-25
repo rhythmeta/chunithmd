@@ -7,6 +7,11 @@ struct RecommendationRow: View {
     @Environment(SongNavigation.self) private var navigation
     @State private var identity = UUID()
 
+    private var gainText: String {
+        let digits = entry.potentialGain < 0.01 ? 2...5 : 2...2
+        return "+" + entry.potentialGain.formatted(.number.precision(.fractionLength(digits)))
+    }
+
     var body: some View {
         let song = catalog.allSongs.first { $0.id == entry.song.songId }
         let tint = difficultyStyle(entry.sheet.difficulty, type: entry.sheet.type)
@@ -38,7 +43,7 @@ struct RecommendationRow: View {
                                    font: .system(size: 10, weight: .bold))
                 }.frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("+\(entry.potentialGain.formatted(.number.precision(.fractionLength(2))))")
+                    Text(gainText)
                         .font(.system(size: 18, weight: .black, design: .rounded)).foregroundStyle(.orange)
                     Text(tr("目标 {0}", entry.targetRank))
                         .font(.system(size: 10, weight: .bold, design: .monospaced)).foregroundStyle(.secondary)

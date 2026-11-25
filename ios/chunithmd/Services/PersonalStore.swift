@@ -25,7 +25,7 @@ final class PersonalStore {
             chartProgress = try bridge.chartProgress()
             if let bundle = catalog.bundle {
                 best = try bridge.bestEntries(bundle: bundle)
-                rating = try bridge.rating(bundle: bundle).rating
+                rating = try bridge.rating(bundle: bundle).displayedRating
             }
             catalog.server = snapshot.activeProfile?.server ?? "jp"
             catalog.favorites = snapshot.favoriteSongIds

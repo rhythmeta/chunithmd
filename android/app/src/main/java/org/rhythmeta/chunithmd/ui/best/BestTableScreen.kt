@@ -276,7 +276,7 @@ fun BestTableScreen(
             context = context,
             bestEntries = shareEntries(bestEntries),
             newEntries = shareEntries(newEntries),
-            rating = summary.rating,
+            rating = summary.displayedRating,
             bestAverage = summary.best30Average,
             newAverage = summary.new20Average,
             bestCount = bestCount,
@@ -721,7 +721,7 @@ private fun BestRatingSummary(
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )
                     Text(
-                        formatRating(summary.rating),
+                        formatRating(summary.displayedRating),
                         style = MiuixTheme.textStyles.headline1.copy(
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Black,

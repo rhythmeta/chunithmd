@@ -237,7 +237,7 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
         read().let { buildBestTableEntries(bundle, records(it), server(it), version, theoretical) }
 
     @Throws(Exception::class)
-    fun rating(bundle: CatalogBundle): PlayerRatingSummary = calculatePlayerRating(bestEntries(bundle).map { RatingChartEntry(it.chartId, it.songId, it.rating, it.isNew) })
+    fun rating(bundle: CatalogBundle): PlayerRatingSummary = bestTable(bundle, version = null).summary
 
     @Throws(Exception::class)
     fun bestTable(bundle: CatalogBundle, version: String?): BestTableResponse = read().let { state ->
@@ -270,7 +270,10 @@ class PersonalDataBridge(private val files: SnapshotFiles) {
     fun constants(bundle: CatalogBundle): ConstantTableResponse = read().let { buildConstantTableResponse(bundle, records(it), server(it), it.favoriteSongIds.toSet()) }
 
     @Throws(Exception::class)
-    fun recommendations(bundle: CatalogBundle): RecommendationResponse = read().let { RecommendationCalculator.calculate(bundle, records(it), server(it)) }
+    fun recommendations(bundle: CatalogBundle): RecommendationResponse = read().let { state ->
+        val slots = bestTablePreferences(state)
+        RecommendationCalculator.calculate(bundle, records(state), server(state), slots.bestCount, slots.newCount)
+    }
 
     @Throws(Exception::class)
     fun scoreQuery(bundle: CatalogBundle, aliases: Map<String, List<String>>): ScoreQueryResponse = read().let {

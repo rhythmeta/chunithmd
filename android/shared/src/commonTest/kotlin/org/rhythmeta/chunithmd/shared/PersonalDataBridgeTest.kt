@@ -73,6 +73,21 @@ class PersonalDataBridgeTest {
         assertFails { bridge.setBestTableCapacity(30, 20) }
         assertContentEquals(before, files.data.getValue("personal.pb.gz"))
     }
+    @Test fun recommendationsUseTheSavedBestTableCapacities() {
+        val bridge = PersonalDataBridge(Files())
+        bridge.setBestTableCapacity(1, 1)
+        bridge.saveScore("floor", "std", "master", 1_007_500, "clear", "", "")
+        fun song(id: String, version: String, constant: Double) = CatalogSong(id, id, version = version,
+            sheets = listOf(CatalogSheet("std", "master", levelValue = constant, regions = mapOf("jp" to true))))
+        val bundle = CatalogBundle(1, Catalog(
+            versions = listOf(CatalogVersion("old"), CatalogVersion("new")),
+            songs = listOf(song("floor", "old", 13.0), song("target", "old", 12.9), song("new", "new", 14.0)),
+        ))
+        val target = bridge.recommendations(bundle).old.single { it.song.songId == "target" }
+        assertEquals("SSS+", target.targetRank)
+        assertEquals(0.025, target.potentialGain, absoluteTolerance = 0.000001)
+    }
+
     @Test fun scoreQueryUsesActiveProfileImportedBestsRegionAndCommunityAliases() {
         val files = Files(); val bridge = PersonalDataBridge(files)
         bridge.snapshotJson()

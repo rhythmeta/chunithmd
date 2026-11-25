@@ -247,7 +247,7 @@ private fun RecommendationRow(
                 }
                 Column(modifier = Modifier.padding(end = 14.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        "+${formatRating(result.potentialGain)}",
+                        "+${formatGain(result.potentialGain)}",
                         style = MiuixTheme.textStyles.title3,
                         fontWeight = FontWeight.Black,
                         color = RecommendationAccent,
@@ -309,7 +309,11 @@ fun RecommendationHomeCard(
 
 private fun formatScore(value: Int): String = String.format(Locale.ROOT, "%,d", value)
 private fun formatLevel(value: Double): String = String.format(Locale.ROOT, "%.1f", value)
-private fun formatRating(value: Double): String = String.format(Locale.ROOT, "%.2f", value)
+private fun formatGain(value: Double): String = if (value < 0.01) {
+    String.format(Locale.ROOT, "%.5f", value).trimEnd('0')
+} else {
+    String.format(Locale.ROOT, "%.2f", value)
+}
 
 @Composable
 private fun rankColor(rank: String): Color = when (rank.uppercase(Locale.ROOT)) {

@@ -23,7 +23,7 @@ struct BestTableSummaryView: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(tr("玩家 Rating")).font(.footnote).foregroundStyle(.secondary)
-                    Text(summary.rating, format: .number.precision(.fractionLength(2)))
+                    Text(summary.displayedRating, format: .number.precision(.fractionLength(2)))
                         .font(.system(size: 30, weight: .black, design: .rounded))
                         .foregroundStyle(LinearGradient(colors: playerRatingColors(summary.rating), startPoint: .leading, endPoint: .trailing))
                         .brightness(scheme == .light ? -0.18 : 0)

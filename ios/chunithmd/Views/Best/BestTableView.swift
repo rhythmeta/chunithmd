@@ -201,7 +201,7 @@ struct BestTableView: View {
                 let file = try await BestTableImageExporter.render(
                     catalog: catalog,
                     userName: personal.snapshot.activeProfile?.name ?? "",
-                    rating: summary.rating,
+                    rating: summary.displayedRating,
                     bestEntries: selectedBestEntries,
                     newEntries: selectedNewEntries,
                     bestAverage: summary.best30Average,

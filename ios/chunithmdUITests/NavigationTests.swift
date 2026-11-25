@@ -521,7 +521,7 @@ final class NavigationTests: XCTestCase {
         let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "recommendation-row-"))
         XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 120))
         let firstNew = rows.firstMatch.identifier
-        XCTAssertTrue(rows.firstMatch.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "[+][0-9]+[.][0-9]{2}")).firstMatch.exists)
+        XCTAssertTrue(rows.firstMatch.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "[+][0-9]+[.][0-9]{2,5}")).firstMatch.exists)
         XCTAssertTrue(rows.firstMatch.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "目标 ")).firstMatch.exists)
         capture(app, name: "recommendations-new")
         let scope = app.buttons["recommendation-scope"]
